@@ -1,0 +1,439 @@
+---
+title: "featuretablefilter: Feature Table Filtering for Microbiome Data"
+author: "Vojtech Barton"
+date: "`r Sys.Date()`"
+output: html_document
+vignette: >
+  %\VignetteIndexEntry{featuretablefilter: Feature Table Filtering for Microbiome Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+# Introduction
+
+The `featuretablefilter` package provides functions for filtering microbiome feature tables based on coverage and abundance criteria. It is designed to help researchers remove low-quality samples and rare features from their datasets while maintaining comprehensive quality control metrics.
+
+## Key Features
+
+- **Sample Coverage Filtering**: Remove samples with insufficient sequencing depth
+- **Feature Abundance Filtering**: Filter out rare features based on absolute or relative thresholds
+- **Data-driven Cutoff Estimation**: MAD-based and IQR-based threshold estimation
+- **Quality Control Metrics**: Comprehensive metrics including sparsity, retention rates, and rank-abundance stability
+- **Visualization**: Multiple plotting functions for exploring filtering effects
+
+# Installation
+
+```{r installation, eval = FALSE}
+# Install from local source
+devtools::install(".")
+
+# Required packages
+library(featuretablefilter)
+```
+
+# Loading Data
+
+The package includes a function to load feature tables in common formats:
+
+```{r load-data, eval = FALSE}
+# Load TSV file (auto-detects format)
+table <- load_feature_table("feature-table.tsv")
+
+# Load CSV file
+table <- load_feature_table("feature-table.csv")
+
+# The first column should contain feature IDs
+head(table)
+```
+
+## Feature Table Format
+
+The expected format is a tab-separated or comma-separated file where:
+- The first column contains feature IDs (e.g., OTU IDs, ASV IDs, taxon names)
+- Remaining columns contain sample counts with sample names as column headers
+- Values are integer counts of reads/features per sample
+
+# Sample Coverage Filtering
+
+## Absolute Threshold Filtering
+
+Remove samples with total read count below a fixed threshold:
+
+```{r coverage-absolute, eval = FALSE}
+# Filter samples with < 1000 reads
+filtered_table <- filter_by_coverage(table, min_reads = 1000)
+```
+
+## Data-driven Threshold Estimation
+
+### MAD-based Method
+
+The Median Absolute Deviation (MAD) method identifies outliers using the formula:
+$$\text{cutoff} = \max(\text{floor}, \text{median} - \text{multiplier} \times \text{MAD})$$
+
+```{r mad-cutoff, eval = FALSE}
+# Estimate cutoff using MAD method (default multiplier = 3)
+est <- estimate_mad_cutoff(table, multiplier = 3, floor = 0)
+print(est)
+
+# Use the estimated cutoff for filtering
+filtered_table <- filter_by_coverage(table, min_reads = est$cutoff)
+```
+
+### IQR-based Method
+
+The Interquartile Range (IQR) method uses Tukey's fences:
+$$\text{cutoff} = \max(\text{floor}, Q1 - \text{multiplier} \times \text{IQR})$$
+
+```{r iqr-cutoff, eval = FALSE}
+# Estimate cutoff using IQR method (default multiplier = 1.5)
+est <- estimate_iqr_cutoff(table, multiplier = 1.5, floor = 0)
+print(est)
+
+# Use the estimated cutoff for filtering
+filtered_table <- filter_by_coverage(table, min_reads = est$cutoff)
+```
+
+## Ecological Completeness-Based Filtering
+
+Instead of using absolute sequencing depth cutoffs, you can filter samples based on estimated ecological completeness using coverage estimators. These methods assess whether a sample has been sequenced deeply enough to capture the diversity present.
+
+### Good's Coverage
+
+Good's coverage estimator measures the probability that the next read will belong to a previously observed feature:
+
+$$C = 1 - \frac{n_1}{n}$$
+
+where $n_1$ is the number of singletons (features with exactly one read) and $n$ is the total number of reads.
+
+```{r good-coverage, eval = FALSE}
+# Estimate Good's coverage for all samples
+good_cov <- estimate_good_coverage(table, target_coverage = 0.95)
+print(good_cov)
+
+# Filter to keep only samples with >= 95% estimated coverage
+result <- filter_by_coverage_estimator(
+  table,
+  method = "good",
+  target_coverage = 0.95
+)
+filtered_table <- result$table
+
+# View coverage before and after filtering
+cat(sprintf("Mean coverage before: %.2f%%\n", result$mean_coverage_before * 100))
+cat(sprintf("Mean coverage after: %.2f%%\n", result$mean_coverage_after * 100))
+```
+
+### Chao's Coverage
+
+Chao's coverage estimator is more conservative and accounts for unseen species/features using both singletons and doubletons:
+
+$$\hat{C} = 1 - \frac{f_1}{S} + \frac{f_1}{n} \times \frac{n-1}{n} \times \frac{S-1}{S}$$
+
+where $f_1$ = singletons, $S$ = number of features, $n$ = total reads.
+
+```{r chao-coverage, eval = FALSE}
+# Estimate Chao's coverage for all samples
+chao_cov <- estimate_chao_coverage(table, target_coverage = 0.90)
+print(chao_cov)
+
+# Filter to keep only samples with >= 90% estimated coverage
+result <- filter_by_coverage_estimator(
+  table,
+  method = "chao",
+  target_coverage = 0.90
+)
+filtered_table <- result$table
+```
+
+### Comparison of Methods
+
+```{r compare-coverage, eval = FALSE}
+# Compare different estimation methods
+good_est <- estimate_good_coverage(table, target_coverage = 0.95)
+chao_est <- estimate_chao_coverage(table, target_coverage = 0.90)
+
+cat(sprintf("Good's coverage: mean=%.2f%%, min=%.2f%%\n",
+            good_est$mean_coverage * 100, good_est$min_coverage * 100))
+cat(sprintf("Chao's coverage: mean=%.2f%%, min=%.2f%%\n",
+            chao_est$mean_coverage * 100, chao_est$min_coverage * 100))
+```
+
+Note: Chao's estimator typically gives lower (more conservative) coverage estimates than Good's estimator.
+
+# Feature Abundance Filtering
+
+## Absolute Count Filtering
+
+Remove features with low total read counts:
+
+```{r feature-absolute, eval = FALSE}
+# Filter features with < 5 total reads
+filtered_table <- filter_features_by_abundance(
+  table,
+  threshold = 5,
+  mode = "absolute",
+  min_samples = 1
+)
+
+# Keep only features present in at least 3 samples
+filtered_table <- filter_features_by_abundance(
+  table,
+  threshold = 1,
+  mode = "absolute",
+  min_samples = 3
+)
+```
+
+## Relative Abundance Filtering
+
+Filter features based on proportion of total reads:
+
+```{r feature-relative, eval = FALSE}
+# Filter features with < 0.1% relative abundance
+filtered_table <- filter_features_by_abundance(
+  table,
+  threshold = 0.001,
+  mode = "relative",
+  min_samples = 1
+)
+```
+
+## Joint Abundance-Prevalence Filtering
+
+A powerful filtering approach that combines abundance thresholds with prevalence requirements using AND/OR logic. This is particularly useful for retaining features that are either widely distributed across samples OR have high abundance when present.
+
+### OR Logic (Either Criterion)
+
+Keep features that meet EITHER the abundance threshold OR the prevalence threshold:
+
+```{r joint-or, eval = FALSE}
+# Keep features that are EITHER >0.1% relative abundance
+# OR present in >=30% of samples
+result <- filter_features_joint(
+  table,
+  abundance_threshold = 0.001,      # 0.1% relative abundance
+  prevalence_threshold = 0.3,       # 30% of samples
+  mode = "relative",
+  logic = "OR"
+)
+
+# View detailed breakdown
+cat(sprintf("Features before: %d\n", result$n_features_before))
+cat(sprintf("Features after: %d\n", result$n_features_after))
+cat(sprintf("Met abundance only: %d\n", result$n_by_abundance_only))
+cat(sprintf("Met prevalence only: %d\n", result$n_by_prevalence_only))
+cat(sprintf("Met both criteria: %d\n", result$n_by_both))
+cat(sprintf("Met neither (removed): %d\n", result$n_by_neither))
+```
+
+**Use case**: Retain rare but abundant features (e.g., pathogen spikes) AND common but low-abundance features (e.g., core microbiome members).
+
+### AND Logic (Both Criteria)
+
+Keep features that meet BOTH the abundance threshold AND the prevalence threshold:
+
+```{r joint-and, eval = FALSE}
+# Keep features that are BOTH >5 reads AND present in >=50% of samples
+result <- filter_features_joint(
+  table,
+  abundance_threshold = 5,
+  prevalence_threshold = 0.5,       # 50% of samples
+  mode = "absolute",
+  logic = "AND"
+)
+```
+
+**Use case**: Stringent filtering to keep only robust, well-distributed features.
+
+### Using in the Pipeline
+
+```{r pipeline-joint, eval = FALSE}
+result <- run_filtering_pipeline(
+  input_file = "feature-table.tsv",
+  output_dir = "results",
+  prefix = "joint_filter",
+
+  # Coverage filtering
+  cov_filter_method = "good",
+  cov_target_coverage = 0.95,
+
+  # Joint abundance-prevalence filtering
+  abun_filter_method = "joint",
+  abun_threshold = 0.001,           # 0.1% relative abundance
+  abun_prevalence_threshold = 0.3,  # 30% of samples
+  abun_logic = "OR",                 # Keep if meets either criterion
+
+  generate_plots = TRUE,
+  generate_report = TRUE
+)
+```
+
+## Relative Cutoff Method
+
+This method calculates an absolute threshold based on a percentage of the minimum-coverage sample:
+
+```{r relative-cutoff, eval = FALSE}
+filtered_table <- filter_by_relative_cutoff(
+  table,
+  min_coverage = 1000,  # Minimum coverage required for a sample
+  relative_threshold = 0.01,  # 1% of min-coverage sample
+  remove_features = TRUE
+)
+```
+
+# Complete Filtering Pipeline
+
+The `run_filtering_pipeline()` function orchestrates a complete workflow:
+
+```{r pipeline, eval = FALSE}
+result <- run_filtering_pipeline(
+  input_file = "feature-table.tsv",
+  output_dir = "results",
+  prefix = "analysis1",
+
+  # Coverage filtering
+  cov_filter_method = "mad",
+  cov_threshold = 3,
+
+  # Abundance filtering
+  abun_filter_method = "relative_cutoff",
+  abun_threshold = 0.01,
+  min_coverage_for_relative = 1000,
+
+  # Options
+  generate_plots = TRUE,
+  generate_report = TRUE,
+  verbose = TRUE
+)
+
+# Access results
+original <- result$original_table
+filtered <- result$filtered_table
+qc <- result$qc_metrics
+```
+
+## Available Methods
+
+### Coverage Filtering Methods
+
+| Method | Description |
+|--------|-------------|
+| `none` | No coverage filtering |
+| `absolute` | Remove samples below fixed read count threshold |
+| `mad` | Use MAD-based threshold (median - multiplier * MAD) |
+| `iqr` | Use IQR/Tukey-based threshold (Q1 - multiplier * IQR) |
+| `good` | Use Good's coverage estimator (ecological completeness) |
+| `chao` | Use Chao's coverage estimator (conservative completeness) |
+
+### Abundance Filtering Methods
+
+| Method | Description |
+|--------|-------------|
+| `none` | No abundance filtering |
+| `absolute` | Remove features below fixed count threshold |
+| `relative` | Remove features below relative abundance proportion |
+| `relative_cutoff` | Relative threshold based on min-coverage sample |
+| `joint` | Joint abundance-prevalence filtering with AND/OR logic |
+
+# Quality Control Metrics
+
+Compute comprehensive QC metrics comparing original and filtered tables:
+
+```{r qc-metrics, eval = FALSE}
+qc <- compute_filtering_qc(original_table, filtered_table, top_n = 10)
+
+# View results
+print(qc)
+```
+
+## Metrics Computed
+
+- **Sparsity**: Percentage of zero values in the table
+- **Retention Rates**: Lreads, features, and samples retained
+- **Rank-Abundance Stability**:
+  - Top N feature overlap between original and filtered tables
+  - Jaccard similarity index
+  - Spearman rank correlation
+- **Procrustes Analysis**: Compositional similarity (requires `vegan` package)
+
+# Visualization
+
+## Coverage Distribution
+
+```{r plot-coverage, eval = FALSE}
+plot_coverage_histogram(table, threshold = 1000)
+```
+
+## Presence-Frequency Analysis
+
+Compare feature prevalence (fraction of samples containing a feature) and sample richness (number of features per sample):
+
+```{r plot-presence, eval = FALSE}
+# Single table analysis
+plot_presence_analysis(table, threshold = 1)
+
+# Comparison of original vs filtered
+plot_presence_analysis(
+  original_table,
+  table_filtered = filtered_table,
+  save_dir = "plots",
+  prefix = "presence_comparison"
+)
+```
+
+## QC Comparison Plots
+
+Generate comprehensive comparison plots:
+
+```{r plot-qc, eval = FALSE}
+plot_qc_comparison(
+  original_table,
+  filtered_table,
+  plot_dir = "plots",
+  prefix = "qc_comparison",
+  top_n = 10,
+  heatmap_top = 50
+)
+```
+
+This generates:
+1. Sample coverage distribution (log10 scale, faceted)
+2. Feature abundance distribution (log10 scale, faceted)
+3. Per-sample sparsity histogram
+4. Retention rates barplot
+5. Top features stacked barplot
+6. Heatmaps of top variable features
+
+## Top Features Stacked Barplot
+
+```{r plot-top-features, eval = FALSE}
+plot_top_features_stacked(
+  original_table,
+  filtered_table,
+  top_n = 10,
+  plot_dir = "plots",
+  prefix = "top_features"
+)
+```
+
+Note: Top N features are selected independently for each table based on total relative abundance.
+
+# Session Info
+
+```{r session-info}
+sessionInfo()
+```
+
+# References
+
+For more information, visit the package repository or see the README.md file.

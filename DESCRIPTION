@@ -1,0 +1,34 @@
+Package: featuretablefilter
+Title: Feature Table Filtering for Microbiome Data
+Version: 0.1.0
+Authors@R: person("Vojtech", "Barton", email = "vojtech.barton@gmail.com", role = c("aut", "cre"))
+Description: Functions for filtering microbiome feature tables based on coverage, abundance,
+    and network connectivity. Supports phyloseq and TreeSummarizedExperiment objects natively.
+License: GPL-3
+License.file: LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 8.0.0
+BiocViews: Microbiome,DataImport,DataProcessing,Filtering
+Imports:
+    ggplot2 (>= 3.4.0),
+    tidyr,
+    S4Vectors,
+    grDevices,
+    graphics,
+    stats,
+    utils
+Suggests:
+    pheatmap,
+    ComplexHeatmap,
+    patchwork,
+    testthat (>= 3.0.0),
+    knitr,
+    BiocStyle,
+    vegan,
+    scales,
+    phyloseq,
+    TreeSummarizedExperiment,
+    SingleCellExperiment,
+    SummarizedExperiment
+Config/testthat/edition: 3

@@ -1,0 +1,45 @@
+\name{estimate_chao_coverage}
+\alias{estimate_chao_coverage}
+\title{Estimate Chao's sample coverage for samples}
+\description{
+Calculates Chao's sample coverage estimator, a more conservative measure of
+sampling completeness that accounts for unseen species/features. This estimator
+is based on the frequency of rare features (singletons and doubletons).
+
+Chao's coverage formula (simplified):
+C_hat = 1 - (f1/S) + (f1/n) * ((n-1)/n) * ((S-1)/S)
+where f1 = singletons, S = number of features, n = total reads
+}
+\usage{
+estimate_chao_coverage(table, target_coverage = 0.90)
+}
+\arguments{
+  \item{table}{A feature table (data.frame or matrix) with features as rows and samples as columns.
+              First column should be feature IDs, remaining columns are sample counts.}
+  \item{target_coverage}{Target coverage threshold (0-1). Samples below this coverage will be flagged.
+                        Default is 0.90 (90\% coverage).}
+}
+\value{
+A list containing:
+  \item{sample_coverage}{Named vector of Chao coverage estimates for each sample}
+  \item{mean_coverage}{Mean coverage across all samples}
+  \item{min_coverage}{Minimum coverage among all samples}
+  \item{max_coverage}{Maximum coverage among all samples}
+  \item{total_singletons}{Total number of singletons across all samples}
+  \item{total_doubletons}{Total number of doubletons across all samples}
+  \item{total_features}{Total number of features across all samples}
+  \item{total_reads}{Total number of reads across all samples}
+  \item{n_samples}{Total number of samples}
+  \item{n_samples_below_target}{Number of samples below target coverage}
+  \item{target_coverage}{The target coverage value used}
+  \item{suggested_cutoff}{Suggested minimum read cutoff based on coverage analysis}
+}
+\examples{
+# Estimate Chao's coverage for all samples
+# coverage_est <- estimate_chao_coverage(table, target_coverage = 0.90)
+# print(coverage_est)
+
+# Compare Good's vs Chao's coverage
+# good_cov <- estimate_good_coverage(table, target_coverage = 0.95)
+# chao_cov <- estimate_chao_coverage(table, target_coverage = 0.90)
+}

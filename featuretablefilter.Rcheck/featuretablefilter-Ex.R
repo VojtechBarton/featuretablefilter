@@ -1,0 +1,409 @@
+pkgname <- "featuretablefilter"
+source(file.path(R.home("share"), "R", "examples-header.R"))
+options(warn = 1)
+library('featuretablefilter')
+
+base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
+base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
+cleanEx()
+nameEx("calculate_feature_cv")
+### * calculate_feature_cv
+
+flush(stderr()); flush(stdout())
+
+### Name: calculate_feature_cv
+### Title: Calculate coefficient of variation (CV) for features
+### Aliases: calculate_feature_cv
+
+### ** Examples
+
+# Calculate CV for all features
+# cv_results <- calculate_feature_cv(table)
+
+# Calculate and plot distribution
+# cv_results <- calculate_feature_cv(table, plot = TRUE)
+
+# Find most variable features
+# cv_results <- calculate_feature_cv(table)
+# top_variable <- cv_results[order(-cv_results$cv), ][1:10, ]
+
+
+
+cleanEx()
+nameEx("calculate_sparsity")
+### * calculate_sparsity
+
+flush(stderr()); flush(stdout())
+
+### Name: calculate_sparsity
+### Title: Calculate sparsity of a feature table
+### Aliases: calculate_sparsity
+
+### ** Examples
+
+# Overall table sparsity
+# sparsity <- calculate_sparsity(table)
+
+# Sparsity per sample
+# sample_sparsity <- calculate_sparsity(table, by_sample = TRUE)
+
+
+
+cleanEx()
+nameEx("compute_filtering_qc")
+### * compute_filtering_qc
+
+flush(stderr()); flush(stdout())
+
+### Name: compute_filtering_qc
+### Title: Compute quality control metrics comparing original and filtered
+###   tables
+### Aliases: compute_filtering_qc
+
+### ** Examples
+
+# Compare original and filtered tables
+# qc <- compute_filtering_qc(original_table, filtered_table)
+# print(qc)
+
+
+
+cleanEx()
+nameEx("convert_to_relative")
+### * convert_to_relative
+
+flush(stderr()); flush(stdout())
+
+### Name: convert_to_relative
+### Title: Convert absolute abundance table to relative abundance table
+### Aliases: convert_to_relative
+
+### ** Examples
+
+# Convert to proportions
+# rel_table <- convert_to_relative(table)
+
+# Convert to percentages
+# rel_table <- convert_to_relative(table, percent = TRUE)
+
+
+
+cleanEx()
+nameEx("estimate_chao_coverage")
+### * estimate_chao_coverage
+
+flush(stderr()); flush(stdout())
+
+### Name: estimate_chao_coverage
+### Title: Estimate Chao's sample coverage for samples
+### Aliases: estimate_chao_coverage
+
+### ** Examples
+
+# Estimate Chao's coverage for all samples
+# coverage_est <- estimate_chao_coverage(table, target_coverage = 0.90)
+# print(coverage_est)
+
+# Compare Good's vs Chao's coverage
+# good_cov <- estimate_good_coverage(table, target_coverage = 0.95)
+# chao_cov <- estimate_chao_coverage(table, target_coverage = 0.90)
+
+
+
+cleanEx()
+nameEx("estimate_good_coverage")
+### * estimate_good_coverage
+
+flush(stderr()); flush(stdout())
+
+### Name: estimate_good_coverage
+### Title: Estimate Good's coverage for samples
+### Aliases: estimate_good_coverage
+
+### ** Examples
+
+# Estimate Good's coverage for all samples
+# coverage_est <- estimate_good_coverage(table, target_coverage = 0.95)
+# print(coverage_est)
+
+# Filter samples to achieve at least 90% coverage
+# coverage_est <- estimate_good_coverage(table, target_coverage = 0.90)
+
+
+
+cleanEx()
+nameEx("estimate_iqr_cutoff")
+### * estimate_iqr_cutoff
+
+flush(stderr()); flush(stdout())
+
+### Name: estimate_iqr_cutoff
+### Title: Estimate minimum read cutoff using Interquartile Range (IQR) /
+###   Tukey's Method
+### Aliases: estimate_iqr_cutoff
+
+### ** Examples
+
+# estimate_iqr_cutoff(my_table, multiplier = 1.5)
+
+
+
+cleanEx()
+nameEx("estimate_mad_cutoff")
+### * estimate_mad_cutoff
+
+flush(stderr()); flush(stdout())
+
+### Name: estimate_mad_cutoff
+### Title: Estimate minimum read cutoff using Median Absolute Deviation
+###   (MAD)
+### Aliases: estimate_mad_cutoff
+
+### ** Examples
+
+# estimate_mad_cutoff(my_table, multiplier = 3)
+
+
+
+cleanEx()
+nameEx("filter_by_coverage")
+### * filter_by_coverage
+
+flush(stderr()); flush(stdout())
+
+### Name: filter_by_coverage
+### Title: Filter samples by minimum coverage
+### Aliases: filter_by_coverage
+
+### ** Examples
+
+# filter_by_coverage(my_table, min_reads = 1000)
+
+
+
+cleanEx()
+nameEx("filter_by_coverage_estimator")
+### * filter_by_coverage_estimator
+
+flush(stderr()); flush(stdout())
+
+### Name: filter_by_coverage_estimator
+### Title: Filter samples based on ecological coverage estimators
+### Aliases: filter_by_coverage_estimator
+
+### ** Examples
+
+# Filter using Good's coverage (keep samples with >= 95% coverage)
+# result <- filter_by_coverage_estimator(table, method = "good", target_coverage = 0.95)
+
+# Filter using Chao's coverage (keep samples with >= 90% coverage)
+# result <- filter_by_coverage_estimator(table, method = "chao", target_coverage = 0.90)
+
+
+
+cleanEx()
+nameEx("filter_by_relative_cutoff")
+### * filter_by_relative_cutoff
+
+flush(stderr()); flush(stdout())
+
+### Name: filter_by_relative_cutoff
+### Title: Filter features using relative abundance cutoff applied as
+###   absolute threshold
+### Aliases: filter_by_relative_cutoff
+
+### ** Examples
+
+# Filter: min 1000 reads/sample, then 1% relative threshold
+# result <- filter_by_relative_cutoff(table, min_coverage = 1000, relative_threshold = 0.01)
+# filtered_table <- result$table
+
+
+
+cleanEx()
+nameEx("filter_features_by_abundance")
+### * filter_features_by_abundance
+
+flush(stderr()); flush(stdout())
+
+### Name: filter_features_by_abundance
+### Title: Filter features based on abundance threshold
+### Aliases: filter_features_by_abundance
+
+### ** Examples
+
+# Filter features with absolute count < 5
+# filtered <- filter_features_by_abundance(table, threshold = 5, mode = "absolute")
+
+# Filter features with relative abundance < 0.001 (0.1%)
+# filtered <- filter_features_by_abundance(table, threshold = 0.001, mode = "relative")
+
+# Keep only features present in at least 3 samples
+# filtered <- filter_features_by_abundance(table, threshold = 1, min_samples = 3)
+
+
+
+cleanEx()
+nameEx("load_feature_table")
+### * load_feature_table
+
+flush(stderr()); flush(stdout())
+
+### Name: load_feature_table
+### Title: Load a feature table from TSV or CSV file
+### Aliases: load_feature_table
+
+### ** Examples
+
+# Load TSV file (auto-detects format)
+# table <- load_feature_table("feature-table.tsv")
+
+# Load CSV file
+# table <- load_feature_table("feature-table.csv")
+
+# Specify feature column by name
+# table <- load_feature_table("table.tsv", feature_col = "OTU_ID")
+
+
+
+cleanEx()
+nameEx("plot_coverage_histogram")
+### * plot_coverage_histogram
+
+flush(stderr()); flush(stdout())
+
+### Name: plot_coverage_histogram
+### Title: Plot histogram of sample coverage
+### Aliases: plot_coverage_histogram
+
+### ** Examples
+
+# Basic histogram
+# plot_coverage_histogram(table)
+
+# With threshold highlighting
+# plot_coverage_histogram(table, threshold = 1000)
+
+# Save plot to file
+# plot_coverage_histogram(table, threshold = 1000, plot_dir = "plots", prefix = "my_plot")
+
+
+
+cleanEx()
+nameEx("plot_presence_analysis")
+### * plot_presence_analysis
+
+flush(stderr()); flush(stdout())
+
+### Name: plot_presence_analysis
+### Title: Plot presence frequency analysis for features and samples
+### Aliases: plot_presence_analysis
+
+### ** Examples
+
+# Display plots for original table only
+# plot_presence_analysis(table)
+
+# Compare original vs filtered (side-by-side with shared axes)
+# plot_presence_analysis(table, table_filtered = filtered_table)
+
+# Save plots
+# plot_presence_analysis(table, save_dir = "plots", prefix = "my_analysis")
+
+# Get statistics
+# stats <- plot_presence_analysis(table)
+# print(stats$mean_sample_richness)
+
+
+
+cleanEx()
+nameEx("plot_qc_comparison")
+### * plot_qc_comparison
+
+flush(stderr()); flush(stdout())
+
+### Name: plot_qc_comparison
+### Title: Create visualization comparison of original vs filtered feature
+###   tables
+### Aliases: plot_qc_comparison
+
+### ** Examples
+
+# Display plots
+# plot_qc_comparison(original_table, filtered_table)
+
+# Save plots to directory
+# plot_qc_comparison(original_table, filtered_table, plot_dir = "qc_plots", prefix = "my_analysis")
+
+
+
+cleanEx()
+nameEx("plot_top_features_stacked")
+### * plot_top_features_stacked
+
+flush(stderr()); flush(stdout())
+
+### Name: plot_top_features_stacked
+### Title: Plot top N features as stacked barplots comparing original and
+###   filtered tables
+### Aliases: plot_top_features_stacked
+
+### ** Examples
+
+# Display plot
+# plot_top_features_stacked(original_table, filtered_table, top_n = 10)
+
+# Save plot to file
+# result <- plot_top_features_stacked(original_table, filtered_table,
+#                                     plot_dir = "plots", prefix = "my_analysis", top_n = 10)
+
+
+
+cleanEx()
+nameEx("run_filtering_pipeline")
+### * run_filtering_pipeline
+
+flush(stderr()); flush(stdout())
+
+### Name: run_filtering_pipeline
+### Title: Run a complete feature table filtering pipeline with QC report
+### Aliases: run_filtering_pipeline
+
+### ** Examples
+
+# Simple pipeline with absolute thresholds
+# result <- run_filtering_pipeline(
+#   input_file = "feature-table.tsv",
+#   output_dir = "results",
+#   prefix = "analysis1",
+#   cov_filter_method = "absolute",
+#   cov_threshold = 1000,
+#   abun_filter_method = "absolute",
+#   abun_threshold = 5
+# )
+
+# Pipeline with MAD-based coverage and relative abundance filtering
+# result <- run_filtering_pipeline(
+#   input_file = "feature-table.tsv",
+#   output_dir = "results",
+#   cov_filter_method = "mad",
+#   cov_threshold = 3,
+#   abun_filter_method = "relative_cutoff",
+#   abun_threshold = 0.01,
+#   min_coverage_for_relative = 1000
+# )
+
+
+
+### * <FOOTER>
+###
+cleanEx()
+options(digits = 7L)
+base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
+grDevices::dev.off()
+###
+### Local variables: ***
+### mode: outline-minor ***
+### outline-regexp: "\\(> \\)?### [*]+" ***
+### End: ***
+quit('no')

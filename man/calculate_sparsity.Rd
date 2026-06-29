@@ -1,0 +1,28 @@
+\name{calculate_sparsity}
+\alias{calculate_sparsity}
+\title{Calculate sparsity of a feature table}
+\description{
+Computes the proportion of zero cells in the table, which is a common
+quality control metric for microbiome and other sparse count data.
+}
+\usage{
+calculate_sparsity(table, by_sample = FALSE)
+}
+\arguments{
+  \item{table}{A feature table (data.frame or matrix) with features as rows and samples as columns.
+              First column should be feature IDs, remaining columns are sample counts/abundances.}
+  \item{by_sample}{Logical. If TRUE, returns sparsity per sample. If FALSE (default),
+                  returns overall table sparsity.}
+}
+\value{
+If by_sample = FALSE: a numeric value between 0 and 1 representing
+        the proportion of zero cells in the table.
+        If by_sample = TRUE: a named numeric vector with sparsity for each sample.
+}
+\examples{
+# Overall table sparsity
+# sparsity <- calculate_sparsity(table)
+
+# Sparsity per sample
+# sample_sparsity <- calculate_sparsity(table, by_sample = TRUE)
+}

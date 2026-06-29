@@ -1,0 +1,18 @@
+Package: featuretablefilter
+Title: Feature Table Filtering for Microbiome Data
+Version: 0.1.0
+Authors@R: person("Vojtech", "Barton", email = "vojtech.barton@gmail.com", role = c("aut", "cre"))
+Description: Simple functions for filtering microbiome feature tables based on coverage and other criteria.
+License: GPL-3
+License.file: LICENSE
+Encoding: UTF-8
+RoxygenNote: 8.0.0
+BiocViews: Microbiome,DataImport,DataProcessing,Filtering
+Imports: ggplot2 (>= 3.4.0), tidyr, grDevices, graphics, stats, utils
+Suggests: pheatmap, ComplexHeatmap, patchwork, testthat (>= 3.0.0),
+        knitr, BiocStyle, vegan, scales
+VignetteBuilder: knitr
+NeedsCompilation: no
+Packaged: 2026-06-25 11:38:00 UTC; vojtechbarton
+Author: Vojtech Barton [aut, cre]
+Maintainer: Vojtech Barton <vojtech.barton@gmail.com>

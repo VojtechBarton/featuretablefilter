@@ -1,0 +1,46 @@
+\name{plot_top_features_stacked}
+\alias{plot_top_features_stacked}
+\title{Plot top N features as stacked barplots comparing original and filtered tables}
+\description{
+Creates a visualization showing the relative abundance composition of the top N features
+in both original and filtered feature tables. Each table's top N features are identified
+independently by summing abundances across all samples, converting to relative abundances,
+and selecting the top N. Non-top-N features are grouped as "Other".
+}
+\usage{
+plot_top_features_stacked(original_table, filtered_table,
+                           top_n = 10, plot_dir = NULL,
+                           prefix = "top_features_stacked",
+                           colors = NULL,
+                           width = 10, height = 7, dpi = 300,
+                           main_title = NULL)
+}
+\arguments{
+  \item{original_table}{Original feature table (data.frame) before filtering.}
+  \item{filtered_table}{Filtered feature table (data.frame) after filtering.}
+  \item{top_n}{Number of top features to show. Default is 10.}
+  \item{plot_dir}{Optional directory path to save the plot. If NULL, plot is displayed only.}
+  \item{prefix}{Prefix for saved plot filename. Default is "top_features_stacked".}
+  \item{colors}{Optional vector of colors for features. If NULL, auto-generated using ColorBrewer-style palette.}
+  \item{width}{Plot width in inches for ggsave. Default 10.}
+  \item{height}{Plot height in inches for ggsave. Default 7.}
+  \item{dpi}{DPI for saved raster output. Default 300.}
+  \item{main_title}{Main title for the plot. Default is auto-generated.}
+}
+\value{
+Returns a list containing:
+  \item{plot_path}{Path to saved plot (if plot_dir provided)}
+  \item{orig_top_features}{Character vector of top N features in original table}
+  \item{filt_top_features}{Character vector of top N features in filtered table}
+  \item{orig_rels}{Named vector of relative abundances for original top features + Other}
+  \item{filt_rels}{Named vector of relative abundances for filtered top features + Other}
+  \item{plot}{The ggplot object}
+}
+\examples{
+# Display plot
+# plot_top_features_stacked(original_table, filtered_table, top_n = 10)
+
+# Save plot to file
+# result <- plot_top_features_stacked(original_table, filtered_table,
+#                                     plot_dir = "plots", prefix = "my_analysis", top_n = 10)
+}
