@@ -1,7 +1,7 @@
 # FeatureTableFilter Docker Image
 # A comprehensive environment for microbiome feature table filtering
 
-FROM rocker/r-ver:4.3.3
+FROM rocker/r-ver:latest
 
 LABEL maintainer="Vojtech Barton <vojtech.barton@gmail.com>"
 LABEL description="Docker image with featuretablefilter R package and all dependencies"
@@ -62,8 +62,8 @@ RUN Rscript -e 'remotes::install_cran(c(\
 # Install Bioconductor packages
 RUN Rscript -e '\
 if (!requireNamespace("BiocManager", quietly = TRUE)) \
-    install.packages("BiocManager", repos = "https://bioconductor.org/packages/3.18/bioc", upgrade = FALSE)\
-BiocManager::install(version = "3.18", ask = FALSE, force = TRUE)\
+    install.packages("BiocManager", repos = "https://bioconductor.org/packages/release/bioc", upgrade = FALSE)\
+BiocManager::install(ask = FALSE, force = TRUE)\
 remotes::install_bioc(c(\
     "SummarizedExperiment",\
     "SingleCellExperiment",\
