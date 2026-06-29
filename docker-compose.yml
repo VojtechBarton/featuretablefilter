@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  featuretablefilter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: featuretablefilter:latest
+    container_name: ftf-analysis
+    volumes:
+      # Mount current directory for accessing data files
+      - .:/workspace
+      # Optional: mount external data directory
+      # - ./data:/data
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+
+  # Interactive R session with package loaded
+  r-session:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: featuretablefilter:latest
+    container_name: ftf-r-session
+    command: R --vanilla
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+
+  # Run an R script
+  run-script:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: featuretablefilter:latest
+    container_name: ftf-run-script
+    command: ["Rscript", "your_script.R"]
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+
+  # Run tests
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: featuretablefilter:latest
+    container_name: ftf-tests
+    command: ["Rscript", "-e", "testthat::test_dir('tests/testthat')"]
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/featuretablefilter

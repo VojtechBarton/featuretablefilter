@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# R build artifacts
+*.tar.gz
+*.Rcheck
+.Rbuildignore
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Documentation builds
+docs/
+man-roxygen/
+
+# Test snapshots
+tests/testthat/_snaps/
+
+# Vignette caches
+vignettes/cache/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Package check outputs
+featuretablefilter.Rcheck/
