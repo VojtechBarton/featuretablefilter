@@ -41,7 +41,8 @@ RUN Rscript -e "install.packages('remotes', repos = 'https://cloud.r-project.org
 RUN Rscript -e "remotes::install_cran(c('devtools', 'roxygen2', 'testthat', 'knitr', 'rmarkdown', 'ggplot2', 'tidyr', 'dplyr', 'purrr', 'scales', 'patchwork', 'pheatmap', 'vegan', 'igraph', 'zoo', 'covr'), upgrade = 'never', Ncpus = 4)"
 
 # Install Bioconductor packages using BiocManager from CRAN first
-RUN Rscript -e "install.packages('BiocManager', repos = 'https://cran.r-project.org'); BiocManager::install(ask = FALSE, update = FALSE, force = TRUE); remotes::install_bioc(c('SummarizedExperiment', 'SingleCellExperiment', 'TreeSummarizedExperiment', 'phyloseq'), upgrade = 'never', Ncpus = 4)"
+# Include S4Vectors as it's required by featuretablefilter via TreeSummarizedExperiment
+RUN Rscript -e "install.packages('BiocManager', repos = 'https://cran.r-project.org'); BiocManager::install(ask = FALSE, update = FALSE, force = TRUE); remotes::install_bioc(c('S4Vectors', 'SummarizedExperiment', 'SingleCellExperiment', 'TreeSummarizedExperiment', 'phyloseq'), upgrade = 'never', Ncpus = 4)"
 
 # Copy package source to container
 COPY . /workspace/featuretablefilter/
