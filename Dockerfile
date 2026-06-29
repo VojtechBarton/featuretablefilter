@@ -1,7 +1,7 @@
 # FeatureTableFilter Docker Image
 # A comprehensive environment for microbiome feature table filtering
 
-FROM rocker/r-ver:latest
+FROM rocker/r-ver:4.4.2
 
 LABEL maintainer="Vojtech Barton <vojtech.barton@gmail.com>"
 LABEL description="Docker image with featuretablefilter R package and all dependencies"
@@ -40,8 +40,8 @@ RUN Rscript -e "install.packages('remotes', repos = 'https://cloud.r-project.org
 
 RUN Rscript -e "remotes::install_cran(c('devtools', 'roxygen2', 'testthat', 'knitr', 'rmarkdown', 'ggplot2', 'tidyr', 'dplyr', 'purrr', 'scales', 'patchwork', 'pheatmap', 'vegan', 'igraph', 'zoo', 'covr'), upgrade = 'never', Ncpus = 4)"
 
-# Install Bioconductor packages
-RUN Rscript -e "if (!requireNamespace('BiocManager', quietly = TRUE)) install.packages('BiocManager', repos = 'https://bioconductor.org/packages/release/bioc', upgrade = FALSE); BiocManager::install(ask = FALSE, force = TRUE); remotes::install_bioc(c('SummarizedExperiment', 'SingleCellExperiment', 'TreeSummarizedExperiment', 'phyloseq'), upgrade = 'never', Ncpus = 4)"
+# Install Bioconductor packages using BiocManager from CRAN first
+RUN Rscript -e "install.packages('BiocManager', repos = 'https://cran.r-project.org'); BiocManager::install(ask = FALSE, update = FALSE, force = TRUE); remotes::install_bioc(c('SummarizedExperiment', 'SingleCellExperiment', 'TreeSummarizedExperiment', 'phyloseq'), upgrade = 'never', Ncpus = 4)"
 
 # Copy package source to container
 COPY . /workspace/featuretablefilter/
