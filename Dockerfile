@@ -36,62 +36,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install R packages from CRAN
-RUN Rscript -e 'install.packages("remotes", repos = "https://cloud.r-project.org")'
+RUN Rscript -e "install.packages('remotes', repos = 'https://cloud.r-project.org')"
 
-RUN Rscript -e 'remotes::install_cran(c(\
-    "devtools",\
-    "roxygen2",\
-    "testthat",\
-    "knitr",\
-    "rmarkdown",\
-    "ggplot2",\
-    "tidyr",\
-    "dplyr",\
-    "purrr",\
-    "scales",\
-    "patchwork",\
-    "pheatmap",\
-    "vegan",\
-    "igraph",\
-    "zoo",\
-    "covr"\
-  ), \
-  upgrade = "never", \
-  Ncpus = 4)'
+RUN Rscript -e "remotes::install_cran(c('devtools', 'roxygen2', 'testthat', 'knitr', 'rmarkdown', 'ggplot2', 'tidyr', 'dplyr', 'purrr', 'scales', 'patchwork', 'pheatmap', 'vegan', 'igraph', 'zoo', 'covr'), upgrade = 'never', Ncpus = 4)"
 
 # Install Bioconductor packages
-RUN Rscript -e '\
-if (!requireNamespace("BiocManager", quietly = TRUE)) \
-    install.packages("BiocManager", repos = "https://bioconductor.org/packages/release/bioc", upgrade = FALSE)\
-BiocManager::install(ask = FALSE, force = TRUE)\
-remotes::install_bioc(c(\
-    "SummarizedExperiment",\
-    "SingleCellExperiment",\
-    "TreeSummarizedExperiment",\
-    "phyloseq"\
-  ), \
-  upgrade = "never", \
-  Ncpus = 4)'
+RUN Rscript -e "if (!requireNamespace('BiocManager', quietly = TRUE)) install.packages('BiocManager', repos = 'https://bioconductor.org/packages/release/bioc', upgrade = FALSE); BiocManager::install(ask = FALSE, force = TRUE); remotes::install_bioc(c('SummarizedExperiment', 'SingleCellExperiment', 'TreeSummarizedExperiment', 'phyloseq'), upgrade = 'never', Ncpus = 4)"
 
 # Copy package source to container
 COPY . /workspace/featuretablefilter/
 
 # Install the featuretablefilter package from local source
-RUN Rscript -e '\
-  setwd("/workspace/featuretablefilter")\
-  devtools::install(".", dependencies = FALSE, upgrade = "never")\
-  cat("featuretablefilter installed successfully!\n")'
+RUN Rscript -e "setwd('/workspace/featuretablefilter'); devtools::install('.', dependencies = FALSE, upgrade = 'never'); cat('featuretablefilter installed successfully!\n')"
 
 # Verify installation
-RUN Rscript -e '\
-  library(featuretablefilter)\
-  cat("\n=== Installed Functions ===\n")\
-  funcs <- ls(asNamespace("featuretablefilter"))\
-  exported <- funcs[grepl("^[^\\.]", funcs)]\
-  cat(paste(sort(exported), collapse = "\n"), "\n")\
-  cat("\n=== Package Version ===\n")\
-  packageVersion("featuretablefilter")\
-'
+RUN Rscript -e "library(featuretablefilter); cat('\n=== Installed Functions ===\n'); funcs <- ls(asNamespace('featuretablefilter')); exported <- funcs[grepl('^[^\\.]', funcs)]; cat(paste(sort(exported), collapse = '\n'), '\n'); cat('\n=== Package Version ===\n'); packageVersion('featuretablefilter')"
 
 # Set working directory for user code
 WORKDIR /workspace
