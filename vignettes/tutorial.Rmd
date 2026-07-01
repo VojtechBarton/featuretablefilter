@@ -114,8 +114,8 @@ sample_metadata <- result$sample_data
 | `absolute` | Uniform sequencing depth across samples | Highly variable depth | Fixed minimum read count threshold |
 | `mad` | Most standard datasets | Very small sample sizes (<10) | Statistical outlier detection using MAD |
 | `iqr` | Datasets with non-normal coverage distribution | Small sample sizes | Tukey's fences method |
-| `good` | **Diversity studies**, ecological analyses | Presence-absence only studies | Filters by estimated ecological completeness |
-| `chao` | **Conservative filtering**, rare biosphere studies | When maximizing sample retention | More conservative than Good's coverage |
+| `good` | Traditional OTU data, ecological diversity studies | **DADA2/Deblur ASV data** (denoising changes error structure) | Filters by estimated ecological completeness |
+| `chao` | Traditional OTU data, conservative rare biosphere studies | **DADA2/Deblur ASV data** (assumes random sampling) | More conservative than Good's coverage |
 
 ### Important Notes on Method Selection
 
@@ -123,22 +123,25 @@ sample_metadata <- result$sample_data
 
 If you used **DADA2** or **Deblur** (ASV-level resolution):
 
-- **Avoid aggressive singleton filtering**: ASVs with single reads may be real biological variants, especially in low-biomass samples
-- **Use `good` or `chao` coverage methods**: These preserve samples that have adequate ecological coverage even if total reads are moderate
-- **Be cautious with cross-talk filtering**: DADA2 already removes many chimeric sequences; additional cross-talk filtering may remove real rare variants
+- **Avoid aggressive singleton filtering**: ASVs with single reads may be real biological variants, especially in low-biomass samples. DADA2's error modeling already distinguishes true variants from sequencing errors.
+- **Use `mad` or `iqr` coverage methods** (NOT Good's/Chao's): Statistical outlier detection is more appropriate because:
+  - Good's/Chao's coverage assume random sampling, but DADA2's denoising changes the error structure
+  - DADA2 produces variable sequencing depths naturally; the algorithm works across different depths
+  - MAD/IQR only remove true statistical outliers, preserving valid low-biomass samples
+- **Skip cross-talk filtering**: DADA2 already removes chimeric sequences; additional cross-talk filtering may remove real rare variants
 
 ```{r dada2-recommended, eval = FALSE}
 # Recommended for DADA2 data
 result <- run_filtering_pipeline(
   input = "dada2_table.tsv",
-  cov_filter_method = "good",        # Ecological completeness
-  cov_target_coverage = 0.95,        # 95% coverage threshold
+  cov_filter_method = "mad",         # Statistical outlier detection (NOT good/chao)
+  cov_threshold = 2,                 # Remove true outliers only (2 MAD below median)
   abun_filter_method = "joint",      # Combined abundance-prevalence
   abun_threshold = 0.0001,           # Very low abundance threshold
-  abun_prevalence_threshold = 0.1,   # Present in at least 10% of samples
+  abun_prevalence_threshold = 0.05,  # Present in at least 5% of samples
   abun_logic = "OR",                 # Keep if meets either criterion
   crosstalk_filter_method = "none",  # Skip cross-talk for DADA2
-  singleton_filter_method = "none"   # Don't filter singletons aggressively
+  singleton_filter_method = "none"   # Don't filter singletons (DADA2 handled errors)
 )
 ```
 
