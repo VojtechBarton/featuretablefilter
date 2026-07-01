@@ -23,13 +23,25 @@ server <- function(input, output, session) {
   data <- reactive({
     req(input$data_file)
 
+    # Auto-detect format from file extension if not specified
+    file_ext <- tolower(tools::file_ext(input$data_file$name))
     format <- input$data_format
-    if (format == "auto" || format == "tsv") {
-      table <- load_feature_table(input$data_file$datapath, sep = "\t")
+
+    if (is.null(format) || format == "auto") {
+      # Use extension to determine separator
+      sep <- if (file_ext %in% c("tsv", "tab")) "\t" else ","
+    } else if (format == "tsv") {
+      sep <- "\t"
     } else {
-      table <- load_feature_table(input$data_file$datapath, sep = ",")
+      sep <- ","
     }
-    table
+
+    tryCatch(
+      load_feature_table(input$data_file$datapath, sep = sep),
+      error = function(e) {
+        stop(paste("Error loading file:", e$message))
+      }
+    )
   })
 
   # Update data summary
