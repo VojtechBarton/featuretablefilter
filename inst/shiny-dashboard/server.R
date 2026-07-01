@@ -1,4 +1,5 @@
 library(featuretablefilter)
+library(ggplot2)
 library(DT)
 
 server <- function(input, output, session) {
