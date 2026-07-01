@@ -281,7 +281,7 @@ server <- function(input, output, session) {
     paste0(
       "Features: ", nrow(tbl), "\n",
       "Samples: ", ncol(tbl) - 1, "\n",
-      "Total reads: ", format(sum(tbl[, -1]), big.mark = ",")
+      "Total reads: ", format(as.integer(sum(tbl[, -1])), big.mark = ",")
     )
   })
 
@@ -292,7 +292,7 @@ server <- function(input, output, session) {
     paste0(
       "Features: ", nrow(tbl), "\n",
       "Samples: ", ncol(tbl) - 1, "\n",
-      "Total reads: ", format(sum(tbl[, -1]), big.mark = ",")
+      "Total reads: ", format(as.integer(sum(tbl[, -1])), big.mark = ",")
     )
   })
 
@@ -328,15 +328,12 @@ server <- function(input, output, session) {
     if (!is.null(rv$filtered_table) && ncol(rv$filtered_table) > 1) {
       filt_coverage <- colSums(rv$filtered_table[, -1, drop = FALSE])
 
-      df <- data.frame(
-        coverage = c(orig_coverage, filt_coverage),
-        Group = rep(c("Original", "Filtered"),
-                    each = length(orig_coverage))
-      )
+      df_orig <- data.frame(coverage = orig_coverage, Group = "Original")
+      df_filt <- data.frame(coverage = filt_coverage, Group = "Filtered")
+      df <- rbind(df_orig, df_filt)
 
       p <- ggplot(df, aes(x = coverage, fill = Group)) +
-        geom_histogram(alpha = 0.6, binwidth = NULL,
-                       bins = 30, position = "identity") +
+        geom_histogram(alpha = 0.6, bins = 30, position = "identity") +
         facet_wrap(~Group, scales = "free_y") +
         theme_minimal() +
         labs(title = "Sample Coverage Distribution",
@@ -365,11 +362,13 @@ server <- function(input, output, session) {
     if (!is.null(rv$filtered_table) && nrow(rv$filtered_table) > 0) {
       filt_abun <- rowSums(rv$filtered_table[, -1, drop = FALSE])
 
-      df <- data.frame(
-        abundance = c(orig_abun, filt_abun),
-        Group = rep(c("Original", "Filtered"),
-                    each = length(orig_abun))
-      )
+      # Filter out zeros for log scale
+      orig_abun <- orig_abun[orig_abun > 0]
+      filt_abun <- filt_abun[filt_abun > 0]
+
+      df_orig <- data.frame(abundance = orig_abun, Group = "Original")
+      df_filt <- data.frame(abundance = filt_abun, Group = "Filtered")
+      df <- rbind(df_orig, df_filt)
 
       p <- ggplot(df, aes(x = abundance, fill = Group)) +
         geom_histogram(alpha = 0.6, bins = 30, position = "identity") +
@@ -379,7 +378,7 @@ server <- function(input, output, session) {
         labs(title = "Feature Abundance Distribution",
              x = "Total Reads (log10)", y = "Frequency")
     } else {
-      df <- data.frame(abundance = orig_abun)
+      df <- data.frame(abundance = orig_abun[orig_abun > 0])
 
       p <- ggplot(df, aes(x = abundance)) +
         geom_histogram(fill = "steelblue", color = "white", bins = 30) +
