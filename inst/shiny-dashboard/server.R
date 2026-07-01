@@ -322,18 +322,38 @@ server <- function(input, output, session) {
   # Coverage histogram
   output$coverage_histogram <- renderPlot({
     req(rv$original_table)
-    tbl <- rv$original_table
-    coverage_vec <- colSums(tbl[, -1, drop = FALSE])
 
-    df <- data.frame(coverage = coverage_vec)
-    n_bins <- ceiling(log2(length(coverage_vec)) + 1)
+    orig_coverage <- colSums(rv$original_table[, -1, drop = FALSE])
 
-    ggplot(df, aes(x = coverage)) +
-      geom_histogram(binwidth = NULL, bins = max(n_bins, 10),
-                     fill = "steelblue", color = "white") +
-      theme_minimal() +
-      labs(title = "Sample Coverage Distribution",
-           x = "Total Reads per Sample", y = "Frequency")
+    if (!is.null(rv$filtered_table) && ncol(rv$filtered_table) > 1) {
+      filt_coverage <- colSums(rv$filtered_table[, -1, drop = FALSE])
+
+      df <- data.frame(
+        coverage = c(orig_coverage, filt_coverage),
+        Group = rep(c("Original", "Filtered"),
+                    each = length(orig_coverage))
+      )
+
+      p <- ggplot(df, aes(x = coverage, fill = Group)) +
+        geom_histogram(alpha = 0.6, binwidth = NULL,
+                       bins = 30, position = "identity") +
+        facet_wrap(~Group, scales = "free_y") +
+        theme_minimal() +
+        labs(title = "Sample Coverage Distribution",
+             x = "Total Reads per Sample", y = "Frequency")
+    } else {
+      df <- data.frame(coverage = orig_coverage)
+      n_bins <- ceiling(log2(length(orig_coverage)) + 1)
+
+      p <- ggplot(df, aes(x = coverage)) +
+        geom_histogram(binwidth = NULL, bins = max(n_bins, 10),
+                       fill = "steelblue", color = "white") +
+        theme_minimal() +
+        labs(title = "Sample Coverage Distribution",
+             x = "Total Reads per Sample", y = "Frequency")
+    }
+
+    p
   })
 
   # Abundance histogram
