@@ -20,27 +20,18 @@
 #'                       of the relative threshold. Features with counts >= this value are kept.
 #'                       Set to NULL (default) to disable. Useful for preserving any real
 #'                       low-abundance presence (e.g., min_abs_cutoff = 2 keeps doubletons).
-#' @param mode Control how filtering is applied:
-#'             \itemize{
-#'               \item \code{"zero"} - Set suspected leakage reads to zero (default)
-#'               \item \code{"remove_feature"} - Remove entire feature if any leakage detected
-#'               \item \code{"flag"} - Add attribute with leakage info but don't modify data
-#'             }
+#' @param mode Control how filtering is applied: "zero" sets suspected leakage reads to zero (default),
+#'             "remove_feature" removes entire feature if any leakage detected,
+#'             "flag" adds attribute with leakage info but doesn't modify data.
 #' @param return_details Logical. If TRUE, add attributes with detailed information about
 #'                       which values were flagged as leakage. Default is FALSE.
 #'
 #' @return A filtered feature table (data.frame) with suspected cross-talk artifacts removed.
-#'         The result includes attributes:
-#'         \itemize{
-#'           \item \code{n_leakage_zeros}: Number of individual cells set to zero
-#'           \item \code{n_features_affected}: Number of features with at least one leakage zero
-#'           \item \code{\link[=threshold]}: The max_rel_threshold used
-#'           \item If \code{return_details = TRUE}:
-#'             \describe{
-#'               \item{\code{leakage_matrix}}{Logical matrix indicating which cells were flagged}
-#'               \item{\code{feature_max}}{Named vector of each feature's maximum abundance}
-#'             }
-#'         }
+#'         The result includes attributes: n_leakage_zeros (number of individual cells set to zero),
+#'         n_features_affected (number of features with at least one leakage zero), threshold
+#'         (the max_rel_threshold used), min_abs_cutoff, and mode. If return_details = TRUE, also
+#'         includes leakage_matrix (logical matrix indicating which cells were flagged) and
+#'         feature_max (named vector of each feature's maximum abundance).
 #'
 #' @export
 #'

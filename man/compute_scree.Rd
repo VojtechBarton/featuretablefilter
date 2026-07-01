@@ -17,7 +17,13 @@ compute_scree(
 \item{table}{A feature table (data.frame or matrix) with features as rows and samples as columns.
 First column should be feature IDs, remaining columns are sample counts.}
 
-\item{type}{Type of threshold sweep to perform: \code{"mad_multiplier"} sweeps MAD multipliers (e.g., 1 to 5 for coverage filtering), \code{"absolute_feature"} sweeps absolute feature abundance thresholds, \code{"relative_feature"} sweeps relative abundance thresholds (0 to 0.01), \code{"custom"} uses custom threshold values provided in \code{thresholds}.}
+\item{type}{Type of threshold sweep to perform:
+\itemize{
+  \item \code{"mad_multiplier"} - Sweep MAD multipliers (e.g., 1 to 5 for coverage filtering)
+  \item \code{"absolute_feature"} - Sweep absolute feature abundance thresholds
+  \item \code{"relative_feature"} - Sweep relative abundance thresholds (0 to 0.01)
+  \item \code{"custom"} - Use custom threshold values provided in \code{thresholds}
+}}
 
 \item{thresholds}{For \code{type = "custom"}, a numeric vector of threshold values to evaluate.
 Ignored for other types (generated automatically).}

@@ -16,7 +16,12 @@ identify_sparsity_elbow(
 \item{table}{A feature table (data.frame or matrix) with features as rows and samples as columns.
 First column should be feature IDs, remaining columns are sample counts.}
 
-\item{method}{Elbow detection method: \code{"kneedle"} uses Kneedle algorithm for automatic elbow detection, \code{"max_derivative"} finds point of maximum negative derivative in richness curve, \code{"second_derivative"} finds point where second derivative peaks (inflection point).}
+\item{method}{Elbow detection method:
+\itemize{
+  \item \code{"kneedle"} - Kneedle algorithm for automatic elbow detection
+  \item{\code{"max_derivative"}} - Point of maximum negative derivative in richness curve
+  \item{\code{"second_derivative"}} - Point where second derivative peaks (inflection point)
+}}
 
 \item{smooth_window}{Window size for smoothing the richness curve before derivative calculation.
 Default is 5. Set to 1 for no smoothing.}

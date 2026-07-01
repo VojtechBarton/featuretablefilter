@@ -12,13 +12,9 @@
 #'                   "doubleton" (count=2 only), or "both" (counts 1 and 2). Default is "both".
 #'
 #' @return A filtered feature table (data.frame) with suspicious samples removed.
-#'         The result includes attributes:
-#'         \itemize{
-#'           \item \code{n_filtered_out}: Number of samples removed
-#'           \item \code{n_retained}: Number of samples retained
-#'           \item \code{threshold}: The max_singleton_ratio used
-#'           \item \code{ratio_vector}: Named vector of singleton ratios for all original samples
-#'         }
+#'         The result includes attributes: n_filtered_out (number of samples removed),
+#'         n_retained (number of samples retained), threshold (the max_singleton_ratio used),
+#'         and ratio_vector (named vector of singleton ratios for all original samples).
 #'
 #' @export
 #'

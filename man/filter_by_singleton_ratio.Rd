@@ -22,7 +22,9 @@ Samples exceeding this ratio will be removed. Default is 0.1 (10%).}
 }
 \value{
 A filtered feature table (data.frame) with suspicious samples removed.
-The result includes attributes: \code{n_filtered_out} (number of samples removed), \code{n_retained} (number of samples retained), \code{threshold} (the max_singleton_ratio used), and \code{ratio_vector} (named vector of singleton ratios for all original samples).
+        The result includes attributes: n_filtered_out (number of samples removed),
+        n_retained (number of samples retained), threshold (the max_singleton_ratio used),
+        and ratio_vector (named vector of singleton ratios for all original samples).
 }
 \description{
 Removes samples with an unnaturally high ratio of singleton (count=1) or
