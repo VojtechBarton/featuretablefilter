@@ -4,11 +4,11 @@ fluidPage(
   # Include custom CSS
   includeCSS(system.file("shiny-dashboard/www/style.css", package = "featuretablefilter")),
 
-  splitLayout(
-    panelWidths = c(0.35, 0.65),
+  sidebarLayout(
+    sidebarPosition = "left",
 
     # Sidebar: Controls and Parameters
-    sidebarPanel(width = 12,
+    sidebarPanel(width = 4,
 
       h4("Filtering Parameters"),
       hr(),
@@ -73,9 +73,7 @@ fluidPage(
       hr(),
 
       # Action Buttons
-      actionButton("apply_filter", "Apply Filtering", class = "btn-primary btn-lg"),
-      width = 4
-
+      actionButton("apply_filter", "Apply Filtering", class = "btn-primary btn-lg", width = "100%")
     ),
 
     # Main Panel: Results and Visualizations
