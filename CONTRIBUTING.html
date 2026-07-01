@@ -73,25 +73,48 @@
 <li><strong>Examples of how the enhancement would be used</strong></li>
 <li><strong>Explanation of why this enhancement would be useful</strong></li>
 </ul></div>
+</div>
+<div class="section level2">
+<h2 id="branching-workflow">Branching Workflow<a class="anchor" aria-label="anchor" href="#branching-workflow"></a></h2>
+<p>This project uses a <strong>develop branch workflow</strong>. Never commit directly to <code>master</code>.</p>
 <div class="section level3">
-<h3 id="pull-requests">Pull Requests<a class="anchor" aria-label="anchor" href="#pull-requests"></a></h3>
+<h3 id="branch-structure">Branch Structure<a class="anchor" aria-label="anchor" href="#branch-structure"></a></h3>
+<ul><li>
+<strong><code>master</code></strong>: Production-ready releases only. Protected branch.</li>
+<li>
+<strong><code>develop</code></strong>: Integration branch for upcoming features. All PRs go here first.</li>
+<li>
+<strong>Feature branches</strong>: <code>feature/description</code>, <code>fix/description</code>, <code>docs/description</code>
+</li>
+</ul></div>
+<div class="section level3">
+<h3 id="development-workflow">Development Workflow<a class="anchor" aria-label="anchor" href="#development-workflow"></a></h3>
 <ol style="list-style-type: decimal"><li>
-<strong>Fork the repository</strong> and create your branch from <code>main</code>
+<p><strong>Create a feature branch from <code>develop</code></strong>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">git</span> checkout develop</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">git</span> pull origin develop</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">git</span> checkout <span class="at">-b</span> feature/my-new-feature</span></code></pre></div>
+</li>
+<li><p><strong>Make your changes</strong> following the code style guidelines</p></li>
+<li><p><strong>Add tests</strong> for new functionality</p></li>
+<li><p><strong>Update documentation</strong> including roxygen comments</p></li>
+<li>
+<p><strong>Ensure all tests pass</strong>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"testthat::test_dir('tests/testthat')"</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="ex">R</span> CMD check .</span></code></pre></div>
 </li>
 <li>
-<strong>Make your changes</strong> following the code style guidelines</li>
-<li>
-<strong>Add tests</strong> for new functionality</li>
-<li>
-<strong>Update documentation</strong> including roxygen comments</li>
-<li>
-<strong>Ensure all tests pass</strong> with <code>Rscript -e "testthat::test_dir('tests/testthat')"</code>
+<p><strong>Push and create a Pull Request</strong> to <code>develop</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">git</span> push origin feature/my-new-feature</span></code></pre></div>
+<p>Then visit GitHub to create a PR targeting the <code>develop</code> branch.</p>
 </li>
-<li>
-<strong>Check package build</strong> with <code>R CMD build .</code> and <code>R CMD check .</code>
-</li>
-<li><strong>Submit a pull request</strong></li>
+<li><p><strong>Code review</strong>: At least one maintainer must approve the PR</p></li>
+<li><p><strong>Merge to develop</strong>: After approval, merge the PR (squash or rebase preferred)</p></li>
+<li><p><strong>Release</strong>: When ready, merge <code>develop</code> to <code>master</code> and create a tagged release</p></li>
 </ol></div>
+<div class="section level3">
+<h3 id="direct-commits-to-master-are-prevented-by-branch-protection-rules">Direct commits to <code>master</code> are prevented by branch protection rules.<a class="anchor" aria-label="anchor" href="#direct-commits-to-master-are-prevented-by-branch-protection-rules"></a></h3>
+</div>
 </div>
 <div class="section level2">
 <h2 id="code-style-guidelines">Code Style Guidelines<a class="anchor" aria-label="anchor" href="#code-style-guidelines"></a></h2>
@@ -131,7 +154,7 @@
 </div>
 <div class="section level2">
 <h2 id="development-setup">Development Setup<a class="anchor" aria-label="anchor" href="#development-setup"></a></h2>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Install dependencies</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"devtools"</span>, <span class="st">"roxygen2"</span>, <span class="st">"testthat"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
