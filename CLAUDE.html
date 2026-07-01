@@ -45,7 +45,7 @@
 <p>This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.</p>
 <div class="section level2">
 <h2 id="package-overview">Package Overview<a class="anchor" aria-label="anchor" href="#package-overview"></a></h2>
-<p><strong>featuretablefilter</strong> - An R package for filtering microbiome feature tables based on coverage and abundance criteria. The package provides functions for sample coverage filtering, feature abundance filtering, QC metrics computation, and visualization.</p>
+<p><strong>featuretablefilter</strong> - An R package for filtering microbiome feature tables based on coverage, abundance, and network connectivity criteria. Supports <code>data.frame</code>, <code>phyloseq</code>, and <code>TreeSummarizedExperiment</code> objects natively.</p>
 </div>
 <div class="section level2">
 <h2 id="development-commands">Development Commands<a class="anchor" aria-label="anchor" href="#development-commands"></a></h2>
@@ -65,7 +65,10 @@
 <span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="ex">R</span> CMD check .</span>
 <span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a></span>
 <span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co"># Document functions with roxygen2</span></span>
-<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"roxygen2::roxygenise()"</span></span></code></pre></div>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"roxygen2::roxygenise()"</span></span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co"># Build package tarball</span></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="ex">R</span> CMD build .</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="architecture">Architecture<a class="anchor" aria-label="anchor" href="#architecture"></a></h2>
@@ -73,60 +76,159 @@
 <div class="section level3">
 <h3 id="core-filtering-functions">Core Filtering Functions<a class="anchor" aria-label="anchor" href="#core-filtering-functions"></a></h3>
 <ul><li>
-<strong><code>filter_by_coverage.R</code></strong> - Removes low-coverage samples using absolute thresholds</li>
+<strong><code>filter_coverage.R</code></strong> (<code>filter_by_coverage</code>) - Removes low-coverage samples using absolute thresholds</li>
 <li>
-<strong><code>filter_features.R</code></strong> - Filters features by absolute or relative abundance with <code>min_samples</code> support</li>
+<strong><code>filter_features.R</code></strong> (<code>filter_features_by_abundance</code>) - Filters features by absolute or relative abundance with <code>min_samples</code> support</li>
 <li>
-<strong><code>filter_relative_cutoff.R</code></strong> - Relative cutoff filtering based on min-coverage sample</li>
+<strong><code>filter_relative_cutoff.R</code></strong> (<code>filter_by_relative_cutoff</code>) - Relative cutoff filtering based on min-coverage sample</li>
 </ul></div>
 <div class="section level3">
 <h3 id="coverage-estimation-functions">Coverage Estimation Functions<a class="anchor" aria-label="anchor" href="#coverage-estimation-functions"></a></h3>
 <ul><li>
-<strong><code>estimate_mad_cutoff.R</code></strong> - MAD-based threshold estimation (median ± multiplier × MAD)</li>
+<strong><code>estimate_mad_cutoff.R</code></strong> (<code>estimate_mad_cutoff</code>) - MAD-based threshold estimation (median ± multiplier × MAD)</li>
 <li>
-<strong><code>estimate_iqr_cutoff.R</code></strong> - IQR/Tukey-based threshold estimation</li>
+<strong><code>estimate_iqr_cutoff.R</code></strong> (<code>estimate_iqr_cutoff</code>) - IQR/Tukey-based threshold estimation</li>
+<li>
+<strong><code>estimate_coverage_metrics.R</code></strong> (<code>estimate_good_coverage</code>, <code>estimate_chao_coverage</code>) - Ecological completeness estimators</li>
+<li>
+<strong><code>filter_by_coverage_estimator.R</code></strong> (<code>filter_by_coverage_estimator</code>) - Filter samples by Good’s or Chao’s coverage threshold</li>
+</ul></div>
+<div class="section level3">
+<h3 id="singleton-ratio--cross-talk-filtering">Singleton Ratio &amp; Cross-Talk Filtering<a class="anchor" aria-label="anchor" href="#singleton-ratio--cross-talk-filtering"></a></h3>
+<ul><li>
+<strong><code>filter_by_singleton_ratio.R</code></strong> (<code>filter_by_singleton_ratio</code>) - PCR artifact detection via singleton/doubleton ratios</li>
+<li>
+<strong><code>filter_cross_talk.R</code></strong> (<code>filter_cross_talk</code>, <code>filter_index_hopping</code>) - Index hopping/cross-contamination filtering</li>
+</ul></div>
+<div class="section level3">
+<h3 id="network-based-filtering">Network-Based Filtering<a class="anchor" aria-label="anchor" href="#network-based-filtering"></a></h3>
+<ul><li>
+<strong><code>filter_by_network.R</code></strong> - Information theory and graph theory based filtering
+<ul><li>
+<code><a href="reference/compute_mutual_information.html">compute_mutual_information()</a></code> - Pairwise MI using k-nearest neighbor (KSG) estimator</li>
+<li>
+<code><a href="reference/analyze_feature_network.html">analyze_feature_network()</a></code> - Network centrality metrics (degree, strength, betweenness)</li>
+<li>
+<code><a href="reference/filter_by_network_connectivity.html">filter_by_network_connectivity()</a></code> - Remove disconnected features (likely artifacts)</li>
+<li>
+<code><a href="reference/plot_feature_network.html">plot_feature_network()</a></code> - Visualize feature connectivity network</li>
+</ul></li>
+</ul></div>
+<div class="section level3">
+<h3 id="sparsity--outlier-detection">Sparsity &amp; Outlier Detection<a class="anchor" aria-label="anchor" href="#sparsity--outlier-detection"></a></h3>
+<ul><li>
+<strong><code>identify_sparsity_elbow.R</code></strong> (<code>identify_sparsity_elbow</code>) - Detect elbow point in richness-depth curve</li>
+<li>
+<strong><code>compute_depth_sparsity.R</code></strong> (<code>analyze_depth_sparsity</code>, <code>filter_depth_sparsity_outliers</code>) - Depth-sparsity outlier analysis</li>
+<li>
+<strong><code>plot_reads_vs_asvs.R</code></strong> - Total reads vs observed ASVs plot with outlier flagging</li>
+</ul></div>
+<div class="section level3">
+<h3 id="joint-filtering">Joint Filtering<a class="anchor" aria-label="anchor" href="#joint-filtering"></a></h3>
+<ul><li>
+<strong><code>filter_features_joint.R</code></strong> (<code>filter_features_joint</code>) - Joint abundance-prevalence filtering with AND/OR logic</li>
+</ul></div>
+<div class="section level3">
+<h3 id="diversity-metrics">Diversity Metrics<a class="anchor" aria-label="anchor" href="#diversity-metrics"></a></h3>
+<ul><li>
+<strong><code>calculate_cv.R</code></strong> (<code>calculate_feature_cv</code>) - Coefficient of variation per feature</li>
+<li>
+<strong><code>calculate_sparsity.R</code></strong> (<code>calculate_sparsity</code>) - Calculate sparsity metric</li>
 </ul></div>
 <div class="section level3">
 <h3 id="qc--metrics">QC &amp; Metrics<a class="anchor" aria-label="anchor" href="#qc--metrics"></a></h3>
 <ul><li>
-<strong><code>compute_qc_metrics.R</code></strong> (<code>compute_filtering_qc</code>) - Computes sparsity, retention rates, rank-abundance stability (top N overlap, Jaccard similarity, Spearman correlation), and Procrustes analysis (via vegan)</li>
-<li>
-<strong><code>calculate_sparsity.R</code></strong>, <strong><code>calculate_cv.R</code></strong> - Helper metrics</li>
+<strong><code>compute_qc_metrics.R</code></strong> (<code>compute_filtering_qc</code>) - Comprehensive QC including:
+<ul><li>Sparsity changes (original vs filtered)</li>
+<li>Retention rates (reads, features, samples)</li>
+<li>Rank-abundance stability (top N overlap, Jaccard similarity, Spearman correlation)</li>
+<li>Procrustes analysis for compositional similarity (via vegan)</li>
+<li>Hill numbers / Effective Species Count diversity retention</li>
+</ul></li>
 </ul></div>
 <div class="section level3">
 <h3 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a></h3>
 <ul><li>
-<strong><code>plot_qc_comparison.R</code></strong> (<code>plot_qc_comparison</code>) - Generates 7 plots: coverage distribution, feature abundance distribution, sparsity comparison, retention rates, heatmaps, stacked barplots</li>
+<strong><code>plot_qc_comparison.R</code></strong> (<code>plot_qc_comparison</code>) - Generates 7 comparison plots:
+<ol style="list-style-type: decimal"><li>Sample coverage distribution (log10, faceted)</li>
+<li>Feature abundance distribution (log10, faceted)</li>
+<li>Per-sample sparsity histogram</li>
+<li>Retention rates barplot</li>
+<li>Top features stacked barplot</li>
+<li>Heatmaps (original and filtered)</li>
+<li>Presence frequency comparison</li>
+</ol></li>
 <li>
-<strong><code>plot_presence_analysis.R</code></strong> - Feature prevalence histograms</li>
+<strong><code>plot_presence_analysis.R</code></strong> (<code>plot_presence_analysis</code>) - Feature prevalence and sample richness histograms (with optional comparison mode)</li>
 <li>
-<strong><code>plot_coverage_histogram.R</code></strong> - Sample coverage histograms</li>
+<strong><code>plot_coverage_histogram.R</code></strong> (<code>plot_coverage_histogram</code>) - Sample coverage histograms with threshold line</li>
 <li>
-<strong><code>plot_top_features_stacked.R</code></strong> - Top N relative abundance stacked bars</li>
+<strong><code>plot_top_features_stacked.R</code></strong> (<code>plot_top_features_stacked</code>) - Top N relative abundance stacked bars</li>
+<li>
+<strong><code>plot_scree.R</code></strong> (<code>plot_scree</code>) - Scree/saturation diagnostic plots</li>
+<li>
+<strong><code>plot_depth_sparsity.R</code></strong> (<code>plot_depth_sparsity</code>) - Depth-sparsity relationship with outliers</li>
+<li>
+<strong><code>plot_sparsity_elbow.R</code></strong> (<code>plot_sparsity_elbow</code>) - Richness-depth curve with elbow marker</li>
 </ul></div>
 <div class="section level3">
 <h3 id="pipeline--utilities">Pipeline &amp; Utilities<a class="anchor" aria-label="anchor" href="#pipeline--utilities"></a></h3>
 <ul><li>
-<strong><code>run_filtering_pipeline.R</code></strong> (<code>run_filtering_pipeline</code>) - Orchestrates complete filtering workflow with configurable methods per step, saves outputs, generates text reports</li>
+<strong><code>run_filtering_pipeline.R</code></strong> (<code>run_filtering_pipeline</code>) - Complete filtering workflow with:
+<ul><li>Accepts <code>data.frame</code>, <code>matrix</code>, <code>phyloseq</code>, or <code>TreeSummarizedExperiment</code> as input</li>
+<li>Returns same class as input (preserving metadata)</li>
+<li>Configurable methods per step (coverage, abundance)</li>
+<li>File outputs (filtered table, plots, text report)</li>
+</ul></li>
 <li>
-<strong><code>load_feature_table.R</code></strong> (<code>load_feature_table</code>) - Auto-detects TSV/CSV format, handles header detection, feature column identification</li>
+<strong><code>load_feature_table.R</code></strong> (<code>load_feature_table</code>) - Auto-detects TSV/CSV format, header detection, feature column identification</li>
 <li>
-<strong><code>convert_to_relative.R</code></strong> - Converts counts to relative abundances</li>
+<strong><code>convert_to_relative.R</code></strong> (<code>convert_to_relative</code>) - Converts counts to relative abundances</li>
+</ul></div>
+<div class="section level3">
+<h3 id="data-class-conversion">Data Class Conversion<a class="anchor" aria-label="anchor" href="#data-class-conversion"></a></h3>
+<ul><li>
+<strong><code>convert_data_classes.R</code></strong> - Native support for phyloseq and TreeSummarizedExperiment:
+<ul><li>
+<code><a href="reference/from_phyloseq.html">from_phyloseq()</a></code> - Convert phyloseq object to data.frame</li>
+<li>
+<code><a href="reference/to_phyloseq.html">to_phyloseq()</a></code> - Create phyloseq from data.frame (with optional taxonomy, tree, sample data)</li>
+<li>
+<code><a href="reference/from_TSE.html">from_TSE()</a></code> - Convert TreeSummarizedExperiment/SingleCellExperiment to data.frame</li>
+<li>
+<code><a href="reference/to_TSE.html">to_TSE()</a></code> - Create TreeSummarizedExperiment from data.frame</li>
+<li>
+<code><a href="reference/convert_feature_table.html">convert_feature_table()</a></code> - Generic auto-detect conversion between any supported format</li>
+</ul></li>
+</ul></div>
+<div class="section level3">
+<h3 id="scree-analysis">Scree Analysis<a class="anchor" aria-label="anchor" href="#scree-analysis"></a></h3>
+<ul><li>
+<strong><code>compute_scree.R</code></strong> (<code>compute_scree</code>) - Scree/saturation analysis for filtering threshold selection</li>
 </ul></div>
 <div class="section level3">
 <h3 id="key-design-patterns">Key Design Patterns<a class="anchor" aria-label="anchor" href="#key-design-patterns"></a></h3>
 <ol style="list-style-type: decimal"><li><p><strong>Feature Table Format</strong>: First column contains feature IDs, remaining columns are sample counts. Functions preserve this structure (don’t convert to row names).</p></li>
-<li><p><strong>Method Dispatch</strong>: Pipeline uses <code><a href="https://rdrr.io/r/base/match.arg.html" class="external-link">match.arg()</a></code> for method selection (“none”, “absolute”, “mad”, “iqr” for coverage; “none”, “absolute”, “relative”, “relative_cutoff” for abundance).</p></li>
+<li>
+<p><strong>Method Dispatch</strong>: Pipeline uses <code><a href="https://rdrr.io/r/base/match.arg.html" class="external-link">match.arg()</a></code> for method selection:</p>
+<ul><li>Coverage: “none”, “absolute”, “mad”, “iqr”, “good”, “chao”</li>
+<li>Abundance: “none”, “absolute”, “relative”, “relative_cutoff”, “joint”</li>
+</ul></li>
 <li><p><strong>Return Values</strong>: Most functions return modified data.frames with attributes (e.g., <code>n_filtered_out</code>, <code>threshold</code>, <code>mode</code>).</p></li>
-<li><p><strong>Optional Dependencies</strong>: Uses <code><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace()</a></code> for optional packages (vegan, pheatmap, ComplexHeatmap) with graceful degradation.</p></li>
-<li><p><strong>QC Metrics Structure</strong>: <code><a href="reference/compute_filtering_qc.html">compute_filtering_qc()</a></code> returns comprehensive list including sparsity changes, retention percentages, top N feature comparisons with overlap statistics and rank correlations.</p></li>
+<li><p><strong>Optional Dependencies</strong>: Uses <code><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace()</a></code> for optional packages (vegan, pheatmap, ComplexHeatmap, phyloseq, TreeSummarizedExperiment) with graceful degradation.</p></li>
+<li><p><strong>QC Metrics Structure</strong>: <code><a href="reference/compute_filtering_qc.html">compute_filtering_qc()</a></code> returns comprehensive list including sparsity changes, retention percentages, top N feature comparisons with overlap statistics, rank correlations, and Procrustes analysis.</p></li>
 </ol></div>
 </div>
 <div class="section level2">
 <h2 id="testing-structure">Testing Structure<a class="anchor" aria-label="anchor" href="#testing-structure"></a></h2>
-<p>Tests use testthat v3 with focused test files: - <code>test-load_feature_table.R</code> - File loading and auto-detection - <code>test-filter_coverage.R</code> - Sample coverage filtering - <code>test-filter_features.R</code> - Feature abundance filtering - <code>test-compute_qc_metrics.R</code> - QC metric calculations - <code>test-helpers.R</code> - Utility function tests</p>
+<p>Tests use testthat v3 with focused test files: - <code>test-load_feature_table.R</code> - File loading and auto-detection - <code>test-filter_coverage.R</code> - Sample coverage filtering - <code>test-filter_features.R</code> - Feature abundance filtering - <code>test-compute_qc_metrics.R</code> - QC metric calculations - <code>test-helpers.R</code> - Utility function tests - <code>test-estimate_coverage_metrics.R</code> - Coverage estimator tests - <code>test-filter_by_singleton_ratio.R</code> - Singleton ratio filtering - <code>test-filter_cross_talk.R</code> - Cross-talk filtering - <code>test-filter_features_joint.R</code> - Joint filtering - <code>test-compute_depth_sparsity.R</code> - Depth-sparsity analysis - <code>test-identify_sparsity_elbow.R</code> - Elbow detection - <code>test-compute_scree.R</code> - Scree analysis - <code>test-filter_by_network.R</code> - Network-based filtering - <code>test-convert_data_classes.R</code> - Class conversion functions</p>
 <p>Test data is minimal synthetic data.frames created inline.</p>
 </div>
+<div class="section level2">
+<h2 id="example-data">Example Data<a class="anchor" aria-label="anchor" href="#example-data"></a></h2>
+<ul><li>
+<code>example_feature_table.tsv</code> - Synthetic dataset (50 features × 20 samples) for documentation and testing</li>
+</ul></div>
 </div>
 
   </div>
