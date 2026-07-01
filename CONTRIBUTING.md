@@ -24,15 +24,50 @@ Enhancement suggestions are welcome. Please include:
 - **Examples of how the enhancement would be used**
 - **Explanation of why this enhancement would be useful**
 
-### Pull Requests
+## Branching Workflow
 
-1. **Fork the repository** and create your branch from `main`
+This project uses a **develop branch workflow**. Never commit directly to `master`.
+
+### Branch Structure
+
+- **`master`**: Production-ready releases only. Protected branch.
+- **`develop`**: Integration branch for upcoming features. All PRs go here first.
+- **Feature branches**: `feature/description`, `fix/description`, `docs/description`
+
+### Development Workflow
+
+1. **Create a feature branch from `develop`**:
+   ```bash
+   git checkout develop
+   git pull origin develop
+   git checkout -b feature/my-new-feature
+   ```
+
 2. **Make your changes** following the code style guidelines
+
 3. **Add tests** for new functionality
+
 4. **Update documentation** including roxygen comments
-5. **Ensure all tests pass** with `Rscript -e "testthat::test_dir('tests/testthat')"`
-6. **Check package build** with `R CMD build .` and `R CMD check .`
-7. **Submit a pull request**
+
+5. **Ensure all tests pass**:
+   ```bash
+   Rscript -e "testthat::test_dir('tests/testthat')"
+   R CMD check .
+   ```
+
+6. **Push and create a Pull Request** to `develop`:
+   ```bash
+   git push origin feature/my-new-feature
+   ```
+   Then visit GitHub to create a PR targeting the `develop` branch.
+
+7. **Code review**: At least one maintainer must approve the PR
+
+8. **Merge to develop**: After approval, merge the PR (squash or rebase preferred)
+
+9. **Release**: When ready, merge `develop` to `master` and create a tagged release
+
+### Direct commits to `master` are prevented by branch protection rules.
 
 ## Code Style Guidelines
 
