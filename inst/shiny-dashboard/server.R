@@ -359,15 +359,37 @@ server <- function(input, output, session) {
   # Abundance histogram
   output$abundance_histogram <- renderPlot({
     req(rv$original_table)
-    tbl <- rv$original_table
-    abundances <- rowSums(tbl[, -1])
 
-    ggplot(data.frame(abundances), aes(x = abundances)) +
-      geom_histogram(binwidth = 10, fill = "steelblue", color = "white") +
-      scale_x_log10() +
-      theme_minimal() +
-      labs(title = "Feature Abundance Distribution",
-           x = "Total Reads (log10)", y = "Frequency")
+    orig_abun <- rowSums(rv$original_table[, -1, drop = FALSE])
+
+    if (!is.null(rv$filtered_table) && nrow(rv$filtered_table) > 0) {
+      filt_abun <- rowSums(rv$filtered_table[, -1, drop = FALSE])
+
+      df <- data.frame(
+        abundance = c(orig_abun, filt_abun),
+        Group = rep(c("Original", "Filtered"),
+                    each = length(orig_abun))
+      )
+
+      p <- ggplot(df, aes(x = abundance, fill = Group)) +
+        geom_histogram(alpha = 0.6, bins = 30, position = "identity") +
+        facet_wrap(~Group, scales = "free_y") +
+        scale_x_log10() +
+        theme_minimal() +
+        labs(title = "Feature Abundance Distribution",
+             x = "Total Reads (log10)", y = "Frequency")
+    } else {
+      df <- data.frame(abundance = orig_abun)
+
+      p <- ggplot(df, aes(x = abundance)) +
+        geom_histogram(fill = "steelblue", color = "white", bins = 30) +
+        scale_x_log10() +
+        theme_minimal() +
+        labs(title = "Feature Abundance Distribution",
+             x = "Total Reads (log10)", y = "Frequency")
+    }
+
+    p
   })
 
   # Sparsity plot
