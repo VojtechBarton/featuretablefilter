@@ -22,18 +22,13 @@ server <- function(input, output, session) {
   # Load data when file is uploaded
   data <- reactive({
     req(input$data_file)
-    tmp <- tempfile()
-    download.file(input$data_file$datapath, tmp, mode = "wb")
 
     format <- input$data_format
-    if (format == "auto") {
-      table <- load_feature_table(tmp)
-    } else if (format == "tsv") {
-      table <- load_feature_table(tmp, sep = "\t")
+    if (format == "auto" || format == "tsv") {
+      table <- load_feature_table(input$data_file$datapath, sep = "\t")
     } else {
-      table <- load_feature_table(tmp, sep = ",")
+      table <- load_feature_table(input$data_file$datapath, sep = ",")
     }
-    unlink(tmp)
     table
   })
 
