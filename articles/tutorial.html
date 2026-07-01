@@ -239,16 +239,18 @@ across studies</p>
 </tr>
 <tr class="odd">
 <td><code>good</code></td>
+<td>Traditional OTU data, ecological diversity studies</td>
 <td>
-<strong>Diversity studies</strong>, ecological analyses</td>
-<td>Presence-absence only studies</td>
+<strong>DADA2/Deblur ASV data</strong> (denoising changes error
+structure)</td>
 <td>Filters by estimated ecological completeness</td>
 </tr>
 <tr class="even">
 <td><code>chao</code></td>
+<td>Traditional OTU data, conservative rare biosphere studies</td>
 <td>
-<strong>Conservative filtering</strong>, rare biosphere studies</td>
-<td>When maximizing sample retention</td>
+<strong>DADA2/Deblur ASV data</strong> (assumes random
+sampling)</td>
 <td>More conservative than Good’s coverage</td>
 </tr>
 </tbody>
@@ -265,28 +267,38 @@ across studies</p>
 <li>
 <strong>Avoid aggressive singleton filtering</strong>: ASVs with
 single reads may be real biological variants, especially in low-biomass
-samples</li>
+samples. DADA2’s error modeling already distinguishes true variants from
+sequencing errors.</li>
 <li>
-<strong>Use <code>good</code> or <code>chao</code> coverage
-methods</strong>: These preserve samples that have adequate ecological
-coverage even if total reads are moderate</li>
+<strong>Use <code>mad</code> or <code>iqr</code> coverage
+methods</strong> (NOT Good’s/Chao’s): Statistical outlier detection is
+more appropriate because:
+<ul>
+<li>Good’s/Chao’s coverage assume random sampling, but DADA2’s denoising
+changes the error structure</li>
+<li>DADA2 produces variable sequencing depths naturally; the algorithm
+works across different depths</li>
+<li>MAD/IQR only remove true statistical outliers, preserving valid
+low-biomass samples</li>
+</ul>
+</li>
 <li>
-<strong>Be cautious with cross-talk filtering</strong>: DADA2
-already removes many chimeric sequences; additional cross-talk filtering
-may remove real rare variants</li>
+<strong>Skip cross-talk filtering</strong>: DADA2 already removes
+chimeric sequences; additional cross-talk filtering may remove real rare
+variants</li>
 </ul>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Recommended for DADA2 data</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
 <span>  input <span class="op">=</span> <span class="st">"dada2_table.tsv"</span>,</span>
-<span>  cov_filter_method <span class="op">=</span> <span class="st">"good"</span>,        <span class="co"># Ecological completeness</span></span>
-<span>  cov_target_coverage <span class="op">=</span> <span class="fl">0.95</span>,        <span class="co"># 95% coverage threshold</span></span>
+<span>  cov_filter_method <span class="op">=</span> <span class="st">"mad"</span>,         <span class="co"># Statistical outlier detection (NOT good/chao)</span></span>
+<span>  cov_threshold <span class="op">=</span> <span class="fl">2</span>,                 <span class="co"># Remove true outliers only (2 MAD below median)</span></span>
 <span>  abun_filter_method <span class="op">=</span> <span class="st">"joint"</span>,      <span class="co"># Combined abundance-prevalence</span></span>
 <span>  abun_threshold <span class="op">=</span> <span class="fl">0.0001</span>,           <span class="co"># Very low abundance threshold</span></span>
-<span>  abun_prevalence_threshold <span class="op">=</span> <span class="fl">0.1</span>,   <span class="co"># Present in at least 10% of samples</span></span>
+<span>  abun_prevalence_threshold <span class="op">=</span> <span class="fl">0.05</span>,  <span class="co"># Present in at least 5% of samples</span></span>
 <span>  abun_logic <span class="op">=</span> <span class="st">"OR"</span>,                 <span class="co"># Keep if meets either criterion</span></span>
 <span>  crosstalk_filter_method <span class="op">=</span> <span class="st">"none"</span>,  <span class="co"># Skip cross-talk for DADA2</span></span>
-<span>  singleton_filter_method <span class="op">=</span> <span class="st">"none"</span>   <span class="co"># Don't filter singletons aggressively</span></span>
+<span>  singleton_filter_method <span class="op">=</span> <span class="st">"none"</span>   <span class="co"># Don't filter singletons (DADA2 handled errors)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level5">
