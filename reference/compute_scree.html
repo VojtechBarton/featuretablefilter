@@ -73,7 +73,11 @@ First column should be feature IDs, remaining columns are sample counts.</p></dd
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
-<dd><p>Type of threshold sweep to perform: <code>"mad_multiplier"</code> sweeps MAD multipliers (e.g., 1 to 5 for coverage filtering), <code>"absolute_feature"</code> sweeps absolute feature abundance thresholds, <code>"relative_feature"</code> sweeps relative abundance thresholds (0 to 0.01), <code>"custom"</code> uses custom threshold values provided in <code>thresholds</code>.</p></dd>
+<dd><p>Type of threshold sweep to perform:</p><ul><li><p><code>"mad_multiplier"</code> - Sweep MAD multipliers (e.g., 1 to 5 for coverage filtering)</p></li>
+<li><p><code>"absolute_feature"</code> - Sweep absolute feature abundance thresholds</p></li>
+<li><p><code>"relative_feature"</code> - Sweep relative abundance thresholds (0 to 0.01)</p></li>
+<li><p><code>"custom"</code> - Use custom threshold values provided in <code>thresholds</code></p></li>
+</ul></dd>
 
 
 <dt id="arg-thresholds">thresholds<a class="anchor" aria-label="anchor" href="#arg-thresholds"></a></dt>
