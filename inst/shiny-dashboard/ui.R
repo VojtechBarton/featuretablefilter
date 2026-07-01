@@ -5,9 +5,6 @@ fluidPage(
   includeCSS(system.file("shiny-dashboard/www/style.css", package = "featuretablefilter")),
 
   sidebarLayout(
-    sidebarPosition = "left",
-
-    # Sidebar: Controls and Parameters
     sidebarPanel(width = 4,
 
       h4("Filtering Parameters"),
