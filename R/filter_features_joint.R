@@ -69,20 +69,23 @@ filter_features_joint <- function(table,
     stop("prevalence_threshold must be between 0 and 1")
   }
 
-  # Extract feature IDs and abundance matrix
+  # Extract feature IDs and abundance matrix (keep original for output)
   feature_ids <- table[, 1, drop = FALSE]
-  abundances <- as.matrix(table[, -1, drop = FALSE])
+  abundances_orig <- as.matrix(table[, -1, drop = FALSE])
+  abundances <- abundances_orig
   n_samples <- ncol(abundances)
 
-  # Convert to relative if requested
+  # Convert to relative if requested (for decision making only)
   if (mode == "relative") {
     sample_totals <- colSums(abundances)
-    abundances <- sweep(abundances, 2, sample_totals, FUN = "/")
-    abundances[is.na(abundances)] <- 0
+    abundances_rel <- sweep(abundances, 2, sample_totals, FUN = "/")
+    abundances_rel[is.na(abundances_rel)] <- 0
+  } else {
+    abundances_rel <- abundances
   }
 
-  # Calculate which cells exceed abundance threshold
-  exceeds_abundance <- abundances >= abundance_threshold
+  # Calculate which cells exceed abundance threshold (using relative if mode is relative)
+  exceeds_abundance <- abundances_rel >= abundance_threshold
 
   # Calculate prevalence for each feature (proportion of samples exceeding threshold)
   feature_prevalence <- rowSums(exceeds_abundance) / n_samples
@@ -104,16 +107,18 @@ filter_features_joint <- function(table,
   n_by_both <- sum(meets_abundance & meets_prevalence)
   n_by_neither <- sum(!meets_abundance & !meets_prevalence)
 
-  # Build result table
+  # Apply mask to ORIGINAL abundances (not relative!)
+  mask <- !exceeds_abundance & keep_features == FALSE
+  filtered_abundances <- abundances_orig
+  filtered_abundances[mask] <- 0
+
+  # Build result table using original count values
   if (remove_zeros) {
     result_table <- cbind(
       feature_ids[keep_features, , drop = FALSE],
-      abundances[keep_features, , drop = FALSE]
+      filtered_abundances[keep_features, , drop = FALSE]
     )
   } else {
-    # Zero out features that don't meet criteria but keep them
-    filtered_abundances <- abundances
-    filtered_abundances[!keep_features, ] <- 0
     result_table <- cbind(feature_ids, filtered_abundances)
   }
 
@@ -123,11 +128,11 @@ filter_features_joint <- function(table,
   }
   colnames(result_table) <- colnames(table)
 
-  # Create feature details dataframe
+  # Create feature details dataframe (use relative values for display purposes)
   feature_details <- data.frame(
     feature_id = table[, 1],
-    max_abundance = apply(abundances, 1, max),
-    mean_abundance = rowMeans(abundances),
+    max_abundance = apply(abundances_rel, 1, max),
+    mean_abundance = rowMeans(abundances_rel),
     prevalence = feature_prevalence,
     meets_abundance = meets_abundance,
     meets_prevalence = meets_prevalence,
