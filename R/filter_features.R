@@ -30,28 +30,23 @@ filter_features_by_abundance <- function(table, threshold, mode = c("absolute", 
   # Validate mode
   mode <- match.arg(mode)
 
-  # Extract feature IDs and abundance columns
+  # Extract feature IDs and abundance columns (keep original for output)
   feature_ids <- table[, 1, drop = FALSE]
-  abundances <- table[, -1, drop = FALSE]
+  abundances_orig <- table[, -1, drop = FALSE]
+  abundances <- as.matrix(abundances_orig)
 
-  # Convert to relative if requested
+  # Convert to relative if requested (for decision making only)
   if (mode == "relative") {
     sample_totals <- colSums(abundances)
-    abundances_rel <- sweep(as.matrix(abundances), 2, sample_totals, FUN = "/")
+    abundances_rel <- sweep(abundances, 2, sample_totals, FUN = "/")
     abundances_rel[is.na(abundances_rel)] <- 0
-    # Preserve column names after sweep
-    colnames(abundances_rel) <- colnames(abundances)
-    abundances_rel <- as.data.frame(abundances_rel)
   } else {
     abundances_rel <- abundances
   }
 
-  # Set values below threshold to zero
-  filtered <- abundances_rel
-  filtered[filtered < threshold] <- 0
-
-  # Count samples where each feature exceeds threshold
-  n_exceeding <- rowSums(filtered > 0)
+  # Set values below threshold to zero (using relative for decision)
+  mask <- abundances_rel < threshold
+  n_exceeding <- rowSums(!mask)
 
   # Determine which features to keep
   if (remove_zeros) {
@@ -59,17 +54,19 @@ filter_features_by_abundance <- function(table, threshold, mode = c("absolute", 
     keep_features <- n_exceeding >= min_samples
   } else {
     # Zero out but don't remove - keep all features
-    keep_features <- rep(TRUE, nrow(filtered))
+    keep_features <- rep(TRUE, nrow(abundances))
   }
 
-  # Build result
+  # Apply mask to ORIGINAL abundances (not relative!)
+  filtered <- abundances
+  filtered[mask] <- 0
+
+  # Build result using original count values
   result <- cbind(feature_ids[keep_features, , drop = FALSE],
                   filtered[keep_features, , drop = FALSE])
 
-  # Ensure column names are preserved
-  if (is.matrix(result)) {
-    result <- as.data.frame(result)
-  }
+  # Ensure data.frame and column names are preserved
+  result <- as.data.frame(result)
   colnames(result) <- colnames(table)
 
   # Return attributes about what was filtered
