@@ -322,7 +322,18 @@ server <- function(input, output, session) {
   # Coverage histogram
   output$coverage_histogram <- renderPlot({
     req(rv$original_table)
-    plot_coverage_histogram(rv$original_table)
+    tbl <- rv$original_table
+    coverage_vec <- colSums(tbl[, -1, drop = FALSE])
+
+    df <- data.frame(coverage = coverage_vec)
+    n_bins <- ceiling(log2(length(coverage_vec)) + 1)
+
+    ggplot(df, aes(x = coverage)) +
+      geom_histogram(binwidth = NULL, bins = max(n_bins, 10),
+                     fill = "steelblue", color = "white") +
+      theme_minimal() +
+      labs(title = "Sample Coverage Distribution",
+           x = "Total Reads per Sample", y = "Frequency")
   })
 
   # Abundance histogram
