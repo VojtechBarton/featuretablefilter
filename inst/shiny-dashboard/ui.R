@@ -24,49 +24,35 @@ fluidPage(
       hr(),
 
       # Coverage Filtering
-      accordion(id = "coverage_accordion",
+      h5("Coverage Filtering"),
+      selectInput("cov_method", "Method:",
+                  choices = c("none", "absolute", "mad", "iqr", "good", "chao"),
+                  selected = "mad"),
+      uiOutput("cov_params_ui"),
+      hr(),
 
-        accordionPanel("Coverage Filtering", icon = icon("filter"),
+      # Singleton Ratio Filtering
+      h5("Singleton Ratio Filtering"),
+      selectInput("singleton_method", "Method:",
+                  choices = c("none", "absolute"),
+                  selected = "none"),
+      uiOutput("singleton_params_ui"),
+      hr(),
 
-          selectInput("cov_method", "Method:",
-                      choices = c("none", "absolute", "mad", "iqr", "good", "chao"),
-                      selected = "mad"),
-
-          uiOutput("cov_params_ui")
-        ),
-
-        accordionPanel("Singleton Ratio Filtering", icon = icon("exclamation-triangle"),
-
-          selectInput("singleton_method", "Method:",
-                      choices = c("none", "absolute"),
-                      selected = "none"),
-
-          uiOutput("singleton_params_ui")
-        ),
-
-        accordionPanel("Cross-Talk Filtering", icon = icon("exchange-alt"),
-
-          selectInput("crosstalk_method", "Method:",
-                      choices = c("none", "zero", "remove_feature", "flag"),
-                      selected = "none"),
-
-          uiOutput("crosstalk_params_ui")
-        )
-      ),
+      # Cross-Talk Filtering
+      h5("Cross-Talk Filtering"),
+      selectInput("crosstalk_method", "Method:",
+                  choices = c("none", "zero", "remove_feature", "flag"),
+                  selected = "none"),
+      uiOutput("crosstalk_params_ui"),
       hr(),
 
       # Abundance Filtering
-      accordion(id = "abundance_accordion",
-
-        accordionPanel("Abundance Filtering", icon = icon("arrow-down"),
-
-          selectInput("abun_method", "Method:",
-                      choices = c("none", "absolute", "relative", "relative_cutoff", "joint"),
-                      selected = "joint"),
-
-          uiOutput("abun_params_ui")
-        )
-      ),
+      h5("Abundance Filtering"),
+      selectInput("abun_method", "Method:",
+                  choices = c("none", "absolute", "relative", "relative_cutoff", "joint"),
+                  selected = "joint"),
+      uiOutput("abun_params_ui"),
       hr(),
 
       # Action Buttons
