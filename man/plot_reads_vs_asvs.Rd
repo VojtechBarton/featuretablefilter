@@ -6,12 +6,7 @@ Simple visualization showing the relationship between sequencing depth (total re
 and observed richness (number of non-zero ASVs/features). Uses MAD-based outlier
 detection to flag samples that have unusually low richness for their sequencing depth.
 
-This plot helps identify:
-\itemize{
-  \item Low-depth samples with poor feature discovery (potential undersampling)
-  \item High-depth samples with unexpectedly few features (potential technical artifacts)
-  \item Samples that deviate from the expected depth-richness curve
-}
+This plot helps identify: low-depth samples with poor feature discovery (potential undersampling), high-depth samples with unexpectedly few features (potential technical artifacts), and samples that deviate from the expected depth-richness curve.
 }
 \usage{
 plot_reads_vs_asvs(table, mad_multiplier = 3,

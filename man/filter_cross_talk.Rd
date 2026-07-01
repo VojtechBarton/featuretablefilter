@@ -35,41 +35,24 @@ of the relative threshold. Features with counts >= this value are kept.
 Set to NULL (default) to disable. Useful for preserving any real
 low-abundance presence (e.g., min_abs_cutoff = 2 keeps doubletons).}
 
-\item{mode}{Control how filtering is applied:
-\itemize{
-  \item \code{"zero"} - Set suspected leakage reads to zero (default)
-  \item \code{"remove_feature"} - Remove entire feature if any leakage detected
-  \item \code{"flag"} - Add attribute with leakage info but don't modify data
-}}
+\item{mode}{Control how filtering is applied: \code{"zero"} sets suspected leakage reads to zero (default), \code{"remove_feature"} removes entire feature if any leakage detected, \code{"flag"} adds attribute with leakage info but doesn't modify data.}
 
 \item{return_details}{Logical. If TRUE, add attributes with detailed information about
 which values were flagged as leakage. Default is FALSE.}
-}
-\value{
-A filtered feature table (data.frame) with suspected cross-talk artifacts removed.
-        The result includes attributes:
-        \itemize{
-          \item \code{n_leakage_zeros}: Number of individual cells set to zero
-          \item \code{n_features_affected}: Number of features with at least one leakage zero
-          \item \code{\link[=threshold]}: The max_rel_threshold used
-          \item If \code{return_details = TRUE}:
-            \describe{
-              \item{\code{leakage_matrix}}{Logical matrix indicating which cells were flagged}
-              \item{\code{feature_max}}{Named vector of each feature's maximum abundance}
-            }
-        }
 }
 \description{
 Removes likely index-hopping or cross-contamination artifacts by comparing
 each feature's abundance in each sample to its maximum abundance across all samples.
 Reads appearing at very low levels relative to a feature's peak abundance are
 likely leakage from highly abundant samples on the same flow cell.
-}
-\details{
+
 This filter is particularly useful for:
 - Illumina patterned flow cells (ExAmp chemistry) where index hopping occurs
 - Multiplexed runs with highly uneven library concentrations
 - Detecting and removing "ghost" ASVs that appear sporadically at low counts
+}
+\value{
+A filtered feature table (data.frame) with suspected cross-talk artifacts removed. The result includes attributes: \code{n_leakage_zeros} (number of individual cells set to zero), \code{n_features_affected} (number of features with at least one leakage zero), and the threshold used. If \code{return_details = TRUE}, also includes \code{leakage_matrix} (logical matrix indicating which cells were flagged) and \code{feature_max} (named vector of each feature's maximum abundance).
 }
 \examples{
 # Remove reads < 0.1\% of each feature's maximum abundance

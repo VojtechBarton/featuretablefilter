@@ -6,18 +6,7 @@ A comprehensive pipeline that loads, filters, and analyzes a feature table.
 Allows selection of different coverage and abundance filtering methods.
 Produces QC metrics and visualizations comparing before/after filtering.
 
-Generates the following outputs:
-\itemize{
-  \item Filtered feature table (TSV format)
-  \item Sample coverage distribution plot
-  \item Feature abundance distribution plot
-  \item Sample sparsity histogram (per-sample view)
-  \item Retention rates barplot
-  \item Heatmaps of top variable features (original and filtered)
-  \item Top features stacked barplot
-  \item Presence frequency comparison plot (side-by-side histograms)
-  \item Text summary report
-}
+Generates the following outputs: filtered feature table (TSV format), sample coverage distribution plot, feature abundance distribution plot, sample sparsity histogram (per-sample view), retention rates barplot, heatmaps of top variable features (original and filtered), top features stacked barplot, presence frequency comparison plot (side-by-side histograms), text summary report.
 }
 \usage{
 run_filtering_pipeline(input_file,

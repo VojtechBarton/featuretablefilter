@@ -3,9 +3,13 @@
 #' A comprehensive pipeline that loads, filters, and analyzes a feature table.
 #' Allows selection of different coverage, abundance, and quality-based filtering methods.
 #' Produces QC metrics and visualizations comparing before/after filtering.
+#' Supports data.frame, phyloseq, and TreeSummarizedExperiment inputs and returns
+#' the same class as the input.
 #'
-#' @param input_file Path to input feature table file (TSV or CSV).
+#' @param input Path to input feature table file (TSV or CSV), or a feature table object
+#'              (data.frame, phyloseq, or TreeSummarizedExperiment).
 #' @param output_dir Directory to save outputs (filtered table, plots, report). Default is current directory.
+#'                   Ignored when input is an object rather than a file path.
 #' @param prefix Prefix for output filenames. Default is "filtered".
 #'
 #' # Coverage Filtering Options
@@ -104,21 +108,22 @@
 #' @param verbose Logical. Print progress messages? Default TRUE.
 #'
 #' @return A list containing:
-#'   \item{original_table}{Original loaded table}
-#'   \item{filtered_table}{Filtered table}
+#'   \item{original_table}{Original loaded table (same class as input)}
+#'   \item{filtered_table}{Filtered table (same class as input)}
 #'   \item{qc_metrics}{List of QC metrics from compute_filtering_qc()}
 #'   \item{presence_stats}{List of presence analysis statistics}
 #'   \item{filtering_summary}{Summary of filtering steps applied}
 #'   \item{sparsity_elbow_result}{Result from sparsity elbow detection (if enabled)}
 #'   \item{depth_sparsity_result}{Result from depth-sparsity outlier analysis (if enabled)}
 #'   \item{scree_result}{Result from scree/saturation analysis (if enabled)}
+#'   \item{input_class}{The class of the input object ("data.frame", "phyloseq", or "TreeSummarizedExperiment")}
 #'
 #' @export
 #'
 #' @examples
-#' # Simple pipeline with absolute thresholds
+#' # Simple pipeline with absolute thresholds from file
 #' # result <- run_filtering_pipeline(
-#' #   input_file = "feature-table.tsv",
+#' #   input = "feature-table.tsv",
 #' #   output_dir = "results",
 #' #   prefix = "analysis1",
 #' #   cov_filter_method = "absolute",
@@ -127,17 +132,31 @@
 #' #   abun_threshold = 5
 #' # )
 #'
-#' # Pipeline with MAD-based coverage and relative abundance filtering
+#' # Pipeline with phyloseq object (returns phyloseq)
+#' # library(phyloseq)
+#' # ps <- load_phyloseq("my_data.rds")
 #' # result <- run_filtering_pipeline(
-#' #   input_file = "feature-table.tsv",
-#' #   output_dir = "results",
+#' #   input = ps,
+#' #   prefix = "ps_filtered",
 #' #   cov_filter_method = "mad",
 #' #   cov_threshold = 3,
 #' #   abun_filter_method = "relative_cutoff",
-#' #   abun_threshold = 0.01,
-#' #   min_coverage_for_relative = 1000
+#' #   abun_threshold = 0.01
 #' # )
-run_filtering_pipeline <- function(input_file,
+#' # filtered_ps <- result$filtered_table  # Still a phyloseq object
+#'
+#' # Pipeline with TreeSummarizedExperiment (returns TSE)
+#' # library(TreeSummarizedExperiment)
+#' # tse <- loadTSE("my_data.rds")
+#' # result <- run_filtering_pipeline(
+#' #   input = tse,
+#' #   prefix = "tse_filtered",
+#' #   cov_filter_method = "good",
+#' #   cov_target_coverage = 0.95,
+#' #   abun_filter_method = "joint"
+#' # )
+#' # filtered_tse <- result$filtered_table  # Still a TreeSummarizedExperiment
+run_filtering_pipeline <- function(input,
                                     output_dir = ".",
                                     prefix = "filtered",
                                     # Coverage filtering
@@ -189,20 +208,57 @@ run_filtering_pipeline <- function(input_file,
   cov_filter_method <- match.arg(cov_filter_method)
   abun_filter_method <- match.arg(abun_filter_method)
 
-  if (!file.exists(input_file)) {
-    stop("Input file not found: ", input_file)
+  # Detect input class and convert to data.frame if necessary
+  input_class <- NULL
+
+  if (is.character(input) && length(input) == 1 && file.exists(input)) {
+    # Input is a file path
+    input_class <- "data.frame"
+    if (verbose) cat(sprintf("Loading feature table from file: %s\n", input))
+    original_table <- load_feature_table(input)
+    input_file_path <- input
+  } else if (inherits(input, "phyloseq")) {
+    # Input is a phyloseq object
+    input_class <- "phyloseq"
+    if (verbose) cat("Converting phyloseq object to feature table...\n")
+    original_table <- from_phyloseq(input, include_taxa = FALSE)
+    input_file_path <- NULL
+  } else if (inherits(input, c("TreeSummarizedExperiment", "SingleCellExperiment", "SummarizedExperiment"))) {
+    # Input is a TreeSummarizedExperiment or related object
+    input_class <- "TreeSummarizedExperiment"
+    if (verbose) cat("Converting TreeSummarizedExperiment object to feature table...\n")
+    original_table <- from_TSE(input, add_row_data = FALSE)
+    input_file_path <- NULL
+  } else if (is.data.frame(input) || is.matrix(input)) {
+    # Input is already a data.frame or matrix
+    input_class <- "data.frame"
+    if (verbose) cat("Using provided data.frame/matrix as feature table...\n")
+    original_table <- as.data.frame(input)
+    if (is.matrix(input)) {
+      # Convert matrix to data.frame with feature_id column
+      feature_ids <- rownames(original_table)
+      if (is.null(feature_ids)) {
+        feature_ids <- paste0("Feature_", seq_len(nrow(original_table)))
+      }
+      original_table <- data.frame(feature_id = feature_ids, original_table, stringsAsFactors = FALSE)
+    }
+    input_file_path <- NULL
+  } else {
+    stop("Input must be a file path (character), data.frame, matrix, phyloseq, or TreeSummarizedExperiment object")
   }
 
-  # Create output directory if needed
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
+  # Create output directory if needed (only for file inputs)
+  if (!is.null(input_file_path)) {
+    if (!dir.exists(output_dir)) {
+      dir.create(output_dir, recursive = TRUE)
+    }
   }
 
-  # === Step 1: Load Table ===
-  if (verbose) cat("\n=== Step 1: Loading Table ===\n")
-  original_table <- load_feature_table(input_file)
+  # === Step 1: Feature Table Ready ===
+  if (verbose) cat("\n=== Step 1: Feature Table Prepared ===\n")
   if (verbose) {
-    cat(sprintf("Loaded table with %d features and %d samples\n",
+    cat(sprintf("Input class: %s\n", input_class))
+    cat(sprintf("Table has %d features and %d samples\n",
                 nrow(original_table), ncol(original_table) - 1))
   }
 
@@ -530,7 +586,6 @@ run_filtering_pipeline <- function(input_file,
   }
 
   # === Step 8: Abundance Filtering ===
-  # === Step 8: Abundance Filtering ===
   if (abun_filter_method != "none") {
     if (abun_filter_method == "absolute") {
       if (is.null(abun_threshold)) stop("abun_threshold required for absolute method")
@@ -639,10 +694,15 @@ run_filtering_pipeline <- function(input_file,
                 paste(head(colnames(table_current), 3), collapse = ", ")))
   }
 
-  output_file <- file.path(output_dir, paste0(prefix, "_table.tsv"))
-  write.table(table_current, file = output_file, sep = "\t",
-              row.names = FALSE, col.names = TRUE, quote = FALSE)
-  if (verbose) cat(sprintf("Filtered table saved to: %s\n", output_file))
+  # Only save to file if input was a file path
+  if (!is.null(input_file_path)) {
+    output_file <- file.path(output_dir, paste0(prefix, "_table.tsv"))
+    write.table(table_current, file = output_file, sep = "\t",
+                row.names = FALSE, col.names = TRUE, quote = FALSE)
+    if (verbose) cat(sprintf("Filtered table saved to: %s\n", output_file))
+  } else {
+    if (verbose) cat("Skipping file output (input was an object)\n")
+  }
 
   # === Step 10: Compute QC Metrics ===
   if (verbose) cat("\n=== Step 10: Computing QC Metrics ===\n")
@@ -1037,6 +1097,33 @@ run_filtering_pipeline <- function(input_file,
     if (verbose) cat(sprintf("Report saved to: %s\n", report_file))
   }
 
+  # === Convert Output Back to Original Input Class ===
+  if (verbose) cat(sprintf("\nConverting output back to %s format...\n", input_class))
+
+  # Convert original and filtered tables back to original input class
+  if (input_class == "phyloseq") {
+    # Get any additional components from the original phyloseq object
+    original_ps <- input
+    filtered_ps <- to_phyloseq(table_current,
+                                tax_table = phyloseq::tax_table(original_ps),
+                                phy_tree = phyloseq::phy_tree(original_ps),
+                                sample_data = phyloseq::sample_data(original_ps))
+    original_table <- original_ps
+    table_current <- filtered_ps
+  } else if (input_class == "TreeSummarizedExperiment") {
+    # Get any additional components from the original TSE object
+    original_tse <- input
+    filtered_tse <- to_TSE(table_current,
+                            rowData = SummarizedExperiment::rowData(original_tse),
+                            colData = SummarizedExperiment::colData(original_tse),
+                            reducedDims = TreeSummarizedExperiment::reducedDims(original_tse),
+                            rowTree = TreeSummarizedExperiment::rowTree(original_tse),
+                            rowLinks = TreeSummarizedExperiment::rowLinks(original_tse))
+    original_table <- original_tse
+    table_current <- filtered_tse
+  }
+  # For data.frame input, no conversion needed
+
   if (verbose) cat("\n=== Pipeline Complete ===\n")
 
   return(list(
@@ -1047,6 +1134,7 @@ run_filtering_pipeline <- function(input_file,
     filtering_summary = filtering_steps,
     sparsity_elbow_result = sparsity_elbow_result,
     depth_sparsity_result = depth_sparsity_result,
-    scree_result = scree_result
+    scree_result = scree_result,
+    input_class = input_class
   ))
 }

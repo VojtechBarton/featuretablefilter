@@ -3,7 +3,7 @@
 
 FROM rocker/r-ver:4.4.2
 
-LABEL maintainer="Vojtech Barton <vojtech.barton@gmail.com>"
+LABEL maintainer="Vojtech Barton <vojtech.barton@hotmail.com>"
 LABEL description="Docker image with featuretablefilter R package and all dependencies"
 
 # Set working directory
@@ -40,18 +40,22 @@ RUN Rscript -e "install.packages('remotes', repos = 'https://cloud.r-project.org
 
 RUN Rscript -e "remotes::install_cran(c('devtools', 'roxygen2', 'testthat', 'knitr', 'rmarkdown', 'ggplot2', 'tidyr', 'dplyr', 'purrr', 'scales', 'patchwork', 'pheatmap', 'vegan', 'igraph', 'zoo', 'covr'), upgrade = 'never', Ncpus = 4)"
 
-# Install Bioconductor packages using BiocManager from CRAN first
-# Include S4Vectors as it's required by featuretablefilter via TreeSummarizedExperiment
-RUN Rscript -e "install.packages('BiocManager', repos = 'https://cran.r-project.org'); BiocManager::install(ask = FALSE, update = FALSE, force = TRUE); remotes::install_bioc(c('S4Vectors', 'SummarizedExperiment', 'SingleCellExperiment', 'TreeSummarizedExperiment', 'phyloseq'), upgrade = 'never', Ncpus = 4)"
+# Install Bioconductor packages using BiocManager
+# R 4.4.x corresponds to Bioconductor 3.19; specify version to avoid conflicts
+RUN Rscript -e "install.packages('BiocManager', repos = 'https://cran.r-project.org'); \
+    BiocManager::install(version = '3.19', ask = FALSE, update = TRUE); \
+    BiocManager::install(c('S4Vectors', 'SummarizedExperiment', 'SingleCellExperiment', 'TreeSummarizedExperiment', 'phyloseq'), ask = FALSE, update = FALSE, Ncpus = 4)"
 
 # Copy package source to container
 COPY . /workspace/featuretablefilter/
 
-# Install the featuretablefilter package from local source
-RUN Rscript -e "setwd('/workspace/featuretablefilter'); devtools::install('.', dependencies = FALSE, upgrade = 'never'); cat('featuretablefilter installed successfully!\n')"
+# Install the featuretablefilter package from local source using Rscript
+# This properly checks library paths for dependencies
+RUN Rscript -e "install.packages('/workspace/featuretablefilter', repos = NULL, type = 'source', dependencies = FALSE)"
+RUN echo "featuretablefilter installed successfully!"
 
 # Verify installation
-RUN Rscript -e "library(featuretablefilter); cat('\n=== Installed Functions ===\n'); funcs <- ls(asNamespace('featuretablefilter')); exported <- funcs[grepl('^[^\\.]', funcs)]; cat(paste(sort(exported), collapse = '\n'), '\n'); cat('\n=== Package Version ===\n'); packageVersion('featuretablefilter')"
+RUN Rscript -e "library(featuretablefilter); cat('\n=== Installed Functions ===\n'); funcs <- ls(asNamespace('featuretablefilter')); exported <- funcs[!startsWith(funcs, '.')]; cat(paste(sort(exported), collapse = '\n'), '\n'); cat('\n=== Package Version ===\n'); packageVersion('featuretablefilter')"
 
 # Set working directory for user code
 WORKDIR /workspace

@@ -6,12 +6,7 @@ Combines abundance thresholds with prevalence requirements using AND/OR logic.
 This allows flexible filtering where features can be retained based on being
 either abundant, widespread, or both.
 
-Common use cases:
-\itemize{
-  \item AND logic: Keep only features that are BOTH abundant enough AND widely distributed
-  \item OR logic: Keep features that are EITHER abundant enough OR widely distributed
-    (useful for retaining rare but high-abundance features, or common but low-abundance features)
-}
+Common use cases: AND logic keeps only features that are BOTH abundant enough AND widely distributed; OR logic keeps features that are EITHER abundant enough OR widely distributed (useful for retaining rare but high-abundance features, or common but low-abundance features).
 }
 \usage{
 filter_features_joint(table,

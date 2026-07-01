@@ -2,11 +2,7 @@
 \alias{plot_presence_analysis}
 \title{Plot presence frequency analysis for features and samples}
 \description{
-Creates histograms showing:
-\itemize{
-  \item In how many samples each feature is present (feature prevalence)
-  \item How many features are present in each sample (sample richness)
-}
+Creates histograms showing: (1) in how many samples each feature is present (feature prevalence), and (2) how many features are present in each sample (sample richness).
 
 When \code{table_filtered} is provided, generates side-by-side comparison plots with shared axes.
 }

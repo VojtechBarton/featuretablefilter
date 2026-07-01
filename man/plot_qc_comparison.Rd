@@ -5,15 +5,7 @@
 Generates a comprehensive set of plots to compare original and filtered tables.
 Includes coverage distributions, sparsity histograms, retention barplots, top features barplots, and heatmaps.
 
-Plots generated:
-\itemize{
-  \item Sample coverage distribution (log10 scale, faceted)
-  \item Feature abundance distribution (log10 scale, faceted)
-  \item Sample sparsity histogram (per-sample sparsity distribution, faceted with mean lines)
-  \item Retention rates barplot (read, feature, sample retention)
-  \item Top N features stacked barplot (relative abundance comparison)
-  \item Heatmap of top variable features (original and filtered separately)
-}
+Plots generated: sample coverage distribution (log10 scale, faceted), feature abundance distribution (log10 scale, faceted), sample sparsity histogram (per-sample sparsity distribution, faceted with mean lines), retention rates barplot (read, feature, sample retention), top N features stacked barplot (relative abundance comparison), heatmap of top variable features (original and filtered separately).
 }
 \usage{
 plot_qc_comparison(original_table, filtered_table,

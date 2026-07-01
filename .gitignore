@@ -1,0 +1,47 @@
+# R build artifacts
+*.tar.gz
+*_Rcheck/
+.Rcheck/
+*.Rout
+*.Rout.save
+
+# Compiled files
+*.o
+*.so
+*.dll
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+.Rplots.pdf
+
+# Package tarballs
+*.tar.gz
+
+# Test output (optional - remove if you want to track test snapshots)
+# tests/testthat/_snaps/
+
+# Vignette caches
+vignettes/cache/
+
+# Local configuration
+.local/
+
+# Environment variables
+.env
+
+# Log files
+*.log
+
+# Claude Code session data
+.claude/
