@@ -123,7 +123,7 @@
 #' @examples
 #' # Simple pipeline with absolute thresholds from file
 #' # result <- run_filtering_pipeline(
-#' #   input = "feature-table.tsv",
+#' #   input = "example_feature_table.tsv",
 #' #   output_dir = "results",
 #' #   prefix = "analysis1",
 #' #   cov_filter_method = "absolute",

@@ -18,7 +18,7 @@
 #'
 #' @examples
 #' # Load TSV file (auto-detects format)
-#' # table <- load_feature_table("feature-table.tsv")
+#' # table <- load_feature_table("example_feature_table.tsv")
 #'
 #' # Load CSV file
 #' # table <- load_feature_table("feature-table.csv")

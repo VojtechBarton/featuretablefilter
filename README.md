@@ -100,7 +100,7 @@ library(featuretablefilter)
 
 # Run a complete filtering pipeline
 result <- run_filtering_pipeline(
-  input_file = "feature-table.tsv",
+  input = "example_feature_table.tsv",
   output_dir = "results",
   prefix = "analysis1",
   cov_filter_method = "absolute",
@@ -211,7 +211,7 @@ hill_profile <- calc_hill_numbers(as.matrix(table[, -1]), q = c(0, 0.5, 1, 2, 3)
 
 ```r
 # Load feature table
-table <- load_feature_table("feature-table.tsv")
+table <- load_feature_table("example_feature_table.tsv")
 
 # Filter by coverage (remove samples with < 1000 reads)
 filtered <- filter_by_coverage(table, min_reads = 1000)

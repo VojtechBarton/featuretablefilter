@@ -46,7 +46,7 @@ The package includes a function to load feature tables in common formats:
 
 ```{r load-data, eval = FALSE}
 # Load TSV file (auto-detects format)
-table <- load_feature_table("feature-table.tsv")
+table <- load_feature_table("example_feature_table.tsv")
 
 # Load CSV file
 table <- load_feature_table("feature-table.csv")
@@ -259,7 +259,7 @@ result <- filter_features_joint(
 
 ```{r pipeline-joint, eval = FALSE}
 result <- run_filtering_pipeline(
-  input_file = "feature-table.tsv",
+  input = "example_feature_table.tsv",
   output_dir = "results",
   prefix = "joint_filter",
 
@@ -297,7 +297,7 @@ The `run_filtering_pipeline()` function orchestrates a complete workflow:
 
 ```{r pipeline, eval = FALSE}
 result <- run_filtering_pipeline(
-  input_file = "feature-table.tsv",
+  input = "example_feature_table.tsv",
   output_dir = "results",
   prefix = "analysis1",
 

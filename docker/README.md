@@ -81,7 +81,7 @@ docker-compose run r-session
 
 # Inside R
 library(featuretablefilter)
-table <- load_feature_table("/workspace/my-data/feature-table.tsv")
+table <- load_feature_table("/workspace/example_feature_table.tsv")
 filtered <- filter_by_coverage(table, min_reads = 1000)
 ```
 
@@ -93,7 +93,7 @@ cat > analysis.R << 'EOF'
 library(featuretablefilter)
 
 # Load data
-table <- load_feature_table("data/feature-table.tsv")
+table <- load_feature_table("example_feature_table.tsv")
 
 # Filter
 filtered <- filter_by_network_connectivity(table)
@@ -119,8 +119,7 @@ Example directory structure:
 your-project/
 ├── Dockerfile
 ├── docker-compose.yml
-├── data/
-│   └── feature-table.tsv
+├── example_feature_table.tsv
 ├── results/
 │   └── (output files will appear here)
 └── scripts/
