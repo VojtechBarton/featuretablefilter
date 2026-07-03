@@ -265,6 +265,17 @@ run_filtering_pipeline <- function(input,
   # Store original for comparison
   table_current <- original_table
 
+  # Helper function to get table statistics
+  get_table_stats <- function(table) {
+    n_features <- nrow(table)
+    n_samples <- ncol(table) - 1  # Exclude feature_id column
+    n_reads <- sum(as.matrix(table[, -1, drop = FALSE]))
+    list(features = n_features, samples = n_samples, reads = n_reads)
+  }
+
+  # Store original stats
+  original_stats <- get_table_stats(original_table)
+
   # Track filtering steps
   filtering_steps <- list()
 
@@ -276,22 +287,43 @@ run_filtering_pipeline <- function(input,
       if (verbose) cat(sprintf("Filtering samples with singleton ratio > %.2f (%s)\n",
                                singleton_max_ratio, singleton_count_type[1]))
 
+      # Capture stats before filtering
+      stats_before <- get_table_stats(table_current)
+
       table_current <- filter_by_singleton_ratio(
         table_current,
         max_singleton_ratio = singleton_max_ratio,
         count_type = singleton_count_type[1]
       )
 
+      # Capture stats after filtering
+      stats_after <- get_table_stats(table_current)
+
+      # Calculate removal metrics
+      samples_removed <- stats_before$samples - stats_after$samples
+      features_removed <- stats_before$features - stats_after$features
+      reads_removed <- stats_before$reads - stats_after$reads
+
       filtering_steps$singleton_ratio <- list(
         method = singleton_filter_method[1],
         max_ratio = singleton_max_ratio,
         count_type = singleton_count_type[1],
-        samples_removed = attr(table_current, "n_filtered_out"),
-        samples_retained = attr(table_current, "n_retained")
+        samples_before = stats_before$samples,
+        samples_after = stats_after$samples,
+        samples_removed = samples_removed,
+        samples_removed_pct = (samples_removed / stats_before$samples) * 100,
+        features_before = stats_before$features,
+        features_after = stats_after$features,
+        features_removed = features_removed,
+        features_removed_pct = (features_removed / stats_before$features) * 100,
+        reads_before = stats_before$reads,
+        reads_after = stats_after$reads,
+        reads_removed = reads_removed,
+        reads_removed_pct = (reads_removed / stats_before$reads) * 100
       )
 
       if (verbose) {
-        cat(sprintf("Samples remaining: %d\n", ncol(table_current) - 1))
+        cat(sprintf("Samples remaining: %d\n", stats_after$samples))
       }
     }
   } else {
@@ -304,16 +336,14 @@ run_filtering_pipeline <- function(input,
   if (cov_filter_method != "none") {
     if (verbose) cat("\n=== Step 3: Coverage Filtering ===\n")
 
+    # Capture stats before filtering
+    stats_before <- get_table_stats(table_current)
+
     if (cov_filter_method == "absolute") {
       if (is.null(cov_threshold)) stop("cov_threshold required for absolute method")
       if (verbose) cat(sprintf("Filtering samples with < %d reads\n", cov_threshold))
 
       table_current <- filter_by_coverage(table_current, min_reads = cov_threshold)
-      filtering_steps$coverage <- list(
-        method = "absolute",
-        threshold = cov_threshold,
-        samples_removed = nrow(original_table) - nrow(table_current) + 1  # +1 for feature ID column adjustment
-      )
 
     } else if (cov_filter_method == "mad") {
       if (is.null(cov_threshold)) cov_threshold <- 3
@@ -323,14 +353,6 @@ run_filtering_pipeline <- function(input,
       if (verbose) cat(sprintf("Estimated cutoff: %.0f reads\n", est$cutoff))
 
       table_current <- filter_by_coverage(table_current, min_reads = est$cutoff)
-      filtering_steps$coverage <- list(
-        method = "mad",
-        multiplier = cov_threshold,
-        estimated_cutoff = est$cutoff,
-        median = est$median,
-        mad = est$mad,
-        samples_filtered = est$n_filtered
-      )
 
     } else if (cov_filter_method == "iqr") {
       if (is.null(cov_threshold)) cov_threshold <- 1.5
@@ -340,15 +362,6 @@ run_filtering_pipeline <- function(input,
       if (verbose) cat(sprintf("Estimated cutoff: %.0f reads\n", est$cutoff))
 
       table_current <- filter_by_coverage(table_current, min_reads = est$cutoff)
-      filtering_steps$coverage <- list(
-        method = "iqr",
-        multiplier = cov_threshold,
-        estimated_cutoff = est$cutoff,
-        q1 = est$q1,
-        q3 = est$q3,
-        iqr = est$iqr,
-        samples_filtered = est$n_filtered
-      )
 
     } else if (cov_filter_method == "good") {
       if (is.null(cov_target_coverage)) cov_target_coverage <- 0.95
@@ -362,16 +375,6 @@ run_filtering_pipeline <- function(input,
         min_reads = cov_min_reads
       )
       table_current <- result$table
-      filtering_steps$coverage <- list(
-        method = "good",
-        target_coverage = cov_target_coverage,
-        mean_coverage_before = result$mean_coverage_before,
-        mean_coverage_after = result$mean_coverage_after,
-        n_samples_before = result$n_samples_before,
-        n_samples_after = result$n_samples_after,
-        n_samples_filtered = result$n_samples_filtered,
-        total_singletons = sum(result$coverage_before == 1 - (1 / colSums(as.matrix(table_current[, -1, drop = FALSE]))), na.rm = TRUE)
-      )
 
     } else if (cov_filter_method == "chao") {
       if (is.null(cov_target_coverage)) cov_target_coverage <- 0.90
@@ -385,19 +388,117 @@ run_filtering_pipeline <- function(input,
         min_reads = cov_min_reads
       )
       table_current <- result$table
+    }
+
+    # Capture stats after filtering
+    stats_after <- get_table_stats(table_current)
+
+    # Calculate removal metrics
+    samples_removed <- stats_before$samples - stats_after$samples
+    features_removed <- stats_before$features - stats_after$features
+    reads_removed <- stats_before$reads - stats_after$reads
+
+    # Build coverage step tracking
+    if (cov_filter_method == "absolute") {
+      filtering_steps$coverage <- list(
+        method = "absolute",
+        threshold = cov_threshold,
+        samples_before = stats_before$samples,
+        samples_after = stats_after$samples,
+        samples_removed = samples_removed,
+        samples_removed_pct = (samples_removed / stats_before$samples) * 100,
+        features_before = stats_before$features,
+        features_after = stats_after$features,
+        features_removed = features_removed,
+        features_removed_pct = (features_removed / stats_before$features) * 100,
+        reads_before = stats_before$reads,
+        reads_after = stats_after$reads,
+        reads_removed = reads_removed,
+        reads_removed_pct = (reads_removed / stats_before$reads) * 100
+      )
+    } else if (cov_filter_method == "mad") {
+      filtering_steps$coverage <- list(
+        method = "mad",
+        multiplier = cov_threshold,
+        estimated_cutoff = est$cutoff,
+        median = est$median,
+        mad = est$mad,
+        samples_before = stats_before$samples,
+        samples_after = stats_after$samples,
+        samples_removed = samples_removed,
+        samples_removed_pct = (samples_removed / stats_before$samples) * 100,
+        features_before = stats_before$features,
+        features_after = stats_after$features,
+        features_removed = features_removed,
+        features_removed_pct = (features_removed / stats_before$features) * 100,
+        reads_before = stats_before$reads,
+        reads_after = stats_after$reads,
+        reads_removed = reads_removed,
+        reads_removed_pct = (reads_removed / stats_before$reads) * 100
+      )
+    } else if (cov_filter_method == "iqr") {
+      filtering_steps$coverage <- list(
+        method = "iqr",
+        multiplier = cov_threshold,
+        estimated_cutoff = est$cutoff,
+        q1 = est$q1,
+        q3 = est$q3,
+        iqr = est$iqr,
+        samples_before = stats_before$samples,
+        samples_after = stats_after$samples,
+        samples_removed = samples_removed,
+        samples_removed_pct = (samples_removed / stats_before$samples) * 100,
+        features_before = stats_before$features,
+        features_after = stats_after$features,
+        features_removed = features_removed,
+        features_removed_pct = (features_removed / stats_before$features) * 100,
+        reads_before = stats_before$reads,
+        reads_after = stats_after$reads,
+        reads_removed = reads_removed,
+        reads_removed_pct = (reads_removed / stats_before$reads) * 100
+      )
+    } else if (cov_filter_method == "good") {
+      filtering_steps$coverage <- list(
+        method = "good",
+        target_coverage = cov_target_coverage,
+        mean_coverage_before = result$mean_coverage_before,
+        mean_coverage_after = result$mean_coverage_after,
+        samples_before = stats_before$samples,
+        samples_after = stats_after$samples,
+        samples_removed = samples_removed,
+        samples_removed_pct = (samples_removed / stats_before$samples) * 100,
+        features_before = stats_before$features,
+        features_after = stats_after$features,
+        features_removed = features_removed,
+        features_removed_pct = (features_removed / stats_before$features) * 100,
+        reads_before = stats_before$reads,
+        reads_after = stats_after$reads,
+        reads_removed = reads_removed,
+        reads_removed_pct = (reads_removed / stats_before$reads) * 100
+      )
+    } else if (cov_filter_method == "chao") {
       filtering_steps$coverage <- list(
         method = "chao",
         target_coverage = cov_target_coverage,
         mean_coverage_before = result$mean_coverage_before,
         mean_coverage_after = result$mean_coverage_after,
-        n_samples_before = result$n_samples_before,
-        n_samples_after = result$n_samples_after,
-        n_samples_filtered = result$n_samples_filtered
+        samples_before = stats_before$samples,
+        samples_after = stats_after$samples,
+        samples_removed = samples_removed,
+        samples_removed_pct = (samples_removed / stats_before$samples) * 100,
+        features_before = stats_before$features,
+        features_after = stats_after$features,
+        features_removed = features_removed,
+        features_removed_pct = (features_removed / stats_before$features) * 100,
+        reads_before = stats_before$reads,
+        reads_after = stats_after$reads,
+        reads_removed = reads_removed,
+        reads_removed_pct = (reads_removed / stats_before$reads) * 100
       )
     }
 
     if (verbose) {
-      cat(sprintf("Samples remaining: %d\n", ncol(table_current) - 1))
+      cat(sprintf("Samples remaining: %d\n", stats_after$samples))
     }
   } else {
     if (verbose) cat("\n=== Step 3: Coverage Filtering ===\n")
@@ -408,6 +509,9 @@ run_filtering_pipeline <- function(input,
   # === Step 4: Cross-Talk / Index Hopping Filtering ===
   if (crosstalk_filter_method[1] != "none") {
     if (verbose) cat("\n=== Step 4: Cross-Talk Filtering ===\n")
+
+    # Capture stats before filtering
+    stats_before <- get_table_stats(table_current)
 
     if (verbose) cat(sprintf("Using crosstalk method '%s' with threshold = %.5f\n",
                              crosstalk_filter_method[1], crosstalk_threshold))
@@ -422,16 +526,36 @@ run_filtering_pipeline <- function(input,
 
     table_current <- result_ct
 
+    # Capture stats after filtering
+    stats_after <- get_table_stats(table_current)
+
+    # Calculate removal metrics
+    samples_removed <- stats_before$samples - stats_after$samples
+    features_removed <- stats_before$features - stats_after$features
+    reads_removed <- stats_before$reads - stats_after$reads
+
     filtering_steps$crosstalk <- list(
       method = crosstalk_filter_method[1],
       threshold = crosstalk_threshold,
       min_abs_cutoff = crosstalk_min_abs_cutoff,
       leakage_zeros = attr(result_ct, "n_leakage_zeros"),
-      features_affected = attr(result_ct, "n_features_affected")
+      features_affected = attr(result_ct, "n_features_affected"),
+      samples_before = stats_before$samples,
+      samples_after = stats_after$samples,
+      samples_removed = samples_removed,
+      samples_removed_pct = ifelse(stats_before$samples > 0, (samples_removed / stats_before$samples) * 100, 0),
+      features_before = stats_before$features,
+      features_after = stats_after$features,
+      features_removed = features_removed,
+      features_removed_pct = ifelse(stats_before$features > 0, (features_removed / stats_before$features) * 100, 0),
+      reads_before = stats_before$reads,
+      reads_after = stats_after$reads,
+      reads_removed = reads_removed,
+      reads_removed_pct = ifelse(stats_before$reads > 0, (reads_removed / stats_before$reads) * 100, 0)
     )
 
     if (verbose) {
-      cat(sprintf("Features remaining: %d\n", nrow(table_current)))
+      cat(sprintf("Features remaining: %d\n", stats_after$features))
       if (!is.na(attr(result_ct, "n_leakage_zeros"))) {
         cat(sprintf("Leakage reads zeroed: %d\n", attr(result_ct, "n_leakage_zeros")))
       }
@@ -465,10 +589,14 @@ run_filtering_pipeline <- function(input,
       elbow_threshold = sparsity_elbow_result$elbow_threshold,
       samples_above = sparsity_elbow_result$samples_above_elbow,
       samples_below = sparsity_elbow_result$samples_below_elbow,
-      recommendation = sparsity_elbow_result$recommendation
+      recommendation = sparsity_elbow_result$recommendation,
+      applied = FALSE
     )
 
     if (apply_sparsity_elbow) {
+      # Capture stats before applying elbow filter
+      stats_before <- get_table_stats(table_current)
+
       if (verbose) cat(sprintf("\nApplying sparsity elbow cutoff: %d reads\n",
                                round(sparsity_elbow_result$elbow_threshold * sparsity_elbow_multiplier)))
 
@@ -477,15 +605,31 @@ run_filtering_pipeline <- function(input,
         min_reads = sparsity_elbow_result$elbow_threshold * sparsity_elbow_multiplier
       )
 
+      # Capture stats after applying elbow filter
+      stats_after <- get_table_stats(table_current)
+
+      # Calculate removal metrics for applied elbow filter
+      samples_removed <- stats_before$samples - stats_after$samples
+      features_removed <- stats_before$features - stats_after$features
+      reads_removed <- stats_before$reads - stats_after$reads
+
       filtering_steps$sparsity_elbow$applied <- TRUE
-      filtering_steps$sparsity_elbow$samples_removed_after_apply <-
-        sparsity_elbow_result$samples_below_elbow
+      filtering_steps$sparsity_elbow$samples_before = stats_before$samples
+      filtering_steps$sparsity_elbow$samples_after = stats_after$samples
+      filtering_steps$sparsity_elbow$samples_removed = samples_removed
+      filtering_steps$sparsity_elbow$samples_removed_pct = (samples_removed / stats_before$samples) * 100
+      filtering_steps$sparsity_elbow$features_before = stats_before$features
+      filtering_steps$sparsity_elbow$features_after = stats_after$features
+      filtering_steps$sparsity_elbow$features_removed = features_removed
+      filtering_steps$sparsity_elbow$features_removed_pct = (features_removed / stats_before$features) * 100
+      filtering_steps$sparsity_elbow$reads_before = stats_before$reads
+      filtering_steps$sparsity_elbow$reads_after = stats_after$reads
+      filtering_steps$sparsity_elbow$reads_removed = reads_removed
+      filtering_steps$sparsity_elbow$reads_removed_pct = (reads_removed / stats_before$reads) * 100
 
       if (verbose) {
-        cat(sprintf("Samples remaining after elbow filter: %d\n", ncol(table_current) - 1))
+        cat(sprintf("Samples remaining after elbow filter: %d\n", stats_after$samples))
       }
-    } else {
-      filtering_steps$sparsity_elbow$applied <- FALSE
     }
   } else {
     if (verbose) cat("\n=== Step 5: Sparsity Elbow Detection ===\n")
@@ -514,7 +658,8 @@ run_filtering_pipeline <- function(input,
       n_outliers = depth_sparsity_result$n_outliers,
       outliers = depth_sparsity_result$outliers$sample_name,
       fit_r_squared = depth_sparsity_result$fit_summary$r_squared,
-      recommendation = depth_sparsity_result$recommendation
+      recommendation = depth_sparsity_result$recommendation,
+      applied = FALSE
     )
 
     if (verbose) {
@@ -525,6 +670,9 @@ run_filtering_pipeline <- function(input,
     }
 
     if (apply_depth_sparsity_outliers && depth_sparsity_result$n_outliers > 0) {
+      # Capture stats before applying outlier filter
+      stats_before <- get_table_stats(table_current)
+
       if (verbose) cat(sprintf("\nRemoving %d depth-sparsity outliers\n",
                                depth_sparsity_result$n_outliers))
 
@@ -536,18 +684,35 @@ run_filtering_pipeline <- function(input,
         cols_to_keep <- c(colnames(table_current)[1], keep_samples)
         table_current <- table_current[, cols_to_keep, drop = FALSE]
 
+        # Capture stats after applying outlier filter
+        stats_after <- get_table_stats(table_current)
+
+        # Calculate removal metrics
+        samples_removed <- stats_before$samples - stats_after$samples
+        features_removed <- stats_before$features - stats_after$features
+        reads_removed <- stats_before$reads - stats_after$reads
+
         filtering_steps$depth_sparsity$applied <- TRUE
-        filtering_steps$depth_sparsity$samples_removed <- depth_sparsity_result$n_outliers
+        filtering_steps$depth_sparsity$samples_before = stats_before$samples
+        filtering_steps$depth_sparsity$samples_after = stats_after$samples
+        filtering_steps$depth_sparsity$samples_removed = samples_removed
+        filtering_steps$depth_sparsity$samples_removed_pct = (samples_removed / stats_before$samples) * 100
+        filtering_steps$depth_sparsity$features_before = stats_before$features
+        filtering_steps$depth_sparsity$features_after = stats_after$features
+        filtering_steps$depth_sparsity$features_removed = features_removed
+        filtering_steps$depth_sparsity$features_removed_pct = (features_removed / stats_before$features) * 100
+        filtering_steps$depth_sparsity$reads_before = stats_before$reads
+        filtering_steps$depth_sparsity$reads_after = stats_after$reads
+        filtering_steps$depth_sparsity$reads_removed = reads_removed
+        filtering_steps$depth_sparsity$reads_removed_pct = (reads_removed / stats_before$reads) * 100
 
         if (verbose) {
-          cat(sprintf("Samples remaining after outlier removal: %d\n", ncol(table_current) - 1))
+          cat(sprintf("Samples remaining after outlier removal: %d\n", stats_after$samples))
         }
       } else {
         if (verbose) cat("Warning: All samples would be removed. Keeping original.\n")
         filtering_steps$depth_sparsity$applied <- FALSE
       }
-    } else {
-      filtering_steps$depth_sparsity$applied <- FALSE
     }
   } else {
     filtering_steps$depth_sparsity <- list(detected = FALSE)
@@ -587,6 +752,9 @@ run_filtering_pipeline <- function(input,
 
   # === Step 8: Abundance Filtering ===
   if (abun_filter_method != "none") {
+    # Capture stats before filtering
+    stats_before <- get_table_stats(table_current)
+
     if (abun_filter_method == "absolute") {
       if (is.null(abun_threshold)) stop("abun_threshold required for absolute method")
       if (verbose) cat(sprintf("Filtering features with < %d reads\n", abun_threshold))
@@ -597,12 +765,6 @@ run_filtering_pipeline <- function(input,
         mode = "absolute",
         remove_zeros = remove_features,
         min_samples = abun_min_samples
-      )
-      filtering_steps$abundance <- list(
-        method = "absolute",
-        threshold = abun_threshold,
-        mode = "absolute",
-        features_removed = attr(table_current, "n_filtered_out")
       )
 
     } else if (abun_filter_method == "relative") {
@@ -615,12 +777,6 @@ run_filtering_pipeline <- function(input,
         mode = "relative",
         remove_zeros = remove_features,
         min_samples = abun_min_samples
-      )
-      filtering_steps$abundance <- list(
-        method = "relative",
-        threshold = abun_threshold,
-        mode = "relative",
-        features_removed = attr(table_current, "n_filtered_out")
       )
 
     } else if (abun_filter_method == "relative_cutoff") {
@@ -635,13 +791,6 @@ run_filtering_pipeline <- function(input,
         remove_features = remove_features
       )
       table_current <- result$table
-      filtering_steps$abundance <- list(
-        method = "relative_cutoff",
-        relative_threshold = abun_threshold,
-        absolute_threshold = result$absolute_threshold,
-        min_sample_coverage = result$min_sample_coverage,
-        features_removed = result$n_features_removed
-      )
 
     } else if (abun_filter_method == "joint") {
       if (is.null(abun_threshold)) abun_threshold <- 0
@@ -657,6 +806,76 @@ run_filtering_pipeline <- function(input,
         remove_zeros = remove_features
       )
       table_current <- result$table
+    }
+
+    # Capture stats after filtering
+    stats_after <- get_table_stats(table_current)
+
+    # Calculate removal metrics
+    samples_removed <- stats_before$samples - stats_after$samples
+    features_removed <- stats_before$features - stats_after$features
+    reads_removed <- stats_before$reads - stats_after$reads
+
+    # Build abundance step tracking
+    if (abun_filter_method == "absolute") {
+      filtering_steps$abundance <- list(
+        method = "absolute",
+        threshold = abun_threshold,
+        mode = "absolute",
+        samples_before = stats_before$samples,
+        samples_after = stats_after$samples,
+        samples_removed = samples_removed,
+        samples_removed_pct = (samples_removed / stats_before$samples) * 100,
+        features_before = stats_before$features,
+        features_after = stats_after$features,
+        features_removed = features_removed,
+        features_removed_pct = (features_removed / stats_before$features) * 100,
+        reads_before = stats_before$reads,
+        reads_after = stats_after$reads,
+        reads_removed = reads_removed,
+        reads_removed_pct = (reads_removed / stats_before$reads) * 100
+      )
+
+    } else if (abun_filter_method == "relative") {
+      filtering_steps$abundance <- list(
+        method = "relative",
+        threshold = abun_threshold,
+        mode = "relative",
+        samples_before = stats_before$samples,
+        samples_after = stats_after$samples,
+        samples_removed = samples_removed,
+        samples_removed_pct = (samples_removed / stats_before$samples) * 100,
+        features_before = stats_before$features,
+        features_after = stats_after$features,
+        features_removed = features_removed,
+        features_removed_pct = (features_removed / stats_before$features) * 100,
+        reads_before = stats_before$reads,
+        reads_after = stats_after$reads,
+        reads_removed = reads_removed,
+        reads_removed_pct = (reads_removed / stats_before$reads) * 100
+      )
+
+    } else if (abun_filter_method == "relative_cutoff") {
+      filtering_steps$abundance <- list(
+        method = "relative_cutoff",
+        relative_threshold = abun_threshold,
+        absolute_threshold = result$absolute_threshold,
+        min_sample_coverage = result$min_sample_coverage,
+        samples_before = stats_before$samples,
+        samples_after = stats_after$samples,
+        samples_removed = samples_removed,
+        samples_removed_pct = (samples_removed / stats_before$samples) * 100,
+        features_before = stats_before$features,
+        features_after = stats_after$features,
+        features_removed = features_removed,
+        features_removed_pct = (features_removed / stats_before$features) * 100,
+        reads_before = stats_before$reads,
+        reads_after = stats_after$reads,
+        reads_removed = reads_removed,
+        reads_removed_pct = (reads_removed / stats_before$reads) * 100
+      )
+
+    } else if (abun_filter_method == "joint") {
       filtering_steps$abundance <- list(
         method = "joint",
         abundance_threshold = abun_threshold,
@@ -668,12 +887,24 @@ run_filtering_pipeline <- function(input,
         n_by_abundance_only = result$n_by_abundance_only,
         n_by_prevalence_only = result$n_by_prevalence_only,
         n_by_both = result$n_by_both,
-        n_by_neither = result$n_by_neither
+        n_by_neither = result$n_by_neither,
+        samples_before = stats_before$samples,
+        samples_after = stats_after$samples,
+        samples_removed = samples_removed,
+        samples_removed_pct = (samples_removed / stats_before$samples) * 100,
+        features_before = stats_before$features,
+        features_after = stats_after$features,
+        features_removed = features_removed,
+        features_removed_pct = (features_removed / stats_before$features) * 100,
+        reads_before = stats_before$reads,
+        reads_after = stats_after$reads,
+        reads_removed = reads_removed,
+        reads_removed_pct = (reads_removed / stats_before$reads) * 100
       )
     }
 
     if (verbose) {
-      cat(sprintf("Features remaining: %d\n", nrow(table_current)))
+      cat(sprintf("Features remaining: %d\n", stats_after$features))
     }
   } else {
     if (verbose) cat("\n=== Step 8: Abundance Filtering ===\n")
@@ -797,27 +1028,54 @@ run_filtering_pipeline <- function(input,
     )
 
     if (filtering_steps$coverage$method == "absolute") {
-      samples_removed <- filtering_steps$coverage$samples_removed
       report_lines <- c(report_lines,
                         sprintf("Threshold: %d reads", filtering_steps$coverage$threshold),
-                        sprintf("Samples removed: %d", samples_removed))
+                        "",
+                        "Impact:",
+                        sprintf("  Samples: %d removed (%.1f%%)",
+                                filtering_steps$coverage$samples_removed,
+                                filtering_steps$coverage$samples_removed_pct),
+                        sprintf("  Features: %d removed (%.1f%%)",
+                                filtering_steps$coverage$features_removed,
+                                filtering_steps$coverage$features_removed_pct),
+                        sprintf("  Reads: %s removed (%.1f%%)",
+                                format(filtering_steps$coverage$reads_removed, big.mark = ","),
+                                filtering_steps$coverage$reads_removed_pct))
     } else if (filtering_steps$coverage$method == "mad") {
-      samples_removed <- filtering_steps$coverage$samples_filtered
       report_lines <- c(report_lines,
                         sprintf("Multiplier: %.2f", filtering_steps$coverage$multiplier),
                         sprintf("Median coverage: %.0f", filtering_steps$coverage$median),
                         sprintf("MAD: %.0f", filtering_steps$coverage$mad),
                         sprintf("Cutoff applied: %.0f reads", filtering_steps$coverage$estimated_cutoff),
-                        sprintf("Samples removed: %d", samples_removed))
+                        "",
+                        "Impact:",
+                        sprintf("  Samples: %d removed (%.1f%%)",
+                                filtering_steps$coverage$samples_removed,
+                                filtering_steps$coverage$samples_removed_pct),
+                        sprintf("  Features: %d removed (%.1f%%)",
+                                filtering_steps$coverage$features_removed,
+                                filtering_steps$coverage$features_removed_pct),
+                        sprintf("  Reads: %s removed (%.1f%%)",
+                                format(filtering_steps$coverage$reads_removed, big.mark = ","),
+                                filtering_steps$coverage$reads_removed_pct))
     } else if (filtering_steps$coverage$method == "iqr") {
-      samples_removed <- filtering_steps$coverage$samples_filtered
       report_lines <- c(report_lines,
                         sprintf("Multiplier: %.2f", filtering_steps$coverage$multiplier),
                         sprintf("Q1: %.0f", filtering_steps$coverage$q1),
                         sprintf("Q3: %.0f", filtering_steps$coverage$q3),
                         sprintf("IQR: %.0f", filtering_steps$coverage$iqr),
                         sprintf("Cutoff applied: %.0f reads", filtering_steps$coverage$estimated_cutoff),
-                        sprintf("Samples removed: %d", samples_removed))
+                        "",
+                        "Impact:",
+                        sprintf("  Samples: %d removed (%.1f%%)",
+                                filtering_steps$coverage$samples_removed,
+                                filtering_steps$coverage$samples_removed_pct),
+                        sprintf("  Features: %d removed (%.1f%%)",
+                                filtering_steps$coverage$features_removed,
+                                filtering_steps$coverage$features_removed_pct),
+                        sprintf("  Reads: %s removed (%.1f%%)",
+                                format(filtering_steps$coverage$reads_removed, big.mark = ","),
+                                filtering_steps$coverage$reads_removed_pct))
     } else if (filtering_steps$coverage$method == "good") {
       report_lines <- c(report_lines,
                         sprintf("Target coverage: %.2f (%.0f%%)",
@@ -829,10 +1087,17 @@ run_filtering_pipeline <- function(input,
                         sprintf("Mean coverage after filtering: %.4f (%.2f%%)",
                                 filtering_steps$coverage$mean_coverage_after,
                                 filtering_steps$coverage$mean_coverage_after * 100),
-                        sprintf("Samples filtered: %d / %d (%.1f%%)",
-                                filtering_steps$coverage$n_samples_filtered,
-                                filtering_steps$coverage$n_samples_before,
-                                (filtering_steps$coverage$n_samples_filtered / filtering_steps$coverage$n_samples_before) * 100))
+                        "",
+                        "Impact:",
+                        sprintf("  Samples: %d removed (%.1f%%)",
+                                filtering_steps$coverage$samples_removed,
+                                filtering_steps$coverage$samples_removed_pct),
+                        sprintf("  Features: %d removed (%.1f%%)",
+                                filtering_steps$coverage$features_removed,
+                                filtering_steps$coverage$features_removed_pct),
+                        sprintf("  Reads: %s removed (%.1f%%)",
+                                format(filtering_steps$coverage$reads_removed, big.mark = ","),
+                                filtering_steps$coverage$reads_removed_pct))
     } else if (filtering_steps$coverage$method == "chao") {
       report_lines <- c(report_lines,
                         sprintf("Target coverage: %.2f (%.0f%%)",
@@ -844,10 +1109,17 @@ run_filtering_pipeline <- function(input,
                         sprintf("Mean coverage after filtering: %.4f (%.2f%%)",
                                 filtering_steps$coverage$mean_coverage_after,
                                 filtering_steps$coverage$mean_coverage_after * 100),
-                        sprintf("Samples filtered: %d / %d (%.1f%%)",
-                                filtering_steps$coverage$n_samples_filtered,
-                                filtering_steps$coverage$n_samples_before,
-                                (filtering_steps$coverage$n_samples_filtered / filtering_steps$coverage$n_samples_before) * 100))
+                        "",
+                        "Impact:",
+                        sprintf("  Samples: %d removed (%.1f%%)",
+                                filtering_steps$coverage$samples_removed,
+                                filtering_steps$coverage$samples_removed_pct),
+                        sprintf("  Features: %d removed (%.1f%%)",
+                                filtering_steps$coverage$features_removed,
+                                filtering_steps$coverage$features_removed_pct),
+                        sprintf("  Reads: %s removed (%.1f%%)",
+                                format(filtering_steps$coverage$reads_removed, big.mark = ","),
+                                filtering_steps$coverage$reads_removed_pct))
     }
 
     report_lines <- c(report_lines,
@@ -861,7 +1133,17 @@ run_filtering_pipeline <- function(input,
                                 filtering_steps$singleton_ratio$max_ratio,
                                 filtering_steps$singleton_ratio$max_ratio * 100),
                         sprintf("Count type: %s", filtering_steps$singleton_ratio$count_type),
-                        sprintf("Samples removed: %d", filtering_steps$singleton_ratio$samples_removed))
+                        "",
+                        "Impact:",
+                        sprintf("  Samples: %d removed (%.1f%%)",
+                                filtering_steps$singleton_ratio$samples_removed,
+                                filtering_steps$singleton_ratio$samples_removed_pct),
+                        sprintf("  Features: %d removed (%.1f%%)",
+                                filtering_steps$singleton_ratio$features_removed,
+                                filtering_steps$singleton_ratio$features_removed_pct),
+                        sprintf("  Reads: %s removed (%.1f%%)",
+                                format(filtering_steps$singleton_ratio$reads_removed, big.mark = ","),
+                                filtering_steps$singleton_ratio$reads_removed_pct))
     }
 
     report_lines <- c(report_lines,
@@ -879,12 +1161,18 @@ run_filtering_pipeline <- function(input,
                         sprintf("Leakage reads zeroed: %s",
                                 ifelse(is.na(filtering_steps$crosstalk$leakage_zeros), "N/A",
                                        as.character(filtering_steps$crosstalk$leakage_zeros))),
-                        sprintf("Features affected: %d", filtering_steps$crosstalk$features_affected))
-
-      if (filtering_steps$crosstalk$method == "remove_feature") {
-        report_lines <- c(report_lines,
-                          sprintf("Features removed: %d", filtering_steps$crosstalk$features_affected))
-      }
+                        sprintf("Features affected: %d", filtering_steps$crosstalk$features_affected),
+                        "",
+                        "Impact:",
+                        sprintf("  Samples: %d removed (%.1f%%)",
+                                filtering_steps$crosstalk$samples_removed,
+                                filtering_steps$crosstalk$samples_removed_pct),
+                        sprintf("  Features: %d removed (%.1f%%)",
+                                filtering_steps$crosstalk$features_removed,
+                                filtering_steps$crosstalk$features_removed_pct),
+                        sprintf("  Reads: %s removed (%.1f%%)",
+                                format(filtering_steps$crosstalk$reads_removed, big.mark = ","),
+                                filtering_steps$crosstalk$reads_removed_pct))
     } else {
       report_lines <- c(report_lines, "No cross-talk filtering applied")
     }
@@ -905,9 +1193,18 @@ run_filtering_pipeline <- function(input,
                                 ifelse(filtering_steps$sparsity_elbow$applied, "Yes", "No")))
 
       if (filtering_steps$sparsity_elbow$applied) {
-        samples_removed <- filtering_steps$sparsity_elbow$samples_below_elbow
         report_lines <- c(report_lines,
-                          sprintf("Samples removed: %d", samples_removed))
+                          "",
+                          "Impact:",
+                          sprintf("  Samples: %d removed (%.1f%%)",
+                                  filtering_steps$sparsity_elbow$samples_removed,
+                                  filtering_steps$sparsity_elbow$samples_removed_pct),
+                          sprintf("  Features: %d removed (%.1f%%)",
+                                  filtering_steps$sparsity_elbow$features_removed,
+                                  filtering_steps$sparsity_elbow$features_removed_pct),
+                          sprintf("  Reads: %s removed (%.1f%%)",
+                                  format(filtering_steps$sparsity_elbow$reads_removed, big.mark = ","),
+                                  filtering_steps$sparsity_elbow$reads_removed_pct))
       }
     }
 
@@ -928,9 +1225,18 @@ run_filtering_pipeline <- function(input,
                                        filtering_steps$depth_sparsity$applied, "Yes", "No")))
 
       if (!is.null(filtering_steps$depth_sparsity$applied) && filtering_steps$depth_sparsity$applied) {
-        samples_removed <- filtering_steps$depth_sparsity$samples_removed
         report_lines <- c(report_lines,
-                          sprintf("Samples removed: %d", samples_removed))
+                          "",
+                          "Impact:",
+                          sprintf("  Samples: %d removed (%.1f%%)",
+                                  filtering_steps$depth_sparsity$samples_removed,
+                                  filtering_steps$depth_sparsity$samples_removed_pct),
+                          sprintf("  Features: %d removed (%.1f%%)",
+                                  filtering_steps$depth_sparsity$features_removed,
+                                  filtering_steps$depth_sparsity$features_removed_pct),
+                          sprintf("  Reads: %s removed (%.1f%%)",
+                                  format(filtering_steps$depth_sparsity$reads_removed, big.mark = ","),
+                                  filtering_steps$depth_sparsity$reads_removed_pct))
       }
 
       if (filtering_steps$depth_sparsity$n_outliers > 0) {
@@ -964,26 +1270,53 @@ run_filtering_pipeline <- function(input,
                       sprintf("Method: %s", filtering_steps$abundance$method))
 
     if (filtering_steps$abundance$method == "absolute") {
-      features_removed <- filtering_steps$abundance$features_removed
       report_lines <- c(report_lines,
                         sprintf("Threshold: %d reads", filtering_steps$abundance$threshold),
-                        sprintf("Features removed: %d", features_removed))
+                        "",
+                        "Impact:",
+                        sprintf("  Samples: %d removed (%.1f%%)",
+                                filtering_steps$abundance$samples_removed,
+                                filtering_steps$abundance$samples_removed_pct),
+                        sprintf("  Features: %d removed (%.1f%%)",
+                                filtering_steps$abundance$features_removed,
+                                filtering_steps$abundance$features_removed_pct),
+                        sprintf("  Reads: %s removed (%.1f%%)",
+                                format(filtering_steps$abundance$reads_removed, big.mark = ","),
+                                filtering_steps$abundance$reads_removed_pct))
     } else if (filtering_steps$abundance$method == "relative") {
-      features_removed <- filtering_steps$abundance$features_removed
       report_lines <- c(report_lines,
                         sprintf("Threshold: %.4f (%.2f%%)",
                                 filtering_steps$abundance$threshold,
                                 filtering_steps$abundance$threshold * 100),
-                        sprintf("Features removed: %d", features_removed))
+                        "",
+                        "Impact:",
+                        sprintf("  Samples: %d removed (%.1f%%)",
+                                filtering_steps$abundance$samples_removed,
+                                filtering_steps$abundance$samples_removed_pct),
+                        sprintf("  Features: %d removed (%.1f%%)",
+                                filtering_steps$abundance$features_removed,
+                                filtering_steps$abundance$features_removed_pct),
+                        sprintf("  Reads: %s removed (%.1f%%)",
+                                format(filtering_steps$abundance$reads_removed, big.mark = ","),
+                                filtering_steps$abundance$reads_removed_pct))
     } else if (filtering_steps$abundance$method == "relative_cutoff") {
-      features_removed <- filtering_steps$abundance$features_removed
       report_lines <- c(report_lines,
                         sprintf("Relative threshold: %.4f (%.2f%%)",
                                 filtering_steps$abundance$relative_threshold,
                                 filtering_steps$abundance$relative_threshold * 100),
                         sprintf("Absolute threshold applied: %.0f reads",
                                 filtering_steps$abundance$absolute_threshold),
-                        sprintf("Features removed: %d", features_removed))
+                        "",
+                        "Impact:",
+                        sprintf("  Samples: %d removed (%.1f%%)",
+                                filtering_steps$abundance$samples_removed,
+                                filtering_steps$abundance$samples_removed_pct),
+                        sprintf("  Features: %d removed (%.1f%%)",
+                                filtering_steps$abundance$features_removed,
+                                filtering_steps$abundance$features_removed_pct),
+                        sprintf("  Reads: %s removed (%.1f%%)",
+                                format(filtering_steps$abundance$reads_removed, big.mark = ","),
+                                filtering_steps$abundance$reads_removed_pct))
     } else if (filtering_steps$abundance$method == "joint") {
       report_lines <- c(report_lines,
                         sprintf("Abundance threshold: %.4f (%.2f%%)",
@@ -1061,19 +1394,29 @@ run_filtering_pipeline <- function(input,
                       sprintf("  Jaccard similarity: %.4f", qc_metrics$top_n_jaccard_similarity)
     )
 
-    # Report rank correlation for common features
+    # Report rank and linear correlation for common features
     if (!is.null(qc_metrics$rank_abundance_correlation) &&
         length(qc_metrics$rank_abundance_correlation) > 0 &&
         !is.na(qc_metrics$rank_abundance_correlation)) {
       report_lines <- c(report_lines,
                         "",
-                        "Rank correlation (for features in both top N lists):",
-                        sprintf("  Spearman correlation: %.4f", qc_metrics$rank_abundance_correlation),
+                        "Spearman rank correlation (for features in both top N lists):",
+                        sprintf("  Correlation: %.4f", qc_metrics$rank_abundance_correlation),
                         sprintf("  P-value: %.4f", qc_metrics$rank_abundance_pvalue))
+
+      if (!is.null(qc_metrics$pearson_abundance_correlation) &&
+          length(qc_metrics$pearson_abundance_correlation) > 0 &&
+          !is.na(qc_metrics$pearson_abundance_correlation)) {
+        report_lines <- c(report_lines,
+                          "",
+                          "Pearson linear correlation (for features in both top N lists):",
+                          sprintf("  Correlation: %.4f", qc_metrics$pearson_abundance_correlation),
+                          sprintf("  P-value: %.4f", qc_metrics$pearson_abundance_pvalue))
+      }
     } else {
       report_lines <- c(report_lines,
                         "",
-                        "Rank correlation: Not computed (fewer than 2 features in both top N lists)")
+                        "Correlation analysis: Not computed (fewer than 2 features in both top N lists)")
     }
 
     report_lines <- c(report_lines,

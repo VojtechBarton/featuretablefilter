@@ -166,7 +166,7 @@ compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
   jaccard_similarity <- overlap_count / length(union(orig_top_features, filt_top_features))
   overlap_percent <- (overlap_count / top_n) * 100
 
-  # Spearman correlation: compare ranks of common features in top N lists
+  # Spearman and Pearson correlation: compare abundances of common features in top N lists
   common_in_top <- intersect(orig_top_features, filt_top_features)
   if (length(common_in_top) >= 2) {
     # Get ranks of common features in original top N
@@ -178,12 +178,27 @@ compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
       which(filt_top_features == f)
     })
 
+    # Spearman correlation (rank-based)
     rank_corr_test <- cor.test(as.numeric(orig_ranks), as.numeric(filt_ranks), method = "spearman")
     rank_abundance_correlation <- rank_corr_test$estimate
     rank_abundance_pvalue <- rank_corr_test$p.value
+
+    # Pearson correlation (linear relationship of relative abundances)
+    orig_abunds <- sapply(common_in_top, function(f) {
+      orig_top_rels[which(orig_top_features == f)]
+    })
+    filt_abunds <- sapply(common_in_top, function(f) {
+      filt_top_rels[which(filt_top_features == f)]
+    })
+
+    pearson_corr_test <- cor.test(as.numeric(orig_abunds), as.numeric(filt_abunds), method = "pearson")
+    pearson_abundance_correlation <- pearson_corr_test$estimate
+    pearson_abundance_pvalue <- pearson_corr_test$p.value
   } else {
     rank_abundance_correlation <- NA
     rank_abundance_pvalue <- NA
+    pearson_abundance_correlation <- NA
+    pearson_abundance_pvalue <- NA
   }
 
   # === Procrustes Analysis (Bray-Curtis based) ===
@@ -231,6 +246,8 @@ compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
     sample_retention_percent = sample_retention,
     rank_abundance_correlation = rank_abundance_correlation,
     rank_abundance_pvalue = rank_abundance_pvalue,
+    pearson_abundance_correlation = pearson_abundance_correlation,
+    pearson_abundance_pvalue = pearson_abundance_pvalue,
     top_n_overlap_count = overlap_count,
     top_n_overlap_percent = overlap_percent,
     top_n_jaccard_similarity = jaccard_similarity,
