@@ -797,21 +797,27 @@ run_filtering_pipeline <- function(input,
     )
 
     if (filtering_steps$coverage$method == "absolute") {
+      samples_removed <- filtering_steps$coverage$samples_removed
       report_lines <- c(report_lines,
-                        sprintf("Threshold: %d reads", filtering_steps$coverage$threshold))
+                        sprintf("Threshold: %d reads", filtering_steps$coverage$threshold),
+                        sprintf("Samples removed: %d", samples_removed))
     } else if (filtering_steps$coverage$method == "mad") {
+      samples_removed <- filtering_steps$coverage$samples_filtered
       report_lines <- c(report_lines,
                         sprintf("Multiplier: %.2f", filtering_steps$coverage$multiplier),
                         sprintf("Median coverage: %.0f", filtering_steps$coverage$median),
                         sprintf("MAD: %.0f", filtering_steps$coverage$mad),
-                        sprintf("Cutoff applied: %.0f reads", filtering_steps$coverage$estimated_cutoff))
+                        sprintf("Cutoff applied: %.0f reads", filtering_steps$coverage$estimated_cutoff),
+                        sprintf("Samples removed: %d", samples_removed))
     } else if (filtering_steps$coverage$method == "iqr") {
+      samples_removed <- filtering_steps$coverage$samples_filtered
       report_lines <- c(report_lines,
                         sprintf("Multiplier: %.2f", filtering_steps$coverage$multiplier),
                         sprintf("Q1: %.0f", filtering_steps$coverage$q1),
                         sprintf("Q3: %.0f", filtering_steps$coverage$q3),
                         sprintf("IQR: %.0f", filtering_steps$coverage$iqr),
-                        sprintf("Cutoff applied: %.0f reads", filtering_steps$coverage$estimated_cutoff))
+                        sprintf("Cutoff applied: %.0f reads", filtering_steps$coverage$estimated_cutoff),
+                        sprintf("Samples removed: %d", samples_removed))
     } else if (filtering_steps$coverage$method == "good") {
       report_lines <- c(report_lines,
                         sprintf("Target coverage: %.2f (%.0f%%)",
@@ -874,6 +880,11 @@ run_filtering_pipeline <- function(input,
                                 ifelse(is.na(filtering_steps$crosstalk$leakage_zeros), "N/A",
                                        as.character(filtering_steps$crosstalk$leakage_zeros))),
                         sprintf("Features affected: %d", filtering_steps$crosstalk$features_affected))
+
+      if (filtering_steps$crosstalk$method == "remove_feature") {
+        report_lines <- c(report_lines,
+                          sprintf("Features removed: %d", filtering_steps$crosstalk$features_affected))
+      }
     } else {
       report_lines <- c(report_lines, "No cross-talk filtering applied")
     }
@@ -892,6 +903,12 @@ run_filtering_pipeline <- function(input,
                         sprintf("Samples below elbow: %d", filtering_steps$sparsity_elbow$samples_below),
                         sprintf("Applied to filter: %s",
                                 ifelse(filtering_steps$sparsity_elbow$applied, "Yes", "No")))
+
+      if (filtering_steps$sparsity_elbow$applied) {
+        samples_removed <- filtering_steps$sparsity_elbow$samples_below_elbow
+        report_lines <- c(report_lines,
+                          sprintf("Samples removed: %d", samples_removed))
+      }
     }
 
     report_lines <- c(report_lines,
@@ -909,6 +926,12 @@ run_filtering_pipeline <- function(input,
                         sprintf("Applied to filter: %s",
                                 ifelse(!is.null(filtering_steps$depth_sparsity$applied) &&
                                        filtering_steps$depth_sparsity$applied, "Yes", "No")))
+
+      if (!is.null(filtering_steps$depth_sparsity$applied) && filtering_steps$depth_sparsity$applied) {
+        samples_removed <- filtering_steps$depth_sparsity$samples_removed
+        report_lines <- c(report_lines,
+                          sprintf("Samples removed: %d", samples_removed))
+      }
 
       if (filtering_steps$depth_sparsity$n_outliers > 0) {
         outlier_list <- paste(head(filtering_steps$depth_sparsity$outliers, 10), collapse = ", ")
@@ -941,20 +964,26 @@ run_filtering_pipeline <- function(input,
                       sprintf("Method: %s", filtering_steps$abundance$method))
 
     if (filtering_steps$abundance$method == "absolute") {
+      features_removed <- filtering_steps$abundance$features_removed
       report_lines <- c(report_lines,
-                        sprintf("Threshold: %d reads", filtering_steps$abundance$threshold))
+                        sprintf("Threshold: %d reads", filtering_steps$abundance$threshold),
+                        sprintf("Features removed: %d", features_removed))
     } else if (filtering_steps$abundance$method == "relative") {
+      features_removed <- filtering_steps$abundance$features_removed
       report_lines <- c(report_lines,
                         sprintf("Threshold: %.4f (%.2f%%)",
                                 filtering_steps$abundance$threshold,
-                                filtering_steps$abundance$threshold * 100))
+                                filtering_steps$abundance$threshold * 100),
+                        sprintf("Features removed: %d", features_removed))
     } else if (filtering_steps$abundance$method == "relative_cutoff") {
+      features_removed <- filtering_steps$abundance$features_removed
       report_lines <- c(report_lines,
                         sprintf("Relative threshold: %.4f (%.2f%%)",
                                 filtering_steps$abundance$relative_threshold,
                                 filtering_steps$abundance$relative_threshold * 100),
                         sprintf("Absolute threshold applied: %.0f reads",
-                                filtering_steps$abundance$absolute_threshold))
+                                filtering_steps$abundance$absolute_threshold),
+                        sprintf("Features removed: %d", features_removed))
     } else if (filtering_steps$abundance$method == "joint") {
       report_lines <- c(report_lines,
                         sprintf("Abundance threshold: %.4f (%.2f%%)",
