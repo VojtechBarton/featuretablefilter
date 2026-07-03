@@ -13,7 +13,7 @@ test_that("load_feature_table loads TSV files correctly", {
   expect_equal(nrow(result), 2)
   expect_equal(ncol(result), 4)
   expect_equal(colnames(result)[1], "#OTU ID")
-  expect_equal(result$feat1[1], 10)
+  expect_equal(result$sample1[1], 10)
 
   unlink(tmp_file)
 })

@@ -62,14 +62,6 @@ test_that("filter_by_singleton_ratio calculates ratio_vector attribute correctly
   test_table <- data.frame(
     feature_id = c("F1", "F2", "F3"),
     Sample_A = c(1, 1, 98),    # 2 singletons out of 100 = 0.02
-    Sample_B = c(1, 1, 1, 97), # Oops, wrong length - fix below
-    stringsAsFactors = FALSE
-  )
-
-  # Fix: proper test data
-  test_table <- data.frame(
-    feature_id = c("F1", "F2", "F3"),
-    Sample_A = c(1, 1, 98),    # 2 singletons out of 100 = 0.02
     Sample_B = c(1, 1, 98),    # same
     stringsAsFactors = FALSE
   )
@@ -78,8 +70,8 @@ test_that("filter_by_singleton_ratio calculates ratio_vector attribute correctly
 
   ratio_vec <- attr(result, "ratio_vector")
   expect_named(ratio_vec, c("Sample_A", "Sample_B"))
-  expect_equal(ratio_vec["Sample_A"], 0.02, tolerance = 0.001)
-  expect_equal(ratio_vec["Sample_B"], 0.02, tolerance = 0.001)
+  expect_equal(unname(ratio_vec["Sample_A"]), 0.02, tolerance = 0.001)
+  expect_equal(unname(ratio_vec["Sample_B"]), 0.02, tolerance = 0.001)
 })
 
 test_that("filter_by_singleton_ratio validates inputs", {

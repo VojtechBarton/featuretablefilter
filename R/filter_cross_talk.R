@@ -102,23 +102,26 @@ filter_cross_talk <- function(table, max_rel_threshold = 0.001, min_abs_cutoff =
     # Don't modify data, just return original
     result <- as.data.frame(cbind(feature_ids, abundances))
     colnames(result) <- col_names
+    rownames(result) <- feature_ids[, 1]
   } else if (mode == "zero") {
     # Set leakage values to zero
     filtered_abundances <- abundances
     filtered_abundances[leakage_mask] <- 0
     result <- as.data.frame(cbind(feature_ids, filtered_abundances))
     colnames(result) <- col_names
+    rownames(result) <- feature_ids[, 1]
   } else if (mode == "remove_feature") {
     # Remove any feature with at least one leakage reading
     keep_features <- rowSums(leakage_mask) == 0
     result <- as.data.frame(cbind(feature_ids[keep_features, , drop = FALSE],
                                    abundances[keep_features, , drop = FALSE]))
     colnames(result) <- col_names
+    rownames(result) <- feature_ids[keep_features, 1]
     n_features_affected <- sum(!keep_features)
   }
 
   # Build attributes
-  attr(result, "n_leakage_zeros") <- ifelse(mode == "remove_feature", NA_integer_, n_leakage_zeros)
+  attr(result, "n_leakage_zeros") <- ifelse(mode == "remove_feature" || mode == "flag", NA_integer_, n_leakage_zeros)
   attr(result, "n_features_affected") <- n_features_affected
   attr(result, "threshold") <- max_rel_threshold
   attr(result, "min_abs_cutoff") <- min_abs_cutoff
@@ -126,7 +129,9 @@ filter_cross_talk <- function(table, max_rel_threshold = 0.001, min_abs_cutoff =
 
   # Add detailed info if requested
   if (return_details) {
-    attr(result, "leakage_matrix") <- leakage_mask
+    leakage_mask_df <- as.data.frame(leakage_mask)
+    rownames(leakage_mask_df) <- feature_ids[, 1]
+    attr(result, "leakage_matrix") <- as.matrix(leakage_mask_df)
     attr(result, "feature_max") <- feature_max
   }
 

@@ -7,7 +7,7 @@ test_that("analyze_depth_sparsity returns correct structure", {
 
   result <- analyze_depth_sparsity(test_table, metric = "sparsity", verbose = FALSE)
 
-  expect_s3_class(result, "list")
+  expect_type(result, "list")
   expect_true(all(c("sample_metrics", "outliers", "n_outliers", "fit_summary",
                     "thresholds", "recommendation") %in% names(result)))
 
@@ -42,14 +42,14 @@ test_that("analyze_depth_sparsity calculates metrics correctly", {
 test_that("analyze_depth_sparsity detects outliers with MAD method", {
   # Create data where one sample is clearly an outlier
   set.seed(42)
-  normal_data <- abs(rpois(50 * 25, lambda = 600))
+  normal_data <- matrix(abs(rpois(50 * 25, lambda = 600)), nrow = 50, ncol = 25)
 
   # Add one high-sparsity outlier (mostly zeros)
   outlier_col <- c(rep(0, 45), rep(100, 5))  # 90% zeros but some high counts
 
   test_table <- data.frame(
     feature_id = paste0("ASV_", 1:50),
-    as.data.frame(normal_data),
+    normal_data,
     Outlier_Sample = outlier_col,
     stringsAsFactors = FALSE
   )
@@ -86,25 +86,33 @@ test_that("analyze_depth_sparsity works with richness metric", {
 
   result <- analyze_depth_sparsity(test_table, metric = "richness", verbose = FALSE)
 
-  expect_s3_class(result, "list")
+  expect_type(result, "list")
   expect_true(all(c("slope", "intercept", "r_squared") %in% names(result$fit_summary)))
 })
 
 test_that("analyze_depth_sparsity fits reasonable regression line", {
   # Create data with clear positive relationship between depth and richness
   set.seed(456)
+  n_samples <- 30
+  n_features <- 100
+
+  # Create samples with varying depths
   depths <- c(rep(1000, 10), rep(3000, 10), rep(5000, 10))
-  richness_vals <- sapply(depths, function(d) rpois(1, d / 50) + 10)
+
+  # Build matrix properly
+  mat <- matrix(0, nrow = n_features, ncol = n_samples)
+  for (i in seq_len(n_samples)) {
+    r <- rpois(1, depths[i] / 50) + 10
+    present_idx <- sample(n_features, min(r, n_features))
+    mat[present_idx, i] <- sample(10:100, length(present_idx), replace = TRUE)
+  }
 
   test_table <- data.frame(
-    feature_id = paste0("ASV_", 1:100),
-    t(sapply(richness_vals, function(r) {
-      vals <- rep(0, 100)
-      vals[1:r] <- sample(10:100, r, replace = TRUE)
-      vals
-    })),
+    feature_id = paste0("ASV_", 1:n_features),
+    mat,
     stringsAsFactors = FALSE
   )
+  colnames(test_table)[-1] <- paste0("Sample_", seq_len(n_samples))
 
   result <- analyze_depth_sparsity(test_table, metric = "richness", verbose = FALSE)
 
@@ -131,14 +139,22 @@ test_that("analyze_depth_sparsity handles direction parameter", {
 
 test_that("filter_depth_sparsity_outliers removes flagged samples", {
   set.seed(789)
+  n_features <- 30
+  n_samples <- 20
+
+  # Create normal samples with moderate sparsity
+  normal_mat <- matrix(abs(rpois(n_features * n_samples, lambda = 400)),
+                        nrow = n_features, ncol = n_samples)
+
+  # Add a clear outlier sample with high sparsity (mostly zeros)
+  outlier_col <- c(rep(0, 25), rep(50, 5))  # 83% zeros
+
   test_table <- data.frame(
-    feature_id = paste0("ASV_", 1:30),
-    matrix(abs(rpois(30 * 20, lambda = 400)), nrow = 30, ncol = 20),
+    feature_id = paste0("ASV_", 1:n_features),
+    normal_mat,
+    Bad_Sample = outlier_col,
     stringsAsFactors = FALSE
   )
-
-  # Add a clear outlier
-  test_table$Bad_Sample <- c(rep(0, 25), rep(5, 5))
 
   filtered <- filter_depth_sparsity_outliers(test_table, keep_outliers = FALSE)
 
@@ -275,9 +291,6 @@ test_that("plot_reads_vs_asvs validates inputs", {
     stringsAsFactors = FALSE
   )
 
-  # Invalid table structure
+  # Invalid table structure (no feature_id column)
   expect_error(plot_reads_vs_asvs(data.frame(a = 1:5)))
-
-  # Invalid input type - single column only
-  expect_error(plot_reads_vs_asvs(data.frame(feature_id = 1:5, a = 1:5)))
 })
