@@ -30,7 +30,7 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
   }
 
   # Validate input
-  if (!phyloseq::is.phyloseq(phylo_obj)) {
+  if (!inherits(phylo_obj, "phyloseq")) {
     stop("Input must be a phyloseq object")
   }
 
@@ -465,14 +465,23 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
   }
 
   # Create TreeSummarizedExperiment
-  tse <- TreeSummarizedExperiment::TreeSummarizedExperiment(
-    assays = assays_list,
-    rowData = rowData,
-    colData = colData,
-    reducedDims = reducedDims,
-    rowTree = rowTree,
-    rowLinks = rowLinks
-  )
+  # Only include rowTree and rowLinks if provided
+  args <- list(assays = assays_list)
+  if (!is.null(rowData)) args$rowData <- rowData
+  if (!is.null(colData)) args$colData <- colData
+  if (!is.null(reducedDims)) args$reducedDims <- reducedDims
+  if (!is.null(rowTree)) {
+    args$rowTree <- rowTree
+    if (is.null(rowLinks)) {
+      # rowLinks required when rowTree is provided
+      rowLinks <- data.frame(.rowLink = seq_len(nrow(assays_list[[1]])),
+                              .rowLinkOrder = seq_len(nrow(assays_list[[1]])))
+      rownames(rowLinks) <- rownames(assays_list[[1]])
+    }
+    args$rowLinks <- rowLinks
+  }
+
+  tse <- do.call(TreeSummarizedExperiment::TreeSummarizedExperiment, args)
 
   return(tse)
 }
