@@ -30,7 +30,7 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
   }
 
   # Validate input
-  if (!inherits(phylo_obj, "phyloseq")) {
+  if (!phyloseq::is.phyloseq(phylo_obj)) {
     stop("Input must be a phyloseq object")
   }
 
@@ -401,14 +401,16 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
   if (is.numeric(feature_col)) {
     feature_ids <- table[, feature_col]
     assay_data <- as.matrix(table[, -feature_col, drop = FALSE])
+    sample_cols <- colnames(table)[-feature_col]
   } else {
     feature_ids <- table[[feature_col]]
     assay_idx <- which(colnames(table) == feature_col)
     assay_data <- as.matrix(table[, -assay_idx, drop = FALSE])
+    sample_cols <- colnames(table)[-assay_idx]
   }
 
   rownames(assay_data) <- feature_ids
-  colnames(assay_data) <- colnames(table)[-feature_col]
+  colnames(assay_data) <- sample_cols
 
   # Build assays list
   assays_list <- list()
