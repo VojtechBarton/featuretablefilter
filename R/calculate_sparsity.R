@@ -34,7 +34,7 @@ calculate_sparsity <- function(table, by_sample = FALSE) {
   } else {
     # Calculate overall sparsity
     n_zeros <- sum(abundances == 0)
-    n_total <- length(abundances)
+    n_total <- nrow(abundances) * ncol(abundances)
     return(n_zeros / n_total)
   }
 }

@@ -148,6 +148,14 @@ compute_scree <- function(table, type = c("mad_multiplier", "absolute_feature",
       n_features_retained <- sum(keep_features)
       n_samples_retained <- n_samples_baseline
       n_reads_retained <- sum(filtered_abundances)
+    } else if (type == "custom") {
+      # Custom thresholds - treat as absolute feature abundance filtering
+      keep_features <- rowSums(abundances >= thresh) >= min_samples
+      filtered_abundances <- abundances[keep_features, , drop = FALSE]
+
+      n_features_retained <- sum(keep_features)
+      n_samples_retained <- n_samples_baseline
+      n_reads_retained <- sum(filtered_abundances)
     }
 
     # Handle edge case of empty result

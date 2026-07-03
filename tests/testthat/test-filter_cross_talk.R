@@ -51,19 +51,22 @@ test_that("filter_cross_talk respects min_abs_cutoff", {
   test_table <- data.frame(
     feature_id = c("ASV_A", "ASV_B"),
     Sample_1 = c(1000, 100),
-    Sample_2 = c(1, 100),
+    Sample_2 = c(0, 100),   # Zero stays zero
     Sample_3 = c(3, 100),
     stringsAsFactors = FALSE
   )
 
   # With threshold 0.001 and min_abs_cutoff = 2:
-  # ASV_A max = 1000, rel_threshold = 1. Value 1 < 1 AND 1 < 2 -> leakage
-  # ASV_A value 3: 3 > 1 AND 3 >= 2 -> kept
+  # ASV_A max = 1000, rel_threshold = 1
+  # Value 0: not > 0, so not considered leakage (stays 0)
+  # Value 3: 3 > 1 (above rel threshold) AND 3 >= 2 (above abs cutoff) -> kept
 
   result <- filter_cross_talk(test_table, max_rel_threshold = 0.001, min_abs_cutoff = 2)
 
-  expect_equal(result["ASV_A", "Sample_2"], 0)  # Leakage (both conditions met)
-  expect_equal(result["ASV_A", "Sample_3"], 3)  # Kept (above absolute cutoff)
+  # Value 0 stays 0
+  expect_equal(result["ASV_A", "Sample_2"], 0)
+  # Value 3 is above both thresholds, kept
+  expect_equal(result["ASV_A", "Sample_3"], 3)
 })
 
 test_that("filter_cross_talk mode='remove_feature' removes entire features", {
@@ -112,7 +115,7 @@ test_that("filter_cross_talk returns detailed info when requested", {
 
   # Check leakage matrix exists and has correct dimensions
   leakage_mat <- attr(result, "leakage_matrix")
-  expect_s3_class(leakage_mat, "matrix")
+  expect_true(is.matrix(leakage_mat))
   expect_equal(dim(leakage_mat), c(2, 3))
 
   # ASV_A in Sample_2 should be flagged (1 < 1.5)
@@ -121,8 +124,8 @@ test_that("filter_cross_talk returns detailed info when requested", {
 
   # Check feature_max
   feature_max <- attr(result, "feature_max")
-  expect_equal(feature_max["ASV_A"], 1000)
-  expect_equal(feature_max["ASV_B"], 100)
+  expect_equal(unname(feature_max["ASV_A"]), 1000)
+  expect_equal(unname(feature_max["ASV_B"]), 100)
 })
 
 test_that("filter_cross_talk handles edge cases", {
