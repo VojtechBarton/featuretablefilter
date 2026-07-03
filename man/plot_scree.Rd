@@ -8,7 +8,9 @@ plot_scree(
   scree_obj,
   main = "Filtering Threshold Scree Analysis",
   show_collapse = TRUE,
-  color = "blue"
+  color = "blue",
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{

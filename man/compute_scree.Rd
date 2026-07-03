@@ -6,10 +6,12 @@
 \usage{
 compute_scree(
   table,
-  type = c("mad_multiplier", "absolute_feature", "relative_feature", "custom"),
+  type = c("mad_multiplier", "iqr_multiplier", "good_coverage", "chao_coverage",
+    "singleton_ratio", "cross_talk", "absolute_feature", "relative_feature", "custom"),
   thresholds = NULL,
   n_steps = 20,
   min_samples = 1,
+  count_type = "both",
   verbose = TRUE
 )
 }
@@ -20,8 +22,13 @@ First column should be feature IDs, remaining columns are sample counts.}
 \item{type}{Type of threshold sweep to perform:
 \itemize{
   \item \code{"mad_multiplier"} - Sweep MAD multipliers (e.g., 1 to 5 for coverage filtering)
+  \item \code{"iqr_multiplier"} - Sweep IQR multipliers (e.g., 0.5 to 3 for Tukey fence-based filtering)
+  \item \code{"good_coverage"} - Sweep Good's coverage targets (0.70 to 0.99)
+  \item \code{"chao_coverage"} - Sweep Chao's coverage targets (0.70 to 0.99)
+  \item \code{"singleton_ratio"} - Sweep singleton ratio thresholds (0.01 to 0.30 for PCR artifact detection)
+  \item \code{"cross_talk"} - Sweep cross-talk relative thresholds (0.0001 to 0.01 for index hopping)
   \item \code{"absolute_feature"} - Sweep absolute feature abundance thresholds
-  \item \code{"relative_feature"} - Sweep relative abundance thresholds (0 to 0.01)
+  \item \code{"relative_feature"} - Sweep relative abundance thresholds (0.00001 to 0.01)
   \item \code{"custom"} - Use custom threshold values provided in \code{thresholds}
 }}
 
@@ -47,8 +54,8 @@ A list containing:
 \description{
 Evaluates feature and sample retention across a gradient of thresholds to help
 users visualize how quickly their data collapses and choose an optimal cutoff.
-This is particularly useful for MAD multiplier sweeps, absolute count thresholds,
-or relative abundance cutoffs.
+This is particularly useful for MAD/IQR multiplier sweeps, coverage target sweeps
+(Good's or Chao's), absolute count thresholds, or relative abundance cutoffs.
 }
 \details{
 The function generates diagnostic curves showing:
@@ -62,6 +69,21 @@ The function generates diagnostic curves showing:
 # Sweep MAD multipliers from 1 to 5 (for coverage-based sample filtering)
 # scree <- compute_scree(my_table, type = "mad_multiplier", n_steps = 20)
 # plot(scree$results$threshold, scree$results$pct_features_retained, type = "l")
+
+# Sweep IQR multipliers from 0.5 to 3 (Tukey fence-based sample filtering)
+# scree <- compute_scree(my_table, type = "iqr_multiplier", n_steps = 20)
+
+# Sweep Good's coverage targets from 70\% to 99\%
+# scree <- compute_scree(my_table, type = "good_coverage", n_steps = 20)
+
+# Sweep Chao's coverage targets from 70\% to 99\%
+# scree <- compute_scree(my_table, type = "chao_coverage", n_steps = 20)
+
+# Sweep singleton ratio thresholds from 1\% to 30\% (for PCR artifact detection)
+# scree <- compute_scree(my_table, type = "singleton_ratio", n_steps = 20)
+
+# Sweep cross-talk relative thresholds from 0.01\% to 1\% (for index hopping detection)
+# scree <- compute_scree(my_table, type = "cross_talk", n_steps = 20)
 
 # Sweep absolute feature abundance thresholds
 # scree <- compute_scree(my_table, type = "absolute_feature", n_steps = 30)
