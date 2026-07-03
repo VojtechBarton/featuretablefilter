@@ -11,3 +11,4 @@ source(file.path(dirname(__FILE__), "server.R"))
 
 # Run the application
 shinyApp(ui = ui, server = server)
+

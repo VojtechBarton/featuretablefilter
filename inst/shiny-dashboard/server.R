@@ -411,12 +411,162 @@ server <- function(input, output, session) {
            x = "Proportion Zeros", y = "Density")
   })
 
+  # Helper function to apply pipeline up to (but not including) a given step
+  apply_pipeline_up_to <- function(base_table, stop_before_step) {
+    table <- base_table
+
+    # Coverage filtering (step 1)
+    if (stop_before_step == "singleton") {
+      if (input$cov_method != "none") {
+        if (input$cov_method == "absolute") {
+          table <- filter_by_coverage(table, min_reads = input$cov_threshold)
+        } else if (input$cov_method == "mad") {
+          est <- estimate_mad_cutoff(table, multiplier = input$cov_threshold,
+                                     floor = input$cov_floor)
+          table <- filter_by_coverage(table, min_reads = est$cutoff)
+        } else if (input$cov_method == "iqr") {
+          est <- estimate_iqr_cutoff(table, multiplier = input$cov_threshold,
+                                     floor = input$cov_floor)
+          table <- filter_by_coverage(table, min_reads = est$cutoff)
+        } else if (input$cov_method %in% c("good", "chao")) {
+          result <- filter_by_coverage_estimator(
+            table, method = input$cov_method,
+            target_coverage = input$cov_target, min_reads = input$cov_min_reads
+          )
+          table <- result$table
+        }
+      }
+      return(table)
+    }
+
+    # Apply coverage filtering
+    if (input$cov_method != "none") {
+      if (input$cov_method == "absolute") {
+        table <- filter_by_coverage(table, min_reads = input$cov_threshold)
+      } else if (input$cov_method == "mad") {
+        est <- estimate_mad_cutoff(table, multiplier = input$cov_threshold,
+                                   floor = input$cov_floor)
+        table <- filter_by_coverage(table, min_reads = est$cutoff)
+      } else if (input$cov_method == "iqr") {
+        est <- estimate_iqr_cutoff(table, multiplier = input$cov_threshold,
+                                   floor = input$cov_floor)
+        table <- filter_by_coverage(table, min_reads = est$cutoff)
+      } else if (input$cov_method %in% c("good", "chao")) {
+        result <- filter_by_coverage_estimator(
+          table, method = input$cov_method,
+          target_coverage = input$cov_target, min_reads = input$cov_min_reads
+        )
+        table <- result$table
+      }
+    }
+
+    if (stop_before_step == "crosstalk") {
+      if (input$singleton_method != "none") {
+        table <- filter_by_singleton_ratio(
+          table, max_singleton_ratio = input$singleton_max_ratio,
+          count_type = input$singleton_count_type
+        )
+      }
+      return(table)
+    }
+
+    # Apply singleton filtering
+    if (input$singleton_method != "none") {
+      table <- filter_by_singleton_ratio(
+        table, max_singleton_ratio = input$singleton_max_ratio,
+        count_type = input$singleton_count_type
+      )
+    }
+
+    if (stop_before_step == "abundance") {
+      return(table)
+    }
+
+    # Apply cross-talk filtering
+    if (input$crosstalk_method != "none") {
+      table <- filter_cross_talk(
+        table, max_rel_threshold = input$crosstalk_threshold,
+        min_abs_cutoff = input$crosstalk_min_abs, mode = input$crosstalk_method
+      )
+    }
+
+    return(table)
+  }
+
+  # Reactive scree data based on selected step and threshold
+  scree_data <- reactive({
+    req(rv$original_table, input$scree_step, input$scree_type)
+
+    # Determine which step is being swept and get base data from previous steps
+    base_table <- switch(input$scree_step,
+      "coverage" = rv$original_table,
+      "singleton" = apply_pipeline_up_to(rv$original_table, "singleton"),
+      "crosstalk" = apply_pipeline_up_to(rv$original_table, "crosstalk"),
+      "abundance" = apply_pipeline_up_to(rv$original_table, "abundance"),
+      rv$original_table
+    )
+
+    # Run scree analysis with appropriate type
+    compute_scree(base_table, type = input$scree_type, n_steps = 20,
+                  verbose = FALSE)
+  })
+
   # Scree plot
   output$scree_plot <- renderPlot({
-    req(rv$filtered_table)
+    req(scree_data())
+    plot_scree(scree_data())
+  })
 
-    scree <- compute_scree(rv$filtered_table, type = "mad_multiplier", n_steps = 20)
-    plot_scree(scree)
+  # Initialize and update scree_type options based on selected step
+  # Run immediately on startup
+  default_step <- "coverage"
+  default_types <- c("mad_multiplier", "iqr_multiplier", "good_coverage", "chao_coverage")
+  updateSelectInput(session, "scree_type", choices = default_types, selected = default_types[1])
+
+  # Then update whenever step changes
+  observeEvent(input$scree_step, {
+    step <- input$scree_step
+    available_types <- switch(step,
+      "coverage" = c("mad_multiplier", "iqr_multiplier", "good_coverage", "chao_coverage"),
+      "singleton" = c("singleton_ratio"),
+      "crosstalk" = c("cross_talk"),
+      "abundance" = c("absolute_feature", "relative_feature"),
+      c("mad_multiplier")
+    )
+    updateSelectInput(session, "scree_type", choices = available_types,
+                      selected = available_types[1])
+  })
+
+  # Smart default for scree step
+  observeEvent(c(input$cov_method, input$singleton_method,
+                 input$crosstalk_method, input$abun_method), {
+    # Default to first enabled step
+    new_step <- if (input$cov_method != "none") "coverage"
+    else if (input$singleton_method != "none") "singleton"
+    else if (input$crosstalk_method != "none") "crosstalk"
+    else if (input$abun_method != "none") "abundance"
+    else "coverage"
+
+    updateSelectInput(session, "scree_step", selected = new_step)
+  })
+
+  # Scree summary text
+  output$scree_summary <- renderText({
+    req(scree_data())
+    s <- scree_data()$summary
+    paste0(
+      "Scree Analysis: ", input$scree_step, " (", input$scree_type, ")\n",
+      "----------------------------------------\n",
+      "Threshold range: ", round(s$threshold_range[1], 4), " - ",
+      round(s$threshold_range[2], 4), "\n",
+      "Elbow point: ", ifelse(is.na(s$elbow_point$threshold), "N/A",
+                              paste0(round(s$elbow_point$threshold, 4),
+                                     " (", round(s$elbow_point$retention_at_elbow, 1), "% retention)")), "\n",
+      "Baseline: ", s$baseline$n_samples, " samples, ",
+      s$baseline$n_features, " features\n",
+      "At highest threshold: ",
+      round(s$saturation$final_retention, 1), "% of samples retained"
+    )
   })
 
   # Filtered table preview

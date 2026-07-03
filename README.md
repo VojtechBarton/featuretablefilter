@@ -91,6 +91,10 @@ Native conversion functions for standard microbiome data classes:
 - **`load_feature_table()`** - Auto-detects TSV/CSV format, header detection, feature column identification
 - **`convert_to_relative()`** - Converts counts to relative abundances
 
+### Interactive Shiny Dashboard (New!)
+
+**`runDashboard()`** - Launch an interactive web-based GUI for exploratory filtering without writing code.
+
 ## Quick Start
 
 ### Simple Filtering Pipeline
@@ -207,7 +211,41 @@ cat(sprintf("Simpson ENS retention: %.1f%%\n", qc$simpson_ens_retention_percent)
 hill_profile <- calc_hill_numbers(as.matrix(table[, -1]), q = c(0, 0.5, 1, 2, 3))
 ```
 
-### Individual Filtering Functions
+### Interactive Shiny Dashboard
+
+For those who prefer a graphical interface or want to explore different filtering strategies interactively:
+
+```r
+library(featuretablefilter)
+
+# Launch the dashboard (opens in default browser)
+runDashboard()
+
+# Launch on specific port
+runDashboard(port = 3838)
+
+# Launch without auto-opening browser
+runDashboard(launch.browser = FALSE)
+```
+
+**Features:**
+- **Upload** - Load TSV/CSV feature tables directly in the browser
+- **Interactive Filtering** - Configure coverage, singleton ratio, cross-talk, and abundance filtering with real-time preview
+- **Visual Feedback** - See immediate updates to coverage distributions, abundance histograms, sparsity plots, and scree analysis
+- **Retention Statistics** - Compare original vs. filtered data with retention rate visualizations
+- **Export Options** - Download filtered tables (TSV), text reports, and visualization packages (ZIP)
+- **Reproducible Code** - Generate R code for your filtering choices to reproduce in scripts
+
+**Dashboard Tabs:**
+1. **Overview** - Summary statistics and retention plot
+2. **Coverage Distribution** - Sample coverage histograms
+3. **Feature Abundance** - Feature abundance distribution
+4. **Sparsity** - Per-sample sparsity analysis
+5. **Scree Analysis** - Diagnostic plots for threshold selection
+6. **Results** - Filtered table preview and download options
+7. **R Code** - Reproducible code generation
+
+## Individual Filtering Functions
 
 ```r
 # Load feature table

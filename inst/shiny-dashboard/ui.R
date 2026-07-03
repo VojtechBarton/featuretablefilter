@@ -105,7 +105,27 @@ fluidPage(
 
         # Tab 5: Scree Analysis
         tabPanel("Scree Analysis",
-          plotOutput("scree_plot", height = "400px")
+          fluidRow(
+            column(6, offset = 1,
+              selectInput("scree_step", "Filtering Step:",
+                          choices = c("coverage" = "Coverage Filtering",
+                                      "singleton" = "Singleton Ratio Filtering",
+                                      "crosstalk" = "Cross-Talk Filtering",
+                                      "abundance" = "Abundance Filtering"),
+                          selected = "coverage")
+            ),
+            column(4,
+              selectInput("scree_type", "Threshold Type:",
+                          choices = character(0),
+                          selected = NULL)
+            )
+          ),
+          fluidRow(
+            column(12,
+              verbatimTextOutput("scree_summary"),
+              plotOutput("scree_plot", height = "400px")
+            )
+          )
         ),
 
         # Tab 6: Results

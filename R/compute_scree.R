@@ -2,8 +2,8 @@
 #'
 #' Evaluates feature and sample retention across a gradient of thresholds to help
 #' users visualize how quickly their data collapses and choose an optimal cutoff.
-#' This is particularly useful for MAD multiplier sweeps, absolute count thresholds,
-#' or relative abundance cutoffs.
+#' This is particularly useful for MAD/IQR multiplier sweeps, coverage target sweeps
+#' (Good's or Chao's), absolute count thresholds, or relative abundance cutoffs.
 #'
 #' The function generates diagnostic curves showing:
 #' - Feature retention rate (% features kept at each threshold)
@@ -17,8 +17,13 @@
 #' @param type Type of threshold sweep to perform:
 #'             \itemize{
 #'               \item \code{"mad_multiplier"} - Sweep MAD multipliers (e.g., 1 to 5 for coverage filtering)
+#'               \item \code{"iqr_multiplier"} - Sweep IQR multipliers (e.g., 0.5 to 3 for Tukey fence-based filtering)
+#'               \item \code{"good_coverage"} - Sweep Good's coverage targets (0.70 to 0.99)
+#'               \item \code{"chao_coverage"} - Sweep Chao's coverage targets (0.70 to 0.99)
+#'               \item \code{"singleton_ratio"} - Sweep singleton ratio thresholds (0.01 to 0.30 for PCR artifact detection)
+#'               \item \code{"cross_talk"} - Sweep cross-talk relative thresholds (0.0001 to 0.01 for index hopping)
 #'               \item \code{"absolute_feature"} - Sweep absolute feature abundance thresholds
-#'               \item \code{"relative_feature"} - Sweep relative abundance thresholds (0 to 0.01)
+#'               \item \code{"relative_feature"} - Sweep relative abundance thresholds (0.00001 to 0.01)
 #'               \item \code{"custom"} - Use custom threshold values provided in \code{thresholds}
 #'             }
 #' @param thresholds For \code{type = "custom"}, a numeric vector of threshold values to evaluate.
@@ -43,15 +48,32 @@
 #' # scree <- compute_scree(my_table, type = "mad_multiplier", n_steps = 20)
 #' # plot(scree$results$threshold, scree$results$pct_features_retained, type = "l")
 #'
+#' # Sweep IQR multipliers from 0.5 to 3 (Tukey fence-based sample filtering)
+#' # scree <- compute_scree(my_table, type = "iqr_multiplier", n_steps = 20)
+#'
+#' # Sweep Good's coverage targets from 70% to 99%
+#' # scree <- compute_scree(my_table, type = "good_coverage", n_steps = 20)
+#'
+#' # Sweep Chao's coverage targets from 70% to 99%
+#' # scree <- compute_scree(my_table, type = "chao_coverage", n_steps = 20)
+#'
+#' # Sweep singleton ratio thresholds from 1% to 30% (for PCR artifact detection)
+#' # scree <- compute_scree(my_table, type = "singleton_ratio", n_steps = 20)
+#'
+#' # Sweep cross-talk relative thresholds from 0.01% to 1% (for index hopping detection)
+#' # scree <- compute_scree(my_table, type = "cross_talk", n_steps = 20)
+#'
 #' # Sweep absolute feature abundance thresholds
 #' # scree <- compute_scree(my_table, type = "absolute_feature", n_steps = 30)
 #'
 #' # Custom threshold sweep
 #' # scree <- compute_scree(my_table, type = "custom", thresholds = c(1, 2, 5, 10, 20, 50))
-compute_scree <- function(table, type = c("mad_multiplier", "absolute_feature",
-                                           "relative_feature", "custom"),
+compute_scree <- function(table, type = c("mad_multiplier", "iqr_multiplier",
+                                           "good_coverage", "chao_coverage",
+                                           "singleton_ratio", "cross_talk",
+                                           "absolute_feature", "relative_feature", "custom"),
                           thresholds = NULL, n_steps = 20, min_samples = 1,
-                          verbose = TRUE) {
+                          count_type = "both", verbose = TRUE) {
   # Validate inputs
   if (!is.data.frame(table) && !is.matrix(table)) {
     stop("table must be a data.frame or matrix")
@@ -82,21 +104,43 @@ compute_scree <- function(table, type = c("mad_multiplier", "absolute_feature",
   if (type == "mad_multiplier") {
     # Sweep MAD multipliers for coverage-based filtering
     thresholds <- seq(1, 5, length.out = n_steps)
+  } else if (type == "iqr_multiplier") {
+    # Sweep IQR multipliers for Tukey fence-based filtering
+    thresholds <- seq(0.5, 3, length.out = n_steps)
+  } else if (type == "good_coverage") {
+    # Sweep Good's coverage targets (70% to 99%)
+    thresholds <- seq(0.70, 0.99, length.out = n_steps)
+  } else if (type == "chao_coverage") {
+    # Sweep Chao's coverage targets (70% to 99%)
+    thresholds <- seq(0.70, 0.99, length.out = n_steps)
+  } else if (type == "singleton_ratio") {
+    # Sweep singleton ratio thresholds (1% to 30% for PCR artifact detection)
+    thresholds <- seq(0.01, 0.30, length.out = n_steps)
+  } else if (type == "cross_talk") {
+    # Sweep cross-talk relative thresholds (0.01% to 1% of feature max)
+    thresholds <- seq(0.0001, 0.01, length.out = n_steps)
   } else if (type == "absolute_feature") {
     # Sweep absolute abundance (log-spaced for better resolution at low values)
-    max_abund <- max(abundances)
-    if (max_abund < n_steps) {
-      thresholds <- 1:max(min(max_abund, 50), ceiling(n_steps/2))
-    } else {
-      thresholds <- unique(c(1:ceiling(n_steps/2),
-                             round(exp(seq(log(2), log(max_abund), length.out = n_steps/2)))))
+    # Only generate thresholds if not provided by user
+    if (is.null(thresholds)) {
+      max_abund <- max(abundances)
+      if (max_abund < n_steps) {
+        thresholds <- 1:max(min(max_abund, 50), ceiling(n_steps/2))
+      } else {
+        thresholds <- unique(c(1:ceiling(n_steps/2),
+                               round(exp(seq(log(2), log(max_abund), length.out = n_steps/2)))))
+      }
+      thresholds <- sort(unique(thresholds))
     }
-    thresholds <- sort(unique(thresholds))
   } else if (type == "relative_feature") {
     # Sweep relative abundance (0.001% to 1%)
     thresholds <- seq(0.00001, 0.01, length.out = n_steps)
   }
-  # For custom, use provided thresholds
+  # For custom, use provided thresholds (defaults to absolute feature filtering behavior)
+  # Note: custom type applies thresholds as absolute feature abundance cutoffs
+
+  # Initialize filtered_abundances to avoid "object not found" error
+  filtered_abundances <- abundances
 
   if (verbose) {
     message(sprintf("Evaluating %d threshold values...", length(thresholds)))
@@ -129,6 +173,85 @@ compute_scree <- function(table, type = c("mad_multiplier", "absolute_feature",
       n_samples_retained <- sum(keep_samples)
       n_reads_retained <- sum(filtered_abundances)
 
+    } else if (type == "iqr_multiplier") {
+      # Apply coverage-based sample filtering using IQR multiplier (Tukey fences)
+      sample_sums <- colSums(abundances)
+      q1 <- quantile(sample_sums, 0.25)
+      q3 <- quantile(sample_sums, 0.75)
+      iqr <- q3 - q1
+      cutoff <- q1 - thresh * iqr
+      cutoff <- max(cutoff, 0)
+
+      keep_samples <- sample_sums >= cutoff
+      filtered_abundances <- abundances[, keep_samples, drop = FALSE]
+
+      n_features_retained <- n_features_baseline
+      n_samples_retained <- sum(keep_samples)
+      n_reads_retained <- sum(filtered_abundances)
+
+    } else if (type == "good_coverage") {
+      # Apply Good's coverage-based sample filtering
+      sample_totals <- colSums(abundances)
+      singletons_per_sample <- apply(abundances, 2, function(x) sum(x == 1))
+      sample_coverage <- 1 - (singletons_per_sample / sample_totals)
+      sample_coverage[is.na(sample_coverage)] <- 0
+
+      keep_samples <- sample_coverage >= thresh
+      filtered_abundances <- abundances[, keep_samples, drop = FALSE]
+
+      n_features_retained <- n_features_baseline
+      n_samples_retained <- sum(keep_samples)
+      n_reads_retained <- sum(filtered_abundances)
+
+    } else if (type == "chao_coverage") {
+      # Apply Chao's coverage-based sample filtering
+      sample_totals <- colSums(abundances)
+      n_features_per_sample <- colSums(abundances > 0)
+      singletons_per_sample <- apply(abundances, 2, function(x) sum(x == 1))
+      doubletons_per_sample <- apply(abundances, 2, function(x) sum(x == 2))
+
+      # Calculate Chao's coverage per sample
+      sample_coverage <- sapply(seq_along(sample_totals), function(i) {
+        n <- sample_totals[i]
+        S <- n_features_per_sample[i]
+        f1 <- singletons_per_sample[i]
+        if (n == 0 || S == 0) return(0)
+        coverage <- 1 - (f1 / S) + (f1 / n) * ((n - 1) / n) * ((S - 1) / S)
+        max(0, min(1, coverage))
+      })
+
+      keep_samples <- sample_coverage >= thresh
+      filtered_abundances <- abundances[, keep_samples, drop = FALSE]
+
+      n_features_retained <- n_features_baseline
+      n_samples_retained <- sum(keep_samples)
+      n_reads_retained <- sum(filtered_abundances)
+
+    } else if (type == "singleton_ratio") {
+      # Apply singleton ratio-based sample filtering
+      sample_totals <- colSums(abundances)
+      singleton_counts <- apply(abundances, 2, function(x) sum(x == 1))
+      doubleton_counts <- apply(abundances, 2, function(x) sum(x == 2))
+
+      if (count_type == "singleton") {
+        low_count_sum <- singleton_counts
+      } else if (count_type == "doubleton") {
+        low_count_sum <- doubleton_counts
+      } else {  # "both"
+        low_count_sum <- singleton_counts + doubleton_counts
+      }
+
+      # Calculate ratio of low-count reads to total reads per sample
+      ratio_vector <- ifelse(sample_totals > 0, low_count_sum / sample_totals, NA)
+
+      # Keep samples with ratio below threshold (or NA due to zero reads)
+      keep_samples <- is.na(ratio_vector) | (ratio_vector <= thresh)
+      filtered_abundances <- abundances[, keep_samples, drop = FALSE]
+
+      n_features_retained <- n_features_baseline
+      n_samples_retained <- sum(keep_samples)
+      n_reads_retained <- sum(filtered_abundances)
+
     } else if (type == "absolute_feature") {
       # Apply absolute feature abundance filtering
       keep_features <- rowSums(abundances >= thresh) >= min_samples
@@ -138,11 +261,40 @@ compute_scree <- function(table, type = c("mad_multiplier", "absolute_feature",
       n_samples_retained <- n_samples_baseline  # No sample filtering
       n_reads_retained <- sum(filtered_abundances)
 
+    } else if (type == "cross_talk") {
+      # Apply cross-talk/index-hopping filtering
+      # For scree analysis, we count how many features would be removed
+      # when using "remove_feature" mode at each threshold
+      feature_max <- apply(abundances, 1, max)
+      dynamic_threshold <- outer(feature_max, rep(1, ncol(abundances))) * thresh
+
+      # Identify leakage: values > 0 AND < dynamic_threshold
+      leakage_mask <- abundances > 0 & abundances < dynamic_threshold
+
+      # Count features with any leakage (these would be removed in remove_feature mode)
+      features_with_leakage <- rowSums(leakage_mask) > 0
+      keep_features <- !features_with_leakage
+
+      filtered_abundances <- abundances[keep_features, , drop = FALSE]
+
+      n_features_retained <- sum(keep_features)
+      n_samples_retained <- n_samples_baseline
+      n_reads_retained <- sum(filtered_abundances)
+
     } else if (type == "relative_feature") {
       # Apply relative abundance filtering
       sample_totals <- colSums(abundances)
       rel_abundances <- sweep(abundances, 2, sample_totals, FUN = "/")
       keep_features <- rowSums(rel_abundances >= thresh) >= min_samples
+      filtered_abundances <- abundances[keep_features, , drop = FALSE]
+
+      n_features_retained <- sum(keep_features)
+      n_samples_retained <- n_samples_baseline
+      n_reads_retained <- sum(filtered_abundances)
+
+    } else if (type == "custom") {
+      # Custom thresholds - apply as absolute feature abundance filtering
+      keep_features <- rowSums(abundances >= thresh) >= min_samples
       filtered_abundances <- abundances[keep_features, , drop = FALSE]
 
       n_features_retained <- sum(keep_features)
@@ -276,7 +428,7 @@ compute_scree <- function(table, type = c("mad_multiplier", "absolute_feature",
 #' # scree <- compute_scree(my_table, type = "absolute_feature")
 #' # plot_scree(scree)
 plot_scree <- function(scree_obj, main = "Filtering Threshold Scree Analysis",
-                       show_collapse = TRUE, color = "blue") {
+                       show_collapse = TRUE, color = "blue", verbose = TRUE, ...) {
   # Check for ggplot2
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("ggplot2 is required for plotting. Please install it.")
