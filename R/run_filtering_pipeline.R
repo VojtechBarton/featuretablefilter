@@ -1430,6 +1430,13 @@ run_filtering_pipeline <- function(input,
       report_lines <- c(report_lines,
                         sprintf("Procrustes correlation: %.4f", qc_metrics$procrustes_correlation),
                         sprintf("M^2 statistic: %.6f", qc_metrics$procrustes_m2))
+
+      if (!is.null(qc_metrics$procrustes_pvalue) &&
+          length(qc_metrics$procrustes_pvalue) > 0 &&
+          !is.na(qc_metrics$procrustes_pvalue)) {
+        report_lines <- c(report_lines,
+                          sprintf("P-value (permutation test): %.4f", qc_metrics$procrustes_pvalue))
+      }
     } else {
       report_lines <- c(report_lines, "Not computed (vegan package not available)")
     }

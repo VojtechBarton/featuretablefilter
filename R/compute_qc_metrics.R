@@ -204,6 +204,7 @@ compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
   # === Procrustes Analysis (Bray-Curtis based) ===
   procrustes_m2 <- NA
   procrustes_correlation <- NA
+  procrustes_pvalue <- NA
 
   if (requireNamespace("vegan", quietly = TRUE)) {
     tryCatch({
@@ -228,6 +229,13 @@ compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
           procrustes_m2 <- proc$ss / y_sum_sq
           procrustes_correlation <- 1 - procrustes_m2
         }
+      }
+
+      # Perform permutation test for p-value using protest
+      # This tests the significance of the correlation between two configurations
+      protest_result <- vegan::protest(veg_dist_orig, veg_dist_filt, permutations = 999)
+      if (!is.null(protest_result$signif)) {
+        procrustes_pvalue <- protest_result$signif
       }
 
     }, error = function(e) {
@@ -257,6 +265,7 @@ compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
     filt_top_rels = filt_top_rels,
     procrustes_m2 = procrustes_m2,
     procrustes_correlation = procrustes_correlation,
+    procrustes_pvalue = procrustes_pvalue,
     shannon_ens_original = shannon_ens_original,
     shannon_ens_filtered = shannon_ens_filtered,
     shannon_ens_retention_percent = shannon_ens_retention_percent,
