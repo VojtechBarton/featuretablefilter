@@ -149,10 +149,17 @@ test_that("compute_scree handles edge cases", {
   expect_s3_class(result$results, "data.frame")
   expect_gte(nrow(result$results), 3)
 
-  # At threshold=50, only ASV_1 should remain
+  # At threshold=50, ASV_1 (100,80) and ASV_2 (50,40) meet criteria
+  # (each has at least one sample >= 50)
   idx_50 <- which(result$results$threshold == 50)
   if (length(idx_50) > 0) {
-    expect_equal(result$results$n_features_retained[idx_50], 1)
+    expect_equal(result$results$n_features_retained[idx_50], 2)
+  }
+
+  # At threshold=100, only ASV_1 remains
+  idx_100 <- which(result$results$threshold == 100)
+  if (length(idx_100) > 0) {
+    expect_equal(result$results$n_features_retained[idx_100], 1)
   }
 })
 
