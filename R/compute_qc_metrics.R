@@ -191,12 +191,20 @@ compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
       filt_top_rels[which(filt_top_features == f)]
     })
 
-    pearson_corr_result <- tryCatch({
-      ct <- cor.test(as.numeric(orig_abunds), as.numeric(filt_abunds), method = "pearson")
-      list(estimate = ct$estimate, p.value = ct$p.value)
-    }, error = function(e) {
-      list(estimate = NA_real_, p.value = NA_real_)
-    })
+    # Check variance before cor.test to handle constant abundance cases
+    orig_var <- var(as.numeric(orig_abunds))
+    filt_var <- var(as.numeric(filt_abunds))
+
+    if (orig_var > 0 && filt_var > 0) {
+      pearson_corr_result <- tryCatch({
+        ct <- cor.test(as.numeric(orig_abunds), as.numeric(filt_abunds), method = "pearson")
+        list(estimate = ct$estimate, p.value = ct$p.value)
+      }, error = function(e) {
+        list(estimate = NA_real_, p.value = NA_real_)
+      })
+    } else {
+      pearson_corr_result <- list(estimate = NA_real_, p.value = NA_real_)
+    }
     pearson_abundance_correlation <- pearson_corr_result$estimate
     pearson_abundance_pvalue <- pearson_corr_result$p.value
   } else {
