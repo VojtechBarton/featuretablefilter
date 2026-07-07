@@ -161,8 +161,8 @@ test_that("ENS metrics handle low-diversity samples", {
   qc <- compute_filtering_qc(original, filtered)
 
   # Should not error, may return NA for some metrics
-  expect_is(qc$shannon_ens_original, "numeric")
-  expect_is(qc$simpson_ens_original, "numeric")
+  expect_type(qc$shannon_ens_original, "double")
+  expect_type(qc$simpson_ens_original, "double")
 })
 
 test_that("calc_shannon_ens calculates correct values", {
@@ -195,7 +195,7 @@ test_that("calc_hill_numbers returns profile across q values", {
 
   hill <- calc_hill_numbers(mat, q = c(0, 1, 2))
 
-  expect_is(hill, "matrix")
+  expect_s3_class(hill, "matrix")
   expect_equal(ncol(hill), 3)
   expect_equal(unname(hill[, 1]), 4)  # q=0 is richness
   expect_equal(unname(hill[, 2]), 4, tolerance = 0.01)  # q=1 is Shannon ENS

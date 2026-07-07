@@ -15,7 +15,7 @@ test_that("from_phyloseq converts correctly", {
   # Convert to data.frame
   df <- from_phyloseq(ps)
 
-  expect_is(df, "data.frame")
+  expect_s3_class(df, "data.frame")
   expect_true("feature_id" %in% colnames(df))
   expect_equal(nrow(df), 10)
   expect_equal(ncol(df), 6)  # feature_id + 5 samples
@@ -46,7 +46,7 @@ test_that("from_phyloseq with taxonomy", {
   # Convert with taxonomy
   df <- from_phyloseq(ps, include_taxa = TRUE)
 
-  expect_is(df, "data.frame")
+  expect_s3_class(df, "data.frame")
   expect_true("feature_id" %in% colnames(df))
   expect_true("tax_Kingdom" %in% colnames(df))
   expect_true("tax_Genus" %in% colnames(df))
@@ -68,7 +68,7 @@ test_that("to_phyloseq creates valid object", {
   # Convert to phyloseq
   ps <- to_phyloseq(df)
 
-  expect_is(ps, "phyloseq")
+  expect_s4_class(ps, "phyloseq")
   expect_true(!is.null(otu_table(ps)))
   expect_true(taxa_are_rows(otu_table(ps)))
   expect_equal(nrow(otu_table(ps)), 10)
@@ -95,7 +95,7 @@ test_that("to_phyloseq with taxonomy", {
 
   ps <- to_phyloseq(df, tax_table = tax_df)
 
-  expect_is(ps, "phyloseq")
+  expect_s4_class(ps, "phyloseq")
   expect_true(!is.null(tax_table(ps)))
   expect_equal(nrow(tax_table(ps)), 5)
 })
@@ -120,7 +120,7 @@ test_that("from_TSE converts correctly", {
   # Convert to data.frame
   df <- from_TSE(tse)
 
-  expect_is(df, "data.frame")
+  expect_s3_class(df, "data.frame")
   expect_true("feature_id" %in% colnames(df))
   expect_equal(nrow(df), 10)
 })
@@ -149,9 +149,9 @@ test_that("from_TSE with rowData and colData", {
   # Convert with colData
   result <- from_TSE(tse, add_col_data = TRUE)
 
-  expect_is(result, "list")
+  expect_s3_class(result, "list")
   expect_true(all(c("table", "sample_data") %in% names(result)))
-  expect_is(result$sample_data, "data.frame")
+  expect_s3_class(result$sample_data, "data.frame")
 })
 
 test_that("to_TSE creates valid object", {
@@ -170,7 +170,7 @@ test_that("to_TSE creates valid object", {
   # Convert to TSE
   tse <- to_TSE(df)
 
-  expect_is(tse, "TreeSummarizedExperiment")
+  expect_s4_class(tse, "TreeSummarizedExperiment")
   expect_true("counts" %in% names(assays(tse)))
   expect_equal(nrow(tse), 10)
   expect_equal(ncol(tse), 3)
@@ -223,20 +223,20 @@ test_that("convert_feature_table works for all conversions", {
 
   # Convert to phyloseq
   ps <- convert_feature_table(df, to = "phyloseq")
-  expect_is(ps, "phyloseq")
+  expect_s4_class(ps, "phyloseq")
 
   # Convert back to data.frame
   df_back <- convert_feature_table(ps, to = "data.frame")
-  expect_is(df_back, "data.frame")
+  expect_s3_class(df_back, "data.frame")
   expect_equal(nrow(df_back), 10)
 
   # Convert to TSE
   tse <- convert_feature_table(df, to = "TSE")
-  expect_is(tse, "TreeSummarizedExperiment")
+  expect_s4_class(tse, "TreeSummarizedExperiment")
 
   # Convert TSE to data.frame
   df_from_tse <- convert_feature_table(tse, to = "data.frame")
-  expect_is(df_from_tse, "data.frame")
+  expect_s3_class(df_from_tse, "data.frame")
 })
 
 test_that("convert_feature_table handles unsupported classes", {

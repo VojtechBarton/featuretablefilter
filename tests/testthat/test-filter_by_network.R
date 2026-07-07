@@ -5,7 +5,7 @@ test_that("compute_mutual_information returns symmetric matrix", {
 
   mi_matrix <- compute_mutual_information(test_table)
 
-  expect_is(mi_matrix, "matrix")
+  expect_s3_class(mi_matrix, "matrix")
   expect_equal(nrow(mi_matrix), 50)
   expect_equal(ncol(mi_matrix), 50)
 
@@ -35,8 +35,8 @@ test_that("compute_mutual_information respects min_prevalence", {
   mi_strict <- compute_mutual_information(test_table, min_prevalence = 0.5)
   mi_loose <- compute_mutual_information(test_table, min_prevalence = 0.01)
 
-  expect_is(mi_strict, "matrix")
-  expect_is(mi_loose, "matrix")
+  expect_s3_class(mi_strict, "matrix")
+  expect_s3_class(mi_loose, "matrix")
 })
 
 test_that("compute_mutual_information returns reasonable values", {
@@ -48,7 +48,7 @@ test_that("compute_mutual_information returns reasonable values", {
 
   mi_matrix <- compute_mutual_information(test_table, min_prevalence = 0.01)
 
-  expect_is(mi_matrix, "matrix")
+  expect_s3_class(mi_matrix, "matrix")
   expect_true(all(mi_matrix[!is.na(mi_matrix)] >= 0))
 })
 
@@ -60,13 +60,13 @@ test_that("analyze_feature_network returns correct structure", {
   mi_matrix <- compute_mutual_information(test_table, min_prevalence = 0.1)
   network <- analyze_feature_network(mi_matrix, method = "mi")
 
-  expect_is(network, "list")
+  expect_s3_class(network, "list")
   expect_true(all(c("degree_centrality", "strength", "threshold_used",
                     "n_edges", "adjacency_matrix") %in% names(network)))
 
   expect_length(network$degree_centrality, 30)
   expect_length(network$strength, 30)
-  expect_is(network$adjacency_matrix, "matrix")
+  expect_s3_class(network$adjacency_matrix, "matrix")
 })
 
 test_that("analyze_feature_network with correlation method", {
@@ -80,7 +80,7 @@ test_that("analyze_feature_network with correlation method", {
 
   network <- analyze_feature_network(corr_matrix, method = "cor")
 
-  expect_is(network, "list")
+  expect_s3_class(network, "list")
   expect_true(network$threshold_used >= 0.2)  # Auto-threshold has minimum
 })
 
@@ -113,7 +113,7 @@ test_that("filter_by_network_connectivity removes disconnected features", {
   result <- filter_by_network_connectivity(test_table, similarity_type = "mi",
                                             verbose = FALSE)
 
-  expect_is(result, "data.frame")
+  expect_s3_class(result, "data.frame")
   expect_true(nrow(result) <= nrow(test_table))
 
   n_filtered <- attr(result, "n_filtered_out")
@@ -137,7 +137,7 @@ test_that("filter_by_network_connectivity with correlation", {
   result <- filter_by_network_connectivity(test_table, similarity_type = "cor",
                                             verbose = FALSE)
 
-  expect_is(result, "data.frame")
+  expect_s3_class(result, "data.frame")
   expect_true(nrow(result) <= nrow(test_table))
 })
 

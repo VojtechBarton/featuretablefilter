@@ -248,11 +248,11 @@ test_that("plot_reads_vs_asvs returns expected structure", {
 
   result <- plot_reads_vs_asvs(test_table)
 
-  expect_is(result, "list")
+  expect_s3_class(result, "list")
   expect_true(all(c("plot", "outliers", "metrics", "cutoff") %in% names(result)))
   expect_s3_class(result$plot, "ggplot")
-  expect_is(result$outliers, "data.frame")
-  expect_is(result$metrics, "data.frame")
+  expect_s3_class(result$outliers, "data.frame")
+  expect_s3_class(result$metrics, "data.frame")
 })
 
 test_that("plot_reads_vs_asvs detects outliers correctly", {
@@ -280,7 +280,7 @@ test_that("plot_reads_vs_asvs detects outliers correctly", {
   result <- plot_reads_vs_asvs(test_table, mad_multiplier = 2)
 
   # Check that metrics and outliers are returned
-  expect_is(result$outliers$sample_name, "character")
+  expect_type(result$outliers$sample_name, "character")
   expect_equal(nrow(result$metrics), 20)  # All samples in metrics
 })
 
