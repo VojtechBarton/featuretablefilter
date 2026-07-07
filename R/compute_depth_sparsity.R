@@ -646,7 +646,8 @@ filter_depth_sparsity_outliers <- function(table, metric = c("sparsity", "richne
   }
 
   # Select feature_id column plus the specified sample columns
-  result_table <- table[, c(colnames(table)[1], keep_samples), drop = FALSE]
+  # Use colnames to properly handle logical vector indexing
+  result_table <- table[, c(colnames(table)[1], colnames(table)[-1][keep_samples]), drop = FALSE]
 
   # Attach analysis results as attributes
   attr(result_table, "outlier_analysis") <- result
