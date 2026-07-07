@@ -646,8 +646,14 @@ filter_depth_sparsity_outliers <- function(table, metric = c("sparsity", "richne
   }
 
   # Select feature_id column plus the specified sample columns
-  # Use colnames to properly handle logical vector indexing
-  result_table <- table[, c(colnames(table)[1], colnames(table)[-1][keep_samples]), drop = FALSE]
+  # keep_samples can be either character vector (sample names) or logical vector
+  if (is.character(keep_samples)) {
+    # Character vector: match by sample names
+    result_table <- table[, c(colnames(table)[1], keep_samples), drop = FALSE]
+  } else {
+    # Logical vector: use logical indexing on sample columns
+    result_table <- table[, c(colnames(table)[1], colnames(table)[-1][keep_samples]), drop = FALSE]
+  }
 
   # Attach analysis results as attributes
   attr(result_table, "outlier_analysis") <- result
