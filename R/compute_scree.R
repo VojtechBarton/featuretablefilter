@@ -210,13 +210,15 @@ compute_scree <- function(table, type = c("mad_multiplier", "iqr_multiplier",
       singletons_per_sample <- apply(abundances, 2, function(x) sum(x == 1))
       doubletons_per_sample <- apply(abundances, 2, function(x) sum(x == 2))
 
-      # Calculate Chao's coverage per sample
+      # Calculate Chao's coverage per sample using standard estimator formula:
+      # C_hat = 1 - (f1/n) * [(n-1)*f1 / ((n-1)*f1 + 2*f2)]
       sample_coverage <- sapply(seq_along(sample_totals), function(i) {
         n <- sample_totals[i]
-        S <- n_features_per_sample[i]
         f1 <- singletons_per_sample[i]
-        if (n == 0 || S == 0) return(0)
-        coverage <- 1 - (f1 / S) + (f1 / n) * ((n - 1) / n) * ((S - 1) / S)
+        f2 <- doubletons_per_sample[i]
+        if (n == 0) return(0)
+        denom <- (n - 1) * f1 + 2 * f2
+        coverage <- if (denom == 0) 1 - f1 / n else 1 - (f1 / n) * (((n - 1) * f1) / denom)
         max(0, min(1, coverage))
       })
 
