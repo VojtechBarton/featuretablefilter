@@ -188,17 +188,26 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
         tax_idx <- match(feature_ids, tax_rownames)
         if (!any(is.na(tax_idx))) {
           tax_df <- tax_df[tax_idx, , drop = FALSE]
+        } else {
+          warning("Could not match taxonomy to features. Taxonomy will be ignored.")
+          tax_df <- NULL
         }
+      } else {
+        warning("No rownames or feature_id column in tax_table. Taxonomy will be ignored.")
+        tax_df <- NULL
       }
     }
 
-    # Ensure rownames are set correctly
-    rownames(tax_df) <- feature_ids
+    # Only add taxonomy if we have valid data
+    if (!is.null(tax_df) && nrow(tax_df) > 0) {
+      # Ensure rownames are set correctly
+      rownames(tax_df) <- feature_ids
 
-    # Convert to tax_table format
-    tax_mat <- as.matrix(tax_df)
-    tax <- phyloseq::tax_table(tax_mat)
-    ps_args$tax_table <- tax
+      # Convert to tax_table format
+      tax_mat <- as.matrix(tax_df)
+      tax <- phyloseq::tax_table(tax_mat)
+      ps_args$tax_table <- tax
+    }
   }
 
   # Add phylogenetic tree if provided
@@ -230,48 +239,28 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
   }
 
   # Create phyloseq object - build arguments explicitly to avoid any issues
+  # Use positional argument passing for maximum compatibility
   if (!is.null(ps_args$tax_table) && !is.null(ps_args$phy_tree) && !is.null(ps_args$sam_data)) {
-    result <- phyloseq::phyloseq(
-      otu_table = otu,
-      tax_table = ps_args$tax_table,
-      phy_tree = ps_args$phy_tree,
-      sam_data = ps_args$sam_data
-    )
+    result <- phyloseq::phyloseq(otu, ps_args$tax_table, ps_args$phy_tree, ps_args$sam_data)
   } else if (!is.null(ps_args$tax_table) && !is.null(ps_args$phy_tree)) {
-    result <- phyloseq::phyloseq(
-      otu_table = otu,
-      tax_table = ps_args$tax_table,
-      phy_tree = ps_args$phy_tree
-    )
+    result <- phyloseq::phyloseq(otu, ps_args$tax_table, ps_args$phy_tree)
   } else if (!is.null(ps_args$tax_table) && !is.null(ps_args$sam_data)) {
-    result <- phyloseq::phyloseq(
-      otu_table = otu,
-      tax_table = ps_args$tax_table,
-      sam_data = ps_args$sam_data
-    )
+    result <- phyloseq::phyloseq(otu, ps_args$tax_table, ps_args$sam_data)
   } else if (!is.null(ps_args$phy_tree) && !is.null(ps_args$sam_data)) {
-    result <- phyloseq::phyloseq(
-      otu_table = otu,
-      phy_tree = ps_args$phy_tree,
-      sam_data = ps_args$sam_data
-    )
+    result <- phyloseq::phyloseq(otu, ps_args$phy_tree, ps_args$sam_data)
   } else if (!is.null(ps_args$tax_table)) {
-    result <- phyloseq::phyloseq(
-      otu_table = otu,
-      tax_table = ps_args$tax_table
-    )
+    result <- phyloseq::phyloseq(otu, ps_args$tax_table)
   } else if (!is.null(ps_args$phy_tree)) {
-    result <- phyloseq::phyloseq(
-      otu_table = otu,
-      phy_tree = ps_args$phy_tree
-    )
+    result <- phyloseq::phyloseq(otu, ps_args$phy_tree)
   } else if (!is.null(ps_args$sam_data)) {
-    result <- phyloseq::phyloseq(
-      otu_table = otu,
-      sam_data = ps_args$sam_data
-    )
+    result <- phyloseq::phyloseq(otu, ps_args$sam_data)
   } else {
     result <- phyloseq::phyloseq(otu)
+  }
+
+  # Verify result is a phyloseq object
+  if (!inherits(result, "phyloseq")) {
+    stop("to_phyloseq failed to create a valid phyloseq object")
   }
 
   return(result)
@@ -570,8 +559,25 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
   # Create TreeSummarizedExperiment
   # Only include rowTree and rowLinks if provided
   args <- list(assays = assays_list)
-  if (!is.null(rowData)) args$rowData <- rowData
-  if (!is.null(colData)) args$colData <- colData
+
+  # Validate rowData dimensions match assay rows
+  if (!is.null(rowData)) {
+    if (nrow(rowData) == nrow(assay_data)) {
+      args$rowData <- rowData
+    } else {
+      warning("rowData row count (", nrow(rowData), ") does not match assay rows (", nrow(assay_data), "). rowData will be ignored.")
+    }
+  }
+
+  # Validate colData dimensions match assay columns
+  if (!is.null(colData)) {
+    if (nrow(colData) == ncol(assay_data)) {
+      args$colData <- colData
+    } else {
+      warning("colData row count (", nrow(colData), ") does not match assay columns (", ncol(assay_data), "). colData will be ignored.")
+    }
+  }
+
   if (!is.null(reducedDims)) args$reducedDims <- reducedDims
   if (!is.null(rowTree)) {
     args$rowTree <- rowTree

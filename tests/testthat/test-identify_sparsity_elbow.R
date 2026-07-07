@@ -13,7 +13,7 @@ test_that("identify_sparsity_elbow returns correct structure", {
 
   result <- identify_sparsity_elbow(test_table, method = "kneedle")
 
-  expect_s3_class(result, "list")
+  expect_type(result, "list")
   expect_true(all(c("elbow_threshold", "samples_above_elbow", "samples_below_elbow",
                     "richness_curve", "recommendation", "metrics") %in% names(result)))
 
@@ -110,7 +110,7 @@ test_that("identify_sparsity_elbow handles edge cases", {
   )
 
   result <- identify_sparsity_elbow(small_table, min_samples = 5)
-  expect_s3_class(result, "list")
+  expect_type(result, "list")
   expect_true(is.numeric(result$elbow_threshold))
 
   # Dataset at minimum size
@@ -121,7 +121,7 @@ test_that("identify_sparsity_elbow handles edge cases", {
   )
 
   result_min <- identify_sparsity_elbow(min_table, min_samples = 5)
-  expect_s3_class(result_min, "list")
+  expect_type(result_min, "list")
 })
 
 test_that("identify_sparsity_elbow validates inputs", {

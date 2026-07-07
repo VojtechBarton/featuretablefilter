@@ -149,7 +149,7 @@ test_that("from_TSE with rowData and colData", {
   # Convert with colData
   result <- from_TSE(tse, add_col_data = TRUE)
 
-  expect_s3_class(result, "list")
+  expect_type(result, "list")
   expect_true(all(c("table", "sample_data") %in% names(result)))
   expect_s3_class(result$sample_data, "data.frame")
 })

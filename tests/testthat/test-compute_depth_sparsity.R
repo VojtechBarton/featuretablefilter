@@ -248,7 +248,7 @@ test_that("plot_reads_vs_asvs returns expected structure", {
 
   result <- plot_reads_vs_asvs(test_table)
 
-  expect_s3_class(result, "list")
+  expect_type(result, "list")
   expect_true(all(c("plot", "outliers", "metrics", "cutoff") %in% names(result)))
   expect_s3_class(result$plot, "ggplot")
   expect_s3_class(result$outliers, "data.frame")
