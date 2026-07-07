@@ -108,9 +108,13 @@ filter_features_joint <- function(table,
   n_by_neither <- sum(!meets_abundance & !meets_prevalence)
 
   # Apply mask to ORIGINAL abundances (not relative!)
-  mask <- !exceeds_abundance & keep_features == FALSE
+  # Zero out entire rows for features that don't meet criteria
   filtered_abundances <- abundances_orig
-  filtered_abundances[mask] <- 0
+  for (i in seq_len(nrow(filtered_abundances))) {
+    if (!keep_features[i]) {
+      filtered_abundances[i, ] <- 0
+    }
+  }
 
   # Build result table using original count values
   if (remove_zeros) {
