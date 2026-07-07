@@ -29,8 +29,9 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
     stop("phyloseq package is required. Install with: install.packages('phyloseq')")
   }
 
-  # Validate input - use explicit class check that works with namespace
-  if (!(inherits(phylo_obj, "phyloseq") || ("phyloseq" %in% class(phylo_obj)))) {
+  # Validate input - check using all classes
+  obj_classes <- class(phylo_obj)
+  if (!any(obj_classes == "phyloseq")) {
     stop("Input must be a phyloseq object")
   }
 
@@ -71,23 +72,25 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
     tax <- phyloseq::tax_table(phylo_obj)
     if (!is.null(tax)) {
       tax_mat <- as.matrix(tax)
+      tax_rownames <- rownames(tax_mat)
 
-      # Align taxonomy with OTU table
-      # tax_table doesn't have taxa_are_rows method, check dimensions instead
-      if (nrow(tax_mat) == length(features)) {
-        # Rows match features
-        tax_aligned <- tax_mat[features, , drop = FALSE]
-      } else if (ncol(tax_mat) == length(features)) {
-        # Columns match features
-        tax_aligned <- tax_mat[, features, drop = FALSE]
-        tax_aligned <- t(tax_aligned)
+      # Align taxonomy with OTU table using rownames
+      # tax_table stores taxa as rows by convention
+      if (!is.null(tax_rownames) && length(tax_rownames) == nrow(tax_mat)) {
+        # Match features to taxonomy rownames
+        tax_idx <- match(features, tax_rownames)
+        if (!any(is.na(tax_idx))) {
+          tax_aligned <- tax_mat[tax_idx, , drop = FALSE]
+          rownames(tax_aligned) <- features
+        } else {
+          warning("Some features not found in taxonomy. Skipping taxonomy alignment.")
+          tax_aligned <- NULL
+        }
       } else {
-        warning("Taxonomy dimensions do not match OTU table. Skipping taxonomy alignment.")
         tax_aligned <- NULL
       }
 
-      if (!is.null(tax_aligned)) {
-
+      if (!is.null(tax_aligned) && nrow(tax_aligned) > 0) {
         # Handle missing taxonomy entries
         colnames(tax_aligned) <- paste0("tax_", colnames(tax_aligned))
         tax_aligned[is.na(tax_aligned)] <- ""
@@ -186,11 +189,21 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
 
       # Check if tax_table has feature ID column
       if ("feature_id" %in% colnames(tax_df)) {
-        tax_df <- tax_df[-which(colnames(tax_df) == "feature_id")]
+        # Match by feature_id column
+        tax_df <- tax_df[match(feature_ids, tax_df$feature_id), , drop = FALSE]
+        tax_df <- tax_df[, -which(colnames(tax_df) == "feature_id"), drop = FALSE]
+      } else {
+        # Try to match by rownames
+        tax_rownames <- rownames(tax_df)
+        if (!is.null(tax_rownames) && length(tax_rownames) > 0) {
+          tax_idx <- match(feature_ids, tax_rownames)
+          if (!any(is.na(tax_idx))) {
+            tax_df <- tax_df[tax_idx, , drop = FALSE]
+          }
+        }
       }
 
-      # Align with OTU table
-      tax_df <- tax_df[feature_ids, , drop = FALSE]
+      # Ensure rownames are set correctly
       rownames(tax_df) <- feature_ids
 
       # Convert to tax_table format
@@ -434,22 +447,21 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
       rd_df <- rd_df[, -which(colnames(rd_df) == "feature_id"), drop = FALSE]
     }
 
-    # Set rownames from feature_id column if not already set
-    if (is.null(rownames(rd_df)) || nrow(rd_df) != length(feature_ids)) {
-      # Try to match by feature_id column if available
-      if ("feature_id" %in% colnames(rowData)) {
-        rd_df <- rowData[match(feature_ids, rowData$feature_id), , drop = FALSE]
-        rownames(rd_df) <- feature_ids
-      } else if (!is.null(rownames(rowData))) {
-        # Match by existing rownames
-        rd_df <- rd_df[feature_ids, , drop = FALSE]
+    # Align rowData with assay rows by matching rownames or feature_id column
+    rd_rownames <- rownames(rd_df)
+    if (!is.null(rd_rownames) && length(rd_rownames) > 0) {
+      # Match by rownames
+      rd_idx <- match(feature_ids, rd_rownames)
+      if (!any(is.na(rd_idx))) {
+        rd_df <- rd_df[rd_idx, , drop = FALSE]
       }
+    } else if ("feature_id" %in% colnames(rowData)) {
+      # Match by feature_id column
+      rd_df <- rowData[match(feature_ids, rowData$feature_id), , drop = FALSE]
     }
 
     # Ensure rownames are set correctly
-    if (is.null(rownames(rd_df))) {
-      rownames(rd_df) <- feature_ids
-    }
+    rownames(rd_df) <- feature_ids
 
     rowData <- S4Vectors::DataFrame(rd_df)
   }
@@ -457,18 +469,26 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
   # Prepare colData
   if (!is.null(colData)) {
     cd_df <- as.data.frame(colData)
+    sample_names <- colnames(assay_data)
 
     # Use row names if not set
     if (is.null(rownames(cd_df))) {
-      sample_names <- colnames(assay_data)
-      if (!is.null(sample_names)) {
-        rownames(cd_df) <- sample_names
-      }
+      rownames(cd_df) <- sample_names
     }
 
-    # Align with assay columns
-    sample_names <- colnames(assay_data)
-    cd_aligned <- cd_df[sample_names, , drop = FALSE]
+    # Align with assay columns by matching rownames
+    cd_rownames <- rownames(cd_df)
+    if (!is.null(cd_rownames) && length(cd_rownames) > 0) {
+      cd_idx <- match(sample_names, cd_rownames)
+      if (!any(is.na(cd_idx))) {
+        cd_aligned <- cd_df[cd_idx, , drop = FALSE]
+      } else {
+        cd_aligned <- cd_df
+      }
+    } else {
+      cd_aligned <- cd_df
+    }
+
     colData <- S4Vectors::DataFrame(cd_aligned)
   }
 
