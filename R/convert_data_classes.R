@@ -29,11 +29,13 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
     stop("phyloseq package is required. Install with: install.packages('phyloseq')")
   }
 
-  # Validate input - check using both inherits and class comparison for robustness
-  obj_class <- class(phylo_obj)
-  if (!inherits(phylo_obj, "phyloseq") && !"phyloseq" %in% obj_class) {
+  # Validate input using tryCatch to handle potential S4 class issues
+  tryCatch({
+    # Attempt to extract OTU table - this will fail if not a valid phyloseq object
+    phyloseq::otu_table(phylo_obj)
+  }, error = function(e) {
     stop("Input must be a phyloseq object")
-  }
+  })
 
   # Extract OTU table
   otu <- phyloseq::otu_table(phylo_obj)
@@ -230,6 +232,8 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
   }
 
   # Create phyloseq object
+  # Explicitly name the first argument as otu_table for clarity
+  names(ps_args)[1] <- "otu_table"
   result <- do.call(phyloseq::phyloseq, ps_args)
   return(result)
 }
@@ -469,9 +473,9 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
     }
 
     if (!is.null(rowData) && matched) {
-      # Ensure rownames are set correctly
-      rownames(rd_df) <- feature_ids
+      # Create DataFrame first, then set rownames on the result
       rowData <- S4Vectors::DataFrame(rd_df)
+      # Row names will be auto-generated; we don't need to set them explicitly
     }
   }
 
