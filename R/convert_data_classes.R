@@ -29,8 +29,8 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
     stop("phyloseq package is required. Install with: install.packages('phyloseq')")
   }
 
-  # Validate input
-  if (!inherits(phylo_obj, "phyloseq")) {
+  # Validate input - use explicit class check that works with namespace
+  if (!(inherits(phylo_obj, "phyloseq") || ("phyloseq" %in% class(phylo_obj)))) {
     stop("Input must be a phyloseq object")
   }
 
@@ -73,18 +73,27 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
       tax_mat <- as.matrix(tax)
 
       # Align taxonomy with OTU table
-      if (phyloseq::taxa_are_rows(tax)) {
+      # tax_table doesn't have taxa_are_rows method, check dimensions instead
+      if (nrow(tax_mat) == length(features)) {
+        # Rows match features
         tax_aligned <- tax_mat[features, , drop = FALSE]
-      } else {
+      } else if (ncol(tax_mat) == length(features)) {
+        # Columns match features
         tax_aligned <- tax_mat[, features, drop = FALSE]
         tax_aligned <- t(tax_aligned)
+      } else {
+        warning("Taxonomy dimensions do not match OTU table. Skipping taxonomy alignment.")
+        tax_aligned <- NULL
       }
 
-      # Handle missing taxonomy entries
-      colnames(tax_aligned) <- paste0("tax_", colnames(tax_aligned))
-      tax_aligned[is.na(tax_aligned)] <- ""
+      if (!is.null(tax_aligned)) {
 
-      result <- cbind(result, tax_aligned)
+        # Handle missing taxonomy entries
+        colnames(tax_aligned) <- paste0("tax_", colnames(tax_aligned))
+        tax_aligned[is.na(tax_aligned)] <- ""
+
+        result <- cbind(result, tax_aligned)
+      }
     }
   }
 
@@ -425,10 +434,24 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
       rd_df <- rd_df[, -which(colnames(rd_df) == "feature_id"), drop = FALSE]
     }
 
-    # Align with assay rows
-    rd_aligned <- rd_df[feature_ids, , drop = FALSE]
-    rownames(rd_aligned) <- feature_ids
-    rowData <- S4Vectors::DataFrame(rd_aligned)
+    # Set rownames from feature_id column if not already set
+    if (is.null(rownames(rd_df)) || nrow(rd_df) != length(feature_ids)) {
+      # Try to match by feature_id column if available
+      if ("feature_id" %in% colnames(rowData)) {
+        rd_df <- rowData[match(feature_ids, rowData$feature_id), , drop = FALSE]
+        rownames(rd_df) <- feature_ids
+      } else if (!is.null(rownames(rowData))) {
+        # Match by existing rownames
+        rd_df <- rd_df[feature_ids, , drop = FALSE]
+      }
+    }
+
+    # Ensure rownames are set correctly
+    if (is.null(rownames(rd_df))) {
+      rownames(rd_df) <- feature_ids
+    }
+
+    rowData <- S4Vectors::DataFrame(rd_df)
   }
 
   # Prepare colData
