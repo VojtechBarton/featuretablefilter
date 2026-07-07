@@ -29,13 +29,11 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
     stop("phyloseq package is required. Install with: install.packages('phyloseq')")
   }
 
-  # Validate input using tryCatch to handle potential S4 class issues
-  tryCatch({
-    # Attempt to extract OTU table - this will fail if not a valid phyloseq object
-    phyloseq::otu_table(phylo_obj)
-  }, error = function(e) {
-    stop("Input must be a phyloseq object")
-  })
+  # Extract OTU table - will fail naturally if not a valid phyloseq object
+  otu <- phyloseq::otu_table(phylo_obj)
+  if (is.null(otu)) {
+    stop("Input must be a phyloseq object with an OTU table")
+  }
 
   # Extract OTU table
   otu <- phyloseq::otu_table(phylo_obj)
@@ -231,10 +229,51 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
     ps_args$sam_data <- phyloseq::sample_data(sd_aligned)
   }
 
-  # Create phyloseq object
-  # Explicitly name the first argument as otu_table for clarity
-  names(ps_args)[1] <- "otu_table"
-  result <- do.call(phyloseq::phyloseq, ps_args)
+  # Create phyloseq object - build arguments explicitly to avoid any issues
+  if (!is.null(ps_args$tax_table) && !is.null(ps_args$phy_tree) && !is.null(ps_args$sam_data)) {
+    result <- phyloseq::phyloseq(
+      otu_table = otu,
+      tax_table = ps_args$tax_table,
+      phy_tree = ps_args$phy_tree,
+      sam_data = ps_args$sam_data
+    )
+  } else if (!is.null(ps_args$tax_table) && !is.null(ps_args$phy_tree)) {
+    result <- phyloseq::phyloseq(
+      otu_table = otu,
+      tax_table = ps_args$tax_table,
+      phy_tree = ps_args$phy_tree
+    )
+  } else if (!is.null(ps_args$tax_table) && !is.null(ps_args$sam_data)) {
+    result <- phyloseq::phyloseq(
+      otu_table = otu,
+      tax_table = ps_args$tax_table,
+      sam_data = ps_args$sam_data
+    )
+  } else if (!is.null(ps_args$phy_tree) && !is.null(ps_args$sam_data)) {
+    result <- phyloseq::phyloseq(
+      otu_table = otu,
+      phy_tree = ps_args$phy_tree,
+      sam_data = ps_args$sam_data
+    )
+  } else if (!is.null(ps_args$tax_table)) {
+    result <- phyloseq::phyloseq(
+      otu_table = otu,
+      tax_table = ps_args$tax_table
+    )
+  } else if (!is.null(ps_args$phy_tree)) {
+    result <- phyloseq::phyloseq(
+      otu_table = otu,
+      phy_tree = ps_args$phy_tree
+    )
+  } else if (!is.null(ps_args$sam_data)) {
+    result <- phyloseq::phyloseq(
+      otu_table = otu,
+      sam_data = ps_args$sam_data
+    )
+  } else {
+    result <- phyloseq::phyloseq(otu)
+  }
+
   return(result)
 }
 
