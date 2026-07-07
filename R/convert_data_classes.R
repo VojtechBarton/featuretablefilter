@@ -35,12 +35,6 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
     stop("Input must be a phyloseq object with an OTU table")
   }
 
-  # Extract OTU table
-  otu <- phyloseq::otu_table(phylo_obj)
-  if (is.null(otu)) {
-    stop("phyloseq object must contain an OTU table")
-  }
-
   # Convert to matrix if needed
   otu_mat <- as.matrix(otu)
 
@@ -76,7 +70,7 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
       # Get taxonomy feature names from rownames of tax_table
       tax_features <- rownames(tax_mat)
 
-      if (!is.null(tax_features) && length(tax_features) > 0) {
+      if (!is.null(tax_features) && length(tax_features) > 0 && ncol(tax_mat) > 0) {
         # Match features to taxonomy
         tax_idx <- match(features, tax_features)
         if (any(is.na(tax_idx))) {
@@ -84,10 +78,11 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
         }
         tax_aligned <- tax_mat[tax_idx, , drop = FALSE]
         # Handle missing taxonomy entries
-        colnames(tax_aligned) <- paste0("tax_", colnames(tax_aligned))
-        tax_aligned[is.na(tax_aligned)] <- ""
-
-        result <- cbind(result, tax_aligned)
+        if (ncol(tax_aligned) > 0) {
+          colnames(tax_aligned) <- paste0("tax_", colnames(tax_aligned))
+          tax_aligned[is.na(tax_aligned)] <- ""
+          result <- cbind(result, tax_aligned)
+        }
       }
     }
   }
@@ -238,25 +233,14 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
     ps_args$sam_data <- phyloseq::sample_data(sd_aligned)
   }
 
-  # Create phyloseq object - build arguments explicitly to avoid any issues
-  # Use positional argument passing for maximum compatibility
-  if (!is.null(ps_args$tax_table) && !is.null(ps_args$phy_tree) && !is.null(ps_args$sam_data)) {
-    result <- phyloseq::phyloseq(otu, ps_args$tax_table, ps_args$phy_tree, ps_args$sam_data)
-  } else if (!is.null(ps_args$tax_table) && !is.null(ps_args$phy_tree)) {
-    result <- phyloseq::phyloseq(otu, ps_args$tax_table, ps_args$phy_tree)
-  } else if (!is.null(ps_args$tax_table) && !is.null(ps_args$sam_data)) {
-    result <- phyloseq::phyloseq(otu, ps_args$tax_table, ps_args$sam_data)
-  } else if (!is.null(ps_args$phy_tree) && !is.null(ps_args$sam_data)) {
-    result <- phyloseq::phyloseq(otu, ps_args$phy_tree, ps_args$sam_data)
-  } else if (!is.null(ps_args$tax_table)) {
-    result <- phyloseq::phyloseq(otu, ps_args$tax_table)
-  } else if (!is.null(ps_args$phy_tree)) {
-    result <- phyloseq::phyloseq(otu, ps_args$phy_tree)
-  } else if (!is.null(ps_args$sam_data)) {
-    result <- phyloseq::phyloseq(otu, ps_args$sam_data)
-  } else {
-    result <- phyloseq::phyloseq(otu)
-  }
+  # Create phyloseq object using named arguments for clarity
+  # Build the argument list dynamically based on what's available
+  ps_call_args <- list(otu_table = otu)
+  if (!is.null(ps_args$tax_table)) ps_call_args$tax_table <- ps_args$tax_table
+  if (!is.null(ps_args$phy_tree)) ps_call_args$phy_tree <- ps_args$phy_tree
+  if (!is.null(ps_args$sam_data)) ps_call_args$sam_data <- ps_args$sam_data
+
+  result <- do.call(phyloseq::phyloseq, ps_call_args)
 
   # Verify result is a phyloseq object
   if (!inherits(result, "phyloseq")) {
@@ -501,9 +485,13 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
     }
 
     if (!is.null(rowData) && matched) {
-      # Create DataFrame first, then set rownames on the result
-      rowData <- S4Vectors::DataFrame(rd_df)
-      # Row names will be auto-generated; we don't need to set them explicitly
+      # Ensure dimensions match before creating DataFrame
+      if (nrow(rd_df) == length(feature_ids)) {
+        rowData <- S4Vectors::DataFrame(rd_df)
+      } else {
+        warning("rowData dimensions (", nrow(rd_df), ") do not match feature count (", length(feature_ids), "). rowData will be ignored.")
+        rowData <- NULL
+      }
     }
   }
 
@@ -536,8 +524,14 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
     }
 
     if (!is.null(colData) && matched) {
-      rownames(cd_aligned) <- sample_names
-      colData <- S4Vectors::DataFrame(cd_aligned)
+      # Ensure dimensions match before creating DataFrame
+      if (nrow(cd_aligned) == length(sample_names)) {
+        rownames(cd_aligned) <- sample_names
+        colData <- S4Vectors::DataFrame(cd_aligned)
+      } else {
+        warning("colData dimensions (", nrow(cd_aligned), ") do not match sample count (", length(sample_names), "). colData will be ignored.")
+        colData <- NULL
+      }
     }
   }
 
