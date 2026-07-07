@@ -29,9 +29,8 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
     stop("phyloseq package is required. Install with: install.packages('phyloseq')")
   }
 
-  # Validate input - check using all classes
-  obj_classes <- class(phylo_obj)
-  if (!any(obj_classes == "phyloseq")) {
+  # Validate input - check using inherits
+  if (!inherits(phylo_obj, "phyloseq")) {
     stop("Input must be a phyloseq object")
   }
 
@@ -72,25 +71,17 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
     tax <- phyloseq::tax_table(phylo_obj)
     if (!is.null(tax)) {
       tax_mat <- as.matrix(tax)
-      tax_rownames <- rownames(tax_mat)
 
-      # Align taxonomy with OTU table using rownames
-      # tax_table stores taxa as rows by convention
-      if (!is.null(tax_rownames) && length(tax_rownames) == nrow(tax_mat)) {
-        # Match features to taxonomy rownames
-        tax_idx <- match(features, tax_rownames)
-        if (!any(is.na(tax_idx))) {
-          tax_aligned <- tax_mat[tax_idx, , drop = FALSE]
-          rownames(tax_aligned) <- features
-        } else {
-          warning("Some features not found in taxonomy. Skipping taxonomy alignment.")
-          tax_aligned <- NULL
+      # Get taxonomy feature names from rownames of tax_table
+      tax_features <- rownames(tax_mat)
+
+      if (!is.null(tax_features) && length(tax_features) > 0) {
+        # Match features to taxonomy
+        tax_idx <- match(features, tax_features)
+        if (any(is.na(tax_idx))) {
+          warning("Some features not found in taxonomy. Missing entries will be filled with empty strings.")
         }
-      } else {
-        tax_aligned <- NULL
-      }
-
-      if (!is.null(tax_aligned) && nrow(tax_aligned) > 0) {
+        tax_aligned <- tax_mat[tax_idx, , drop = FALSE]
         # Handle missing taxonomy entries
         colnames(tax_aligned) <- paste0("tax_", colnames(tax_aligned))
         tax_aligned[is.na(tax_aligned)] <- ""
@@ -242,7 +233,14 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
   }
 
   # Create phyloseq object
-  do.call(phyloseq::phyloseq, components)
+  result <- do.call(phyloseq::phyloseq, components)
+
+  # Verify the result is a phyloseq object
+  if (!inherits(result, "phyloseq")) {
+    stop("Failed to create phyloseq object")
+  }
+
+  return(result)
 }
 
 
@@ -454,16 +452,23 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
       rd_idx <- match(feature_ids, rd_rownames)
       if (!any(is.na(rd_idx))) {
         rd_df <- rd_df[rd_idx, , drop = FALSE]
+        rownames(rd_df) <- feature_ids
+      } else {
+        warning("Could not match rowData to features by rownames. rowData will be ignored.")
+        rowData <- NULL
       }
     } else if ("feature_id" %in% colnames(rowData)) {
       # Match by feature_id column
       rd_df <- rowData[match(feature_ids, rowData$feature_id), , drop = FALSE]
+      rownames(rd_df) <- feature_ids
+    } else {
+      # No way to match - just use as-is and set rownames
+      rownames(rd_df) <- feature_ids[seq_len(min(nrow(rd_df), length(feature_ids)))]
     }
 
-    # Ensure rownames are set correctly
-    rownames(rd_df) <- feature_ids
-
-    rowData <- S4Vectors::DataFrame(rd_df)
+    if (!is.null(rowData)) {
+      rowData <- S4Vectors::DataFrame(rd_df)
+    }
   }
 
   # Prepare colData
@@ -482,14 +487,25 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
       cd_idx <- match(sample_names, cd_rownames)
       if (!any(is.na(cd_idx))) {
         cd_aligned <- cd_df[cd_idx, , drop = FALSE]
+        rownames(cd_aligned) <- sample_names
       } else {
-        cd_aligned <- cd_df
+        warning("Could not match colData to samples by rownames. colData will be ignored.")
+        colData <- NULL
       }
     } else {
-      cd_aligned <- cd_df
+      # No rownames - try to use as-is
+      if (nrow(cd_df) == length(sample_names)) {
+        rownames(cd_df) <- sample_names
+        cd_aligned <- cd_df
+      } else {
+        warning("colData row count does not match sample count. colData will be ignored.")
+        colData <- NULL
+      }
     }
 
-    colData <- S4Vectors::DataFrame(cd_aligned)
+    if (!is.null(colData)) {
+      colData <- S4Vectors::DataFrame(cd_aligned)
+    }
   }
 
   # Handle reducedDims
