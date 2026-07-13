@@ -308,29 +308,29 @@ plot_sparsity_elbow <- function(elbow_result, main = "Sparsity Elbow Analysis") 
       x = "Sequencing Depth (reads)",
       y = "Observed Richness (ASVs)"
     ) +
-    scale_x_log10() +
-    scale_y_log10() +
+    ggplot2::scale_x_log10() +
+    ggplot2::scale_y_log10() +
     base_theme
 
   # Panel 2: Derivative (rate of change) showing where crash occurs
   deriv_df <- curve_df[!is.na(curve_df$derivative), ]
   if (nrow(deriv_df) > 0) {
-    p2 <- ggplot(deriv_df, aes(x = depth, y = derivative)) +
-      geom_line(color = "#884EA0", linewidth = 1) +
-      geom_vline(xintercept = elbow_thresh, color = "#C0392B", linetype = "dashed", linewidth = 1) +
-      geom_hline(yintercept = 0, linetype = "dotted", alpha = 0.5) +
-      labs(
+    p2 <- ggplot2::ggplot(deriv_df, ggplot2::aes(x = depth, y = derivative)) +
+      ggplot2::geom_line(color = "#884EA0", linewidth = 1) +
+      ggplot2::geom_vline(xintercept = elbow_thresh, color = "#C0392B", linetype = "dashed", linewidth = 1) +
+      ggplot2::geom_hline(yintercept = 0, linetype = "dotted", alpha = 0.5) +
+      ggplot2::labs(
         title = "Rate of Richness Change (Derivative)",
         subtitle = "Negative spikes indicate rapid richness loss at lower depths",
         x = "Sequencing Depth (reads)",
         y = "Normalized Richness Derivative"
       ) +
-      scale_x_log10() +
+      ggplot2::scale_x_log10() +
       base_theme
   } else {
-    p2 <- ggplot() +
-      geom_text(x = 0.5, y = 0.5, label = "Insufficient data for derivative plot") +
-      theme_void()
+    p2 <- ggplot2::ggplot() +
+      ggplot2::geom_text(x = 0.5, y = 0.5, label = "Insufficient data for derivative plot") +
+      ggplot2::theme_void()
   }
 
   # Combine panels

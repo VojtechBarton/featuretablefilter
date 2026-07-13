@@ -582,7 +582,7 @@ plot_depth_sparsity <- function(analysis_result, main = "Depth-Sparsity Relation
     p <- p +
       ggplot2::geom_text(
         data = outliers_df,
-        aes(x = depth * 1.05, y = sparsity * 100 * 1.02, label = sample_name),
+        ggplot2::aes(x = depth * 1.05, y = sparsity * 100 * 1.02, label = sample_name),
         size = 3, hjust = 0, vjust = 0, angle = 0
       )
   }

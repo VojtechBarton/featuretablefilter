@@ -336,7 +336,7 @@ calc_hill_numbers <- function(abund_matrix, q = c(0, 1, 2)) {
   result <- vapply(q, function(q_val) {
     apply(abund_matrix, 2, function(sample_vec) {
       counts <- sample_vec[sample_vec > 0]
-      if (length(counts) == 0) return(NA)  # No data
+      if (length(counts) == 0) return(NA_real_)  # No data
       if (length(counts) == 1) {
         # Single species: ENS = 1 for all q > 0, richness = 1 for q = 0
         if (q_val == 0) return(1)
@@ -347,7 +347,7 @@ calc_hill_numbers <- function(abund_matrix, q = c(0, 1, 2)) {
 
       if (q_val == 0) {
         # q=0: Species richness (count of non-zero features)
-        length(counts)
+        as.numeric(length(counts))
       } else if (q_val == 1) {
         # q=1: Shannon ENS (exp of Shannon entropy)
         shannon_entropy <- -sum(probs * log(probs))
@@ -356,7 +356,7 @@ calc_hill_numbers <- function(abund_matrix, q = c(0, 1, 2)) {
         # q>0, q!=1: Generalized Hill number formula
         # ^qD = (sum(p_i^q))^(1/(1-q))
         sum_p_q <- sum(probs^q_val)
-        if (sum_p_q == 0) return(NA)
+        if (sum_p_q == 0) return(NA_real_)
         sum_p_q^(1 / (1 - q_val))
       }
     })

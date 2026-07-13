@@ -475,10 +475,10 @@ plot_scree <- function(scree_obj, main = "Filtering Threshold Scree Analysis",
     base_theme
 
   # Panel 2: Sparsity changes
-  p2 <- ggplot(results, aes(x = threshold, y = sparsity * 100)) +
-    geom_line(color = primary_color, linewidth = 1) +
-    geom_area(alpha = 0.3, fill = primary_color) +
-    labs(
+  p2 <- ggplot2::ggplot(results, ggplot2::aes(x = threshold, y = sparsity * 100)) +
+    ggplot2::geom_line(color = primary_color, linewidth = 1) +
+    ggplot2::geom_area(alpha = 0.3, fill = primary_color) +
+    ggplot2::labs(
       title = "Sparsity Change",
       x = "Threshold",
       y = "Sparsity (% zeros)"
@@ -487,10 +487,10 @@ plot_scree <- function(scree_obj, main = "Filtering Threshold Scree Analysis",
 
   # Panel 3: Collapse rate (derivative)
   if (show_collapse && any(!is.na(results$collapse_rate))) {
-    p3 <- ggplot(results, aes(x = threshold, y = collapse_rate)) +
-      geom_line(color = "#C0392B", linewidth = 1) +
-      geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.5) +
-      labs(
+    p3 <- ggplot2::ggplot(results, ggplot2::aes(x = threshold, y = collapse_rate)) +
+      ggplot2::geom_line(color = "#C0392B", linewidth = 1) +
+      ggplot2::geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.5) +
+      ggplot2::labs(
         title = "Collapse Rate (Derivative)",
         x = "Threshold",
         y = "Rate of Loss (% per unit)"
