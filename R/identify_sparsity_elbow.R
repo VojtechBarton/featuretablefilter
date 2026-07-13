@@ -281,29 +281,27 @@ plot_sparsity_elbow <- function(elbow_result, main = "Sparsity Elbow Analysis") 
     stop("ggplot2 is required for plotting. Please install it.")
   }
 
-  library(ggplot2)
-
   curve_df <- elbow_result$richness_curve
   elbow_thresh <- elbow_result$elbow_threshold
 
-  base_theme <- theme_minimal() +
-    theme(
-      plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-      axis.title = element_text(size = 11),
-      axis.text = element_text(size = 9),
-      panel.grid.minor = element_line(color = "grey90")
+  base_theme <- ggplot2::theme_minimal() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(hjust = 0.5, size = 14, face = "bold"),
+      axis.title = ggplot2::element_text(size = 11),
+      axis.text = ggplot2::element_text(size = 9),
+      panel.grid.minor = ggplot2::element_line(color = "grey90")
     )
 
   # Panel 1: Richness vs Depth with elbow marked
-  p1 <- ggplot(curve_df, aes(x = depth, y = richness)) +
-    geom_point(alpha = 0.5, color = "grey50", size = 1.5) +
-    geom_line(aes(y = smoothed_richness), color = "#2E86AB", linewidth = 1) +
-    geom_vline(xintercept = elbow_thresh, color = "#C0392B", linetype = "dashed", linewidth = 1) +
-    geom_hline(yintercept = NA, color = "#C0392B", linetype = "dotted", alpha = 0.5) +
-    annotate("text", x = elbow_thresh * 1.05, y = max(curve_df$richness) * 0.95,
+  p1 <- ggplot2::ggplot(curve_df, ggplot2::aes(x = depth, y = richness)) +
+    ggplot2::geom_point(alpha = 0.5, color = "grey50", size = 1.5) +
+    ggplot2::geom_line(ggplot2::aes(y = smoothed_richness), color = "#2E86AB", linewidth = 1) +
+    ggplot2::geom_vline(xintercept = elbow_thresh, color = "#C0392B", linetype = "dashed", linewidth = 1) +
+    ggplot2::geom_hline(yintercept = NA, color = "#C0392B", linetype = "dotted", alpha = 0.5) +
+    ggplot2::annotate("text", x = elbow_thresh * 1.05, y = max(curve_df$richness) * 0.95,
              label = paste0("Elbow: ", round(elbow_thresh), " reads"),
              color = "#C0392B", hjust = 0, size = 4) +
-    labs(
+    ggplot2::labs(
       title = "Sample Richness vs Sequencing Depth",
       subtitle = paste0("Samples above elbow: ", elbow_result$samples_above_elbow,
                         " | Below elbow: ", elbow_result$samples_below_elbow),
@@ -337,10 +335,9 @@ plot_sparsity_elbow <- function(elbow_result, main = "Sparsity Elbow Analysis") 
 
   # Combine panels
   if (requireNamespace("patchwork", quietly = TRUE)) {
-    library(patchwork)
     combined <- (p1 / p2) +
-      plot_annotation(title = main,
-                      theme = theme(plot.title = element_text(size = 16)))
+      patchwork::plot_annotation(title = main,
+                      theme = ggplot2::theme(plot.title = ggplot2::element_text(size = 16)))
   } else {
     combined <- p1
     warning("patchwork recommended for multi-panel layout. Install with install.packages('patchwork').")

@@ -379,21 +379,21 @@ plot_qc_comparison <- function(original_table, filtered_table,
   n_plot_features <- length(all_top_features)
 
   # Build relative abundance vectors for plotting
-  orig_plot_rels <- sapply(all_top_features, function(f) {
+  orig_plot_rels <- vapply(all_top_features, function(f) {
     if (f %in% orig_top_features) {
       orig_top_rels[match(f, orig_top_features)]
     } else {
       0
     }
-  })
+  }, numeric(1))
 
-  filt_plot_rels <- sapply(all_top_features, function(f) {
+  filt_plot_rels <- vapply(all_top_features, function(f) {
     if (f %in% filt_top_features) {
       filt_top_rels[match(f, filt_top_features)]
     } else {
       0
     }
-  })
+  }, numeric(1))
 
   # Calculate "Other" category
   orig_other <- 1 - sum(orig_plot_rels)

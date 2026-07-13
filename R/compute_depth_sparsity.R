@@ -362,8 +362,6 @@ plot_reads_vs_asvs <- function(table, mad_multiplier = 3,
     stop("ggplot2 is required for plotting. Please install it.")
   }
 
-  library(ggplot2)
-
   # Validate input
   if (!is.data.frame(table) && !is.matrix(table)) {
     stop("table must be a data.frame or matrix")
@@ -442,31 +440,31 @@ plot_reads_vs_asvs <- function(table, mad_multiplier = 3,
   primary_color <- color_map[[color]]
   if (is.null(primary_color)) primary_color <- color_map[["blue"]]
 
-  base_theme <- theme_minimal() +
-    theme(
-      plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-      plot.subtitle = element_text(hjust = 0.5, size = 11),
-      axis.title = element_text(size = 11),
-      axis.text = element_text(size = 9),
-      panel.grid.minor = element_line(color = "grey90")
+  base_theme <- ggplot2::theme_minimal() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(hjust = 0.5, size = 14, face = "bold"),
+      plot.subtitle = ggplot2::element_text(hjust = 0.5, size = 11),
+      axis.title = ggplot2::element_text(size = 11),
+      axis.text = ggplot2::element_text(size = 9),
+      panel.grid.minor = ggplot2::element_line(color = "grey90")
     )
 
   # Create plot
-  p <- ggplot(metrics, aes(x = total_reads, y = observed_asvs)) +
-    geom_point(aes(color = outlier_type), alpha = 0.6, size = 2) +
-    scale_color_manual(
+  p <- ggplot2::ggplot(metrics, ggplot2::aes(x = total_reads, y = observed_asvs)) +
+    ggplot2::geom_point(ggplot2::aes(color = outlier_type), alpha = 0.6, size = 2) +
+    ggplot2::scale_color_manual(
       name = "",
       values = c("normal" = "grey50", "low_richness" = "#C0392B"),
       limits = c("normal", "low_richness")
     ) +
-    geom_abline(
+    ggplot2::geom_abline(
       slope = 10^(intercept) * median_slope,
       intercept = 0,
       color = primary_color,
       linewidth = 1,
       linetype = "dashed"
     ) +
-    labs(
+    ggplot2::labs(
       title = main,
       subtitle = sprintf(
         "MAD multiplier = %.1f | %d outliers flagged (low richness for depth)",
@@ -475,16 +473,16 @@ plot_reads_vs_asvs <- function(table, mad_multiplier = 3,
       x = "Total Reads (sequencing depth)",
       y = "Observed ASVs (richness)"
     ) +
-    scale_x_log10(labels = scales::comma) +
-    scale_y_log10(labels = scales::comma) +
+    ggplot2::scale_x_log10(labels = scales::comma) +
+    ggplot2::scale_y_log10(labels = scales::comma) +
     base_theme
 
   # Add sample name labels for outliers
   if (show_labels && nrow(outliers) > 0) {
     p <- p +
-      geom_text(
+      ggplot2::geom_text(
         data = outliers,
-        aes(x = total_reads * 1.03, y = observed_asvs * 1.02, label = sample_name),
+        ggplot2::aes(x = total_reads * 1.03, y = observed_asvs * 1.02, label = sample_name),
         size = 3, hjust = 0, vjust = 0, angle = 0, color = "#C0392B"
       )
   }
@@ -525,8 +523,6 @@ plot_depth_sparsity <- function(analysis_result, main = "Depth-Sparsity Relation
     stop("ggplot2 is required for plotting. Please install it.")
   }
 
-  library(ggplot2)
-
   metrics_df <- analysis_result$sample_metrics
   outliers_df <- analysis_result$outliers
   fit <- analysis_result$fit_summary
@@ -541,27 +537,27 @@ plot_depth_sparsity <- function(analysis_result, main = "Depth-Sparsity Relation
   primary_color <- color_map[[color]]
   if (is.null(primary_color)) primary_color <- color_map[["blue"]]
 
-  base_theme <- theme_minimal() +
-    theme(
-      plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-      plot.subtitle = element_text(hjust = 0.5, size = 11),
-      axis.title = element_text(size = 11),
-      axis.text = element_text(size = 9),
-      panel.grid.minor = element_line(color = "grey90")
+  base_theme <- ggplot2::theme_minimal() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(hjust = 0.5, size = 14, face = "bold"),
+      plot.subtitle = ggplot2::element_text(hjust = 0.5, size = 11),
+      axis.title = ggplot2::element_text(size = 11),
+      axis.text = ggplot2::element_text(size = 9),
+      panel.grid.minor = ggplot2::element_line(color = "grey90")
     )
 
   # Determine y-axis label based on outlier type
   has_high_sparsity <- any(grepl("high_sparsity", outliers_df$outlier_type, ignore.case = TRUE))
 
-  p <- ggplot(metrics_df, aes(x = depth, y = sparsity * 100)) +
-    geom_point(aes(color = "All Samples"), alpha = 0.6, size = 2) +
-    geom_line(aes(y = exp(fit$intercept + fit$slope * log10(depth + 1)) /
+  p <- ggplot2::ggplot(metrics_df, ggplot2::aes(x = depth, y = sparsity * 100)) +
+    ggplot2::geom_point(ggplot2::aes(color = "All Samples"), alpha = 0.6, size = 2) +
+    ggplot2::geom_line(aes(y = exp(fit$intercept + fit$slope * log10(depth + 1)) /
                         (1 + exp(fit$intercept + fit$slope * log10(depth + 1))) * 100,
                   color = "Fitted Line"), linewidth = 1) +
-    geom_point(data = outliers_df,
-               aes(x = depth, y = sparsity * 100, color = "Outliers"),
+    ggplot2::geom_point(data = outliers_df,
+               ggplot2::aes(x = depth, y = sparsity * 100, color = "Outliers"),
                size = 3, shape = 17) +
-    scale_color_manual(
+    ggplot2::scale_color_manual(
       name = "",
       values = c(
         "All Samples" = "grey50",
@@ -569,22 +565,22 @@ plot_depth_sparsity <- function(analysis_result, main = "Depth-Sparsity Relation
         "Outliers" = "#C0392B"
       )
     ) +
-    labs(
+    ggplot2::labs(
       title = main,
       subtitle = sprintf(
-        "R² = %.3f | Slope = %.3f | %d outliers detected",
+        "R^2 = %.3f | Slope = %.3f | %d outliers detected",
         fit$r_squared, fit$slope, analysis_result$n_outliers
       ),
       x = "Sequencing Depth (reads)",
       y = "Sparsity (% zeros)"
     ) +
-    scale_x_log10() +
+    ggplot2::scale_x_log10() +
     base_theme
 
   # Add text labels for extreme outliers
   if (nrow(outliers_df) > 0 && nrow(outliers_df) <= 10) {
     p <- p +
-      geom_text(
+      ggplot2::geom_text(
         data = outliers_df,
         aes(x = depth * 1.05, y = sparsity * 100 * 1.02, label = sample_name),
         size = 3, hjust = 0, vjust = 0, angle = 0

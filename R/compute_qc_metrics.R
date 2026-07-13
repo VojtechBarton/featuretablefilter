@@ -69,41 +69,15 @@ compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
   # Simpson diversity (q=2): 1 / (1 - D) where D is Simpson's index
   # These convert diversity indices to "effective number of species"
 
-  # Calculate Shannon ENS per sample (exp(Shannon entropy))
-  calc_shannon_ens <- function(abund_matrix) {
-    apply(abund_matrix, 2, function(sample_vec) {
-      counts <- sample_vec[sample_vec > 0]
-      if (length(counts) <= 1) return(NA)
-      total <- sum(counts)
-      probs <- counts / total
-      shannon_entropy <- -sum(probs * log(probs))
-      exp(shannon_entropy)  # Convert to effective number of species
-    })
-  }
-
-  # Calculate Simpson ENS per sample (1 / sum(p^2))
-  # This is the inverse Simpson index, equivalent to Hill number q=2
-  calc_simpson_ens <- function(abund_matrix) {
-    apply(abund_matrix, 2, function(sample_vec) {
-      counts <- sample_vec[sample_vec > 0]
-      if (length(counts) <= 1) return(NA)
-      total <- sum(counts)
-      probs <- counts / total
-      simpson_d <- sum(probs^2)
-      if (simpson_d >= 1) return(1)  # Only one species present
-      1 / simpson_d  # Inverse Simpson = effective number of species
-    })
-  }
-
   # Compute ENS metrics for common samples only
   orig_common_samples <- orig_abund[, match(common_samples, orig_samples), drop = FALSE]
   filt_common_samples <- filt_abund[, match(common_samples, filt_samples), drop = FALSE]
 
-  # Shannon ENS
+  # Shannon ENS using exported helper function
   shannon_ens_orig <- calc_shannon_ens(orig_common_samples)
   shannon_ens_filt <- calc_shannon_ens(filt_common_samples)
 
-  # Simpson ENS
+  # Simpson ENS using exported helper function
   simpson_ens_orig <- calc_simpson_ens(orig_common_samples)
   simpson_ens_filt <- calc_simpson_ens(filt_common_samples)
 
@@ -170,13 +144,13 @@ compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
   common_in_top <- intersect(orig_top_features, filt_top_features)
   if (length(common_in_top) >= 2) {
     # Get ranks of common features in original top N
-    orig_ranks <- sapply(common_in_top, function(f) {
+    orig_ranks <- vapply(common_in_top, function(f) {
       which(orig_top_features == f)
-    })
+    }, integer(1))
     # Get ranks of common features in filtered top N
-    filt_ranks <- sapply(common_in_top, function(f) {
+    filt_ranks <- vapply(common_in_top, function(f) {
       which(filt_top_features == f)
-    })
+    }, integer(1))
 
     # Spearman correlation (rank-based)
     rank_corr_test <- cor.test(as.numeric(orig_ranks), as.numeric(filt_ranks), method = "spearman")
@@ -184,12 +158,12 @@ compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
     rank_abundance_pvalue <- rank_corr_test$p.value
 
     # Pearson correlation (linear relationship of relative abundances)
-    orig_abunds <- sapply(common_in_top, function(f) {
+    orig_abunds <- vapply(common_in_top, function(f) {
       orig_top_rels[which(orig_top_features == f)]
-    })
-    filt_abunds <- sapply(common_in_top, function(f) {
+    }, numeric(1))
+    filt_abunds <- vapply(common_in_top, function(f) {
       filt_top_rels[which(filt_top_features == f)]
-    })
+    }, numeric(1))
 
     # Check variance before cor.test to handle constant abundance cases
     orig_var <- var(as.numeric(orig_abunds))
@@ -234,8 +208,8 @@ compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
       # Perform Procrustes analysis on distance matrices
       proc <- vegan::procrustes(veg_dist_orig, veg_dist_filt, scale = TRUE)
 
-      # Calculate M² and r² from ss (sum of squared residuals)
-      # M² = ss / sum(Y²), r² = 1 - M²
+      # Calculate M^2 and r^2 from ss (sum of squared residuals)
+      # M^2 = ss / sum(Y^2), r^2 = 1 - M^2
       if (!is.null(proc$ss)) {
         y_sum_sq <- sum(proc$Yrot^2)
         if (y_sum_sq > 0) {
@@ -359,7 +333,7 @@ calc_simpson_ens <- function(abund_matrix) {
 #' colnames(mat) <- c("f1", "f2", "f3", "f4")
 #' calc_hill_numbers(mat, q = c(0, 0.5, 1, 2, 3))
 calc_hill_numbers <- function(abund_matrix, q = c(0, 1, 2)) {
-  result <- sapply(q, function(q_val) {
+  result <- vapply(q, function(q_val) {
     apply(abund_matrix, 2, function(sample_vec) {
       counts <- sample_vec[sample_vec > 0]
       if (length(counts) == 0) return(NA)  # No data
@@ -386,7 +360,7 @@ calc_hill_numbers <- function(abund_matrix, q = c(0, 1, 2)) {
         sum_p_q^(1 / (1 - q_val))
       }
     })
-  }, simplify = "matrix")
+  }, numeric(nrow(abund_matrix)))
   # Ensure result is always a matrix even with single column
   if (!is.matrix(result)) {
     result <- matrix(result, ncol = length(q))

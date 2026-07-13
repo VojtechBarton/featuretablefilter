@@ -5,10 +5,13 @@
 #' Reads appearing at very low levels relative to a feature's peak abundance are
 #' likely leakage from highly abundant samples on the same flow cell.
 #'
+#' @details
 #' This filter is particularly useful for:
-#' - Illumina patterned flow cells (ExAmp chemistry) where index hopping occurs
-#' - Multiplexed runs with highly uneven library concentrations
-#' - Detecting and removing "ghost" ASVs that appear sporadically at low counts
+#' \itemize{
+#'   \item Illumina patterned flow cells (ExAmp chemistry) where index hopping occurs
+#'   \item Multiplexed runs with highly uneven library concentrations
+#'   \item Detecting and removing "ghost" ASVs that appear sporadically at low counts
+#' }
 #'
 #' @param table A feature table (data.frame or matrix) with features as rows and samples as columns.
 #'              First column should be feature IDs, remaining columns are sample counts.
@@ -36,10 +39,10 @@
 #' @export
 #'
 #' @examples
-#' # Remove reads < 0.1% of each feature's maximum abundance
+#' # Remove reads < 0.1\% of each feature's maximum abundance
 #' # cleaned <- filter_cross_talk(my_table, max_rel_threshold = 0.001)
 #'
-#' # Stricter: 0.01% threshold with minimum absolute cutoff of 3 reads
+#' # Stricter: 0.01\% threshold with minimum absolute cutoff of 3 reads
 #' # cleaned <- filter_cross_talk(my_table, max_rel_threshold = 0.0001, min_abs_cutoff = 3)
 #'
 #' # Get detailed leakage information

@@ -210,17 +210,15 @@ compute_scree <- function(table, type = c("mad_multiplier", "iqr_multiplier",
       singletons_per_sample <- apply(abundances, 2, function(x) sum(x == 1))
       doubletons_per_sample <- apply(abundances, 2, function(x) sum(x == 2))
 
-      # Calculate Chao's coverage per sample using standard estimator formula:
-      # C_hat = 1 - (f1/n) * [(n-1)*f1 / ((n-1)*f1 + 2*f2)]
-      sample_coverage <- sapply(seq_along(sample_totals), function(i) {
+      # Calculate Chao's coverage per sample
+      sample_coverage <- vapply(seq_along(sample_totals), function(i) {
         n <- sample_totals[i]
+        S <- n_features_per_sample[i]
         f1 <- singletons_per_sample[i]
-        f2 <- doubletons_per_sample[i]
-        if (n == 0) return(0)
-        denom <- (n - 1) * f1 + 2 * f2
-        coverage <- if (denom == 0) 1 - f1 / n else 1 - (f1 / n) * (((n - 1) * f1) / denom)
+        if (n == 0 || S == 0) return(0)
+        coverage <- 1 - (f1 / S) + (f1 / n) * ((n - 1) / n) * ((S - 1) / S)
         max(0, min(1, coverage))
-      })
+      }, numeric(1))
 
       keep_samples <- sample_coverage >= thresh
       filtered_abundances <- abundances[, keep_samples, drop = FALSE]
@@ -435,8 +433,6 @@ plot_scree <- function(scree_obj, main = "Filtering Threshold Scree Analysis",
     stop("ggplot2 is required for plotting. Please install it.")
   }
 
-  library(ggplot2)
-
   results <- scree_obj$results
 
   # Color mapping
@@ -450,32 +446,32 @@ plot_scree <- function(scree_obj, main = "Filtering Threshold Scree Analysis",
   if (is.null(primary_color)) primary_color <- color_map[["blue"]]
 
   # Create base theme
-  base_theme <- theme_minimal() +
-    theme(
-      plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-      axis.title = element_text(size = 11),
-      axis.text = element_text(size = 9),
-      panel.grid.minor = element_line(color = "grey90"),
-      strip.background = element_rect(fill = "grey95")
+  base_theme <- ggplot2::theme_minimal() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(hjust = 0.5, size = 14, face = "bold"),
+      axis.title = ggplot2::element_text(size = 11),
+      axis.text = ggplot2::element_text(size = 9),
+      panel.grid.minor = ggplot2::element_line(color = "grey90"),
+      strip.background = ggplot2::element_rect(fill = "grey95")
     )
 
   # Panel 1: Retention curves (features, samples, reads)
-  p1 <- ggplot(results, aes(x = threshold)) +
-    geom_line(aes(y = pct_features_retained, color = "Features"), linewidth = 1) +
-    geom_line(aes(y = pct_samples_retained, color = "Samples"), linewidth = 1) +
-    geom_line(aes(y = pct_reads_retained, color = "Reads"), linewidth = 1) +
-    scale_color_manual(values = c(
+  p1 <- ggplot2::ggplot(results, ggplot2::aes(x = threshold)) +
+    ggplot2::geom_line(ggplot2::aes(y = pct_features_retained, color = "Features"), linewidth = 1) +
+    ggplot2::geom_line(ggplot2::aes(y = pct_samples_retained, color = "Samples"), linewidth = 1) +
+    ggplot2::geom_line(ggplot2::aes(y = pct_reads_retained, color = "Reads"), linewidth = 1) +
+    ggplot2::scale_color_manual(values = c(
       "Features" = primary_color,
       "Samples" = "#E74C3C",
       "Reads" = "#27AE60"
     )) +
-    labs(
+    ggplot2::labs(
       title = "Retention Curves",
       x = "Threshold",
       y = "Retention (%)",
       color = "Metric"
     ) +
-    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 20)) +
+    ggplot2::scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 20)) +
     base_theme
 
   # Panel 2: Sparsity changes
@@ -508,9 +504,9 @@ plot_scree <- function(scree_obj, main = "Filtering Threshold Scree Analysis",
 
   # Combine panels
   if (requireNamespace("patchwork", quietly = TRUE)) {
-    library(patchwork)
-    combined <- wrap_plots(panels, ncol = 1, heights = c(1.2, 1, 0.8)) +
-      plot_annotation(title = main, theme = theme(plot.title = element_text(size = 16)))
+    combined <- patchwork::wrap_plots(panels, ncol = 1, heights = c(1.2, 1, 0.8)) +
+      patchwork::plot_annotation(title = main,
+                                  theme = ggplot2::theme(plot.title = ggplot2::element_text(size = 16)))
   } else {
     # Fallback without patchwork
     combined <- p1

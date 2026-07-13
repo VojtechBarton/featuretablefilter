@@ -137,12 +137,12 @@ estimate_chao_coverage <- function(table, target_coverage = 0.90) {
 
   # Calculate Chao's coverage for each sample
   # C_hat = 1 - (f1/S) + (f1/n) * ((n-1)/n) * ((S-1)/S)
-  sample_coverage <- sapply(seq_along(sample_totals), function(i) {
+  sample_coverage <- vapply(seq_along(sample_totals), function(i) {
     n <- sample_totals[i]
     S <- n_features_per_sample[i]
     f1 <- singletons_per_sample[i]
 
-    if (n == 0 || S == 0) return(NA)
+    if (n == 0 || S == 0) return(NA_real_)
 
     # Chao's estimator
     coverage <- 1 - (f1 / S) + (f1 / n) * ((n - 1) / n) * ((S - 1) / S)
@@ -150,7 +150,7 @@ estimate_chao_coverage <- function(table, target_coverage = 0.90) {
     # Ensure coverage is between 0 and 1
     coverage <- max(0, min(1, coverage))
     coverage
-  })
+  }, numeric(1))
 
   names(sample_coverage) <- colnames(abundances)
 

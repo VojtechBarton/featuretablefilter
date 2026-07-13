@@ -29,10 +29,15 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
     stop("phyloseq package is required. Install with: install.packages('phyloseq')")
   }
 
-  # Extract OTU table - will fail naturally if not a valid phyloseq object
+  # Validate input - check using inherits()
+  if (!inherits(phylo_obj, "phyloseq")) {
+    stop("Input must be a phyloseq object")
+  }
+
+  # Extract OTU table
   otu <- phyloseq::otu_table(phylo_obj)
   if (is.null(otu)) {
-    stop("Input must be a phyloseq object with an OTU table")
+    stop("phyloseq object must contain an OTU table")
   }
 
   # Convert to matrix if needed
@@ -66,23 +71,30 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
     tax <- phyloseq::tax_table(phylo_obj)
     if (!is.null(tax)) {
       tax_mat <- as.matrix(tax)
+      tax_rownames <- rownames(tax_mat)
 
-      # Get taxonomy feature names from rownames of tax_table
-      tax_features <- rownames(tax_mat)
-
-      if (!is.null(tax_features) && length(tax_features) > 0 && ncol(tax_mat) > 0) {
-        # Match features to taxonomy
-        tax_idx <- match(features, tax_features)
-        if (any(is.na(tax_idx))) {
-          warning("Some features not found in taxonomy. Missing entries will be filled with empty strings.")
+      # Align taxonomy with OTU table using rownames
+      # tax_table stores taxa as rows by convention
+      if (!is.null(tax_rownames) && length(tax_rownames) == nrow(tax_mat)) {
+        # Match features to taxonomy rownames
+        tax_idx <- match(features, tax_rownames)
+        if (!any(is.na(tax_idx))) {
+          tax_aligned <- tax_mat[tax_idx, , drop = FALSE]
+          rownames(tax_aligned) <- features
+        } else {
+          warning("Some features not found in taxonomy. Skipping taxonomy alignment.")
+          tax_aligned <- NULL
         }
-        tax_aligned <- tax_mat[tax_idx, , drop = FALSE]
+      } else {
+        tax_aligned <- NULL
+      }
+
+      if (!is.null(tax_aligned) && nrow(tax_aligned) > 0) {
         # Handle missing taxonomy entries
-        if (ncol(tax_aligned) > 0) {
-          colnames(tax_aligned) <- paste0("tax_", colnames(tax_aligned))
-          tax_aligned[is.na(tax_aligned)] <- ""
-          result <- cbind(result, tax_aligned)
-        }
+        colnames(tax_aligned) <- paste0("tax_", colnames(tax_aligned))
+        tax_aligned[is.na(tax_aligned)] <- ""
+
+        result <- cbind(result, tax_aligned)
       }
     }
   }
@@ -165,43 +177,38 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
   otu <- phyloseq::otu_table(otu_mat, taxa_are_rows = TRUE)
 
   # Build phyloseq components
-  ps_args <- list(otu)
+  components <- list(otu_table = otu)
 
   # Add taxonomy if provided
   if (!is.null(tax_table)) {
-    tax_df <- as.data.frame(tax_table)
-
-    # Check if tax_table has feature ID column
-    if ("feature_id" %in% colnames(tax_df)) {
-      # Match by feature_id column
-      tax_df <- tax_df[match(feature_ids, tax_df$feature_id), , drop = FALSE]
-      tax_df <- tax_df[, -which(colnames(tax_df) == "feature_id"), drop = FALSE]
+    if (!requireNamespace("phyloseq", quietly = TRUE)) {
+      warning("phyloseq required for taxonomy. Ignoring tax_table.")
     } else {
-      # Try to match by rownames
-      tax_rownames <- rownames(tax_df)
-      if (!is.null(tax_rownames) && length(tax_rownames) > 0) {
-        tax_idx <- match(feature_ids, tax_rownames)
-        if (!any(is.na(tax_idx))) {
-          tax_df <- tax_df[tax_idx, , drop = FALSE]
-        } else {
-          warning("Could not match taxonomy to features. Taxonomy will be ignored.")
-          tax_df <- NULL
-        }
-      } else {
-        warning("No rownames or feature_id column in tax_table. Taxonomy will be ignored.")
-        tax_df <- NULL
-      }
-    }
+      tax_df <- as.data.frame(tax_table)
 
-    # Only add taxonomy if we have valid data
-    if (!is.null(tax_df) && nrow(tax_df) > 0) {
+      # Check if tax_table has feature ID column
+      if ("feature_id" %in% colnames(tax_df)) {
+        # Match by feature_id column
+        tax_df <- tax_df[match(feature_ids, tax_df$feature_id), , drop = FALSE]
+        tax_df <- tax_df[, -which(colnames(tax_df) == "feature_id"), drop = FALSE]
+      } else {
+        # Try to match by rownames
+        tax_rownames <- rownames(tax_df)
+        if (!is.null(tax_rownames) && length(tax_rownames) > 0) {
+          tax_idx <- match(feature_ids, tax_rownames)
+          if (!any(is.na(tax_idx))) {
+            tax_df <- tax_df[tax_idx, , drop = FALSE]
+          }
+        }
+      }
+
       # Ensure rownames are set correctly
       rownames(tax_df) <- feature_ids
 
       # Convert to tax_table format
       tax_mat <- as.matrix(tax_df)
       tax <- phyloseq::tax_table(tax_mat)
-      ps_args$tax_table <- tax
+      components$tax_table <- tax
     }
   }
 
@@ -210,7 +217,7 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
     if (!inherits(phy_tree, "phylo")) {
       warning("phy_tree must be a phylo object. Ignoring.")
     } else {
-      ps_args$phy_tree <- phy_tree
+      components$phy_tree <- phy_tree
     }
   }
 
@@ -230,24 +237,11 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
     sample_names_in_otu <- colnames(otu_mat)
     sd_aligned <- sd_df[sample_names_in_otu, , drop = FALSE]
 
-    ps_args$sam_data <- phyloseq::sample_data(sd_aligned)
+    components$sam_data <- phyloseq::sample_data(sd_aligned)
   }
 
-  # Create phyloseq object using named arguments for clarity
-  # Build the argument list dynamically based on what's available
-  ps_call_args <- list(otu_table = otu)
-  if (!is.null(ps_args$tax_table)) ps_call_args$tax_table <- ps_args$tax_table
-  if (!is.null(ps_args$phy_tree)) ps_call_args$phy_tree <- ps_args$phy_tree
-  if (!is.null(ps_args$sam_data)) ps_call_args$sam_data <- ps_args$sam_data
-
-  result <- do.call(phyloseq::phyloseq, ps_call_args)
-
-  # Verify result is a phyloseq object
-  if (!inherits(result, "phyloseq")) {
-    stop("to_phyloseq failed to create a valid phyloseq object")
-  }
-
-  return(result)
+  # Create phyloseq object
+  do.call(phyloseq::phyloseq, components)
 }
 
 
@@ -454,45 +448,21 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
 
     # Align rowData with assay rows by matching rownames or feature_id column
     rd_rownames <- rownames(rd_df)
-    matched <- FALSE
-
     if (!is.null(rd_rownames) && length(rd_rownames) > 0) {
       # Match by rownames
       rd_idx <- match(feature_ids, rd_rownames)
       if (!any(is.na(rd_idx))) {
         rd_df <- rd_df[rd_idx, , drop = FALSE]
-        matched <- TRUE
       }
-    }
-
-    if (!matched && "feature_id" %in% colnames(rowData)) {
+    } else if ("feature_id" %in% colnames(rowData)) {
       # Match by feature_id column
       rd_df <- rowData[match(feature_ids, rowData$feature_id), , drop = FALSE]
-      if ("feature_id" %in% colnames(rd_df)) {
-        rd_df <- rd_df[, -which(colnames(rd_df) == "feature_id"), drop = FALSE]
-      }
-      matched <- TRUE
     }
 
-    if (!matched) {
-      # Check if row counts match - if so, just use as-is
-      if (nrow(rd_df) == length(feature_ids)) {
-        matched <- TRUE
-      } else {
-        warning("Could not match rowData to features. rowData will be ignored.")
-        rowData <- NULL
-      }
-    }
+    # Ensure rownames are set correctly
+    rownames(rd_df) <- feature_ids
 
-    if (!is.null(rowData) && matched) {
-      # Ensure dimensions match before creating DataFrame
-      if (nrow(rd_df) == length(feature_ids)) {
-        rowData <- S4Vectors::DataFrame(rd_df)
-      } else {
-        warning("rowData dimensions (", nrow(rd_df), ") do not match feature count (", length(feature_ids), "). rowData will be ignored.")
-        rowData <- NULL
-      }
-    }
+    rowData <- S4Vectors::DataFrame(rd_df)
   }
 
   # Prepare colData
@@ -500,39 +470,25 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
     cd_df <- as.data.frame(colData)
     sample_names <- colnames(assay_data)
 
+    # Use row names if not set
+    if (is.null(rownames(cd_df))) {
+      rownames(cd_df) <- sample_names
+    }
+
     # Align with assay columns by matching rownames
     cd_rownames <- rownames(cd_df)
-    matched <- FALSE
-
     if (!is.null(cd_rownames) && length(cd_rownames) > 0) {
       cd_idx <- match(sample_names, cd_rownames)
       if (!any(is.na(cd_idx))) {
         cd_aligned <- cd_df[cd_idx, , drop = FALSE]
-        matched <- TRUE
-      }
-    }
-
-    if (!matched) {
-      # No rownames or matching failed - check if row counts match
-      if (nrow(cd_df) == length(sample_names)) {
+      } else {
         cd_aligned <- cd_df
-        matched <- TRUE
-      } else {
-        warning("Could not match colData to samples. colData will be ignored.")
-        colData <- NULL
       }
+    } else {
+      cd_aligned <- cd_df
     }
 
-    if (!is.null(colData) && matched) {
-      # Ensure dimensions match before creating DataFrame
-      if (nrow(cd_aligned) == length(sample_names)) {
-        rownames(cd_aligned) <- sample_names
-        colData <- S4Vectors::DataFrame(cd_aligned)
-      } else {
-        warning("colData dimensions (", nrow(cd_aligned), ") do not match sample count (", length(sample_names), "). colData will be ignored.")
-        colData <- NULL
-      }
-    }
+    colData <- S4Vectors::DataFrame(cd_aligned)
   }
 
   # Handle reducedDims
@@ -541,37 +497,19 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
       warning("reducedDims must be a named list. Ignoring.")
       reducedDims <- NULL
     } else {
-      reducedDims <- S4Vectors::ReducedDimList(
-        lapply(reducedDims, function(x) {
-          if (!is.matrix(x) && !is.array(x)) x <- as.matrix(x)
-          x
-        })
-      )
+      # Convert each element to matrix and ensure proper names
+      reducedDims <- lapply(reducedDims, function(x) {
+        if (!is.matrix(x) && !is.array(x)) x <- as.matrix(x)
+        x
+      })
     }
   }
 
   # Create TreeSummarizedExperiment
   # Only include rowTree and rowLinks if provided
   args <- list(assays = assays_list)
-
-  # Validate rowData dimensions match assay rows
-  if (!is.null(rowData)) {
-    if (nrow(rowData) == nrow(assay_data)) {
-      args$rowData <- rowData
-    } else {
-      warning("rowData row count (", nrow(rowData), ") does not match assay rows (", nrow(assay_data), "). rowData will be ignored.")
-    }
-  }
-
-  # Validate colData dimensions match assay columns
-  if (!is.null(colData)) {
-    if (nrow(colData) == ncol(assay_data)) {
-      args$colData <- colData
-    } else {
-      warning("colData row count (", nrow(colData), ") does not match assay columns (", ncol(assay_data), "). colData will be ignored.")
-    }
-  }
-
+  if (!is.null(rowData)) args$rowData <- rowData
+  if (!is.null(colData)) args$colData <- colData
   if (!is.null(reducedDims)) args$reducedDims <- reducedDims
   if (!is.null(rowTree)) {
     args$rowTree <- rowTree
@@ -615,14 +553,11 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
 convert_feature_table <- function(x, to = c("data.frame", "phyloseq", "TSE"), ...) {
   to <- match.arg(to)
 
-  # Detect input class
-  x_class <- class(x)[1]
-
   # Convert to data.frame
   if (to == "data.frame") {
-    if (x_class == "phyloseq") {
+    if (inherits(x, "phyloseq")) {
       return(from_phyloseq(x, ...))
-    } else if (x_class %in% c("TreeSummarizedExperiment", "SingleCellExperiment", "SummarizedExperiment")) {
+    } else if (inherits(x, c("TreeSummarizedExperiment", "SingleCellExperiment", "SummarizedExperiment"))) {
       return(from_TSE(x, ...))
     } else if (is.data.frame(x) || is.matrix(x)) {
       # Already in correct format
@@ -631,7 +566,7 @@ convert_feature_table <- function(x, to = c("data.frame", "phyloseq", "TSE"), ..
       }
       return(x)
     } else {
-      stop("Cannot convert ", x_class, " to data.frame. Supported classes: phyloseq, TreeSummarizedExperiment, SingleCellExperiment, data.frame, matrix")
+      stop("Cannot convert ", class(x)[1], " to data.frame. Supported classes: phyloseq, TreeSummarizedExperiment, SingleCellExperiment, data.frame, matrix")
     }
 
   # Convert to phyloseq
@@ -640,16 +575,16 @@ convert_feature_table <- function(x, to = c("data.frame", "phyloseq", "TSE"), ..
       stop("phyloseq package is required for conversion to phyloseq format")
     }
 
-    if (x_class == "phyloseq") {
+    if (inherits(x, "phyloseq")) {
       return(x)  # Already phyloseq
     } else if (is.data.frame(x) || is.matrix(x)) {
       return(to_phyloseq(x, ...))
-    } else if (x_class %in% c("TreeSummarizedExperiment", "SingleCellExperiment")) {
+    } else if (inherits(x, c("TreeSummarizedExperiment", "SingleCellExperiment"))) {
       # First convert to data.frame, then to phyloseq
       df <- from_TSE(x, ...)
       return(to_phyloseq(df, ...))
     } else {
-      stop("Cannot convert ", x_class, " to phyloseq. Supported classes: phyloseq, TreeSummarizedExperiment, SingleCellExperiment, data.frame, matrix")
+      stop("Cannot convert ", class(x)[1], " to phyloseq. Supported classes: phyloseq, TreeSummarizedExperiment, SingleCellExperiment, data.frame, matrix")
     }
 
   # Convert to TreeSummarizedExperiment
@@ -658,16 +593,16 @@ convert_feature_table <- function(x, to = c("data.frame", "phyloseq", "TSE"), ..
       stop("TreeSummarizedExperiment package is required for conversion to TSE format")
     }
 
-    if (x_class %in% c("TreeSummarizedExperiment", "SingleCellExperiment")) {
+    if (inherits(x, c("TreeSummarizedExperiment", "SingleCellExperiment"))) {
       return(x)  # Already TSE-like
-    } else if (x_class == "phyloseq") {
+    } else if (inherits(x, "phyloseq")) {
       # First convert to data.frame, then to TSE
       df <- from_phyloseq(x, ...)
       return(to_TSE(df, ...))
     } else if (is.data.frame(x) || is.matrix(x)) {
       return(to_TSE(x, ...))
     } else {
-      stop("Cannot convert ", x_class, " to TreeSummarizedExperiment. Supported classes: TreeSummarizedExperiment, SingleCellExperiment, phyloseq, data.frame, matrix")
+      stop("Cannot convert ", class(x)[1], " to TreeSummarizedExperiment. Supported classes: TreeSummarizedExperiment, SingleCellExperiment, phyloseq, data.frame, matrix")
     }
   }
 }

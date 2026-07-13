@@ -500,9 +500,6 @@ plot_feature_network <- function(network_metrics, feature_names = NULL,
     return(NULL)
   }
 
-  library(ggplot2)
-  library(igraph)
-
   color_by <- match.arg(color_by)
 
   adjacency <- network_metrics$adjacency_matrix
@@ -513,18 +510,18 @@ plot_feature_network <- function(network_metrics, feature_names = NULL,
     return(NULL)
   }
 
-  # Create graph
-  g <- graph_from_adjacency_matrix(adjacency, mode = "undirected", weighted = TRUE)
-  V(g)$name <- feature_names
-  V(g)$degree <- network_metrics$degree_centrality
-  V(g)$strength <- network_metrics$strength
+  # Create graph using igraph
+  g <- igraph::graph_from_adjacency_matrix(adjacency, mode = "undirected", weighted = TRUE)
+  igraph::V(g)$name <- feature_names
+  igraph::V(g)$degree <- network_metrics$degree_centrality
+  igraph::V(g)$strength <- network_metrics$strength
 
   # Layout
-  lay <- layout_with_fr(g)
+  lay <- igraph::layout_with_fr(g)
 
   # Get edge list
-  edges <- get.edgelist(g)
-  edge_weights <- E(g)$weight
+  edges <- igraph::get.edgelist(g)
+  edge_weights <- igraph::E(g)$weight
 
   edge_df <- data.frame(
     from = feature_names[edges[, 1]],
@@ -535,8 +532,8 @@ plot_feature_network <- function(network_metrics, feature_names = NULL,
   # Node data
   node_df <- data.frame(
     name = feature_names,
-    degree = V(g)$degree,
-    strength = V(g)$strength,
+    degree = igraph::V(g)$degree,
+    strength = igraph::V(g)$strength,
     x = lay[, 1],
     y = lay[, 2],
     stringsAsFactors = FALSE
@@ -546,24 +543,24 @@ plot_feature_network <- function(network_metrics, feature_names = NULL,
   top_nodes <- node_df[order(-node_df[[color_by]]), ][seq_len(min(top_n, nrow(node_df))), ]
   node_df$label <- ifelse(node_df$name %in% top_nodes$name, node_df$name, "")
 
-  base_theme <- theme_minimal() +
-    theme(
-      plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-      axis.title = element_blank(),
-      axis.text = element_blank(),
-      panel.grid = element_blank()
+  base_theme <- ggplot2::theme_minimal() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(hjust = 0.5, size = 14, face = "bold"),
+      axis.title = ggplot2::element_blank(),
+      axis.text = ggplot2::element_blank(),
+      panel.grid = ggplot2::element_blank()
     )
 
-  p <- ggplot() +
-    geom_segment(data = edge_df, aes(x = 0, y = 0, xend = 0, yend = 0),
+  p <- ggplot2::ggplot() +
+    ggplot2::geom_segment(data = edge_df, ggplot2::aes(x = 0, y = 0, xend = 0, yend = 0),
                  alpha = 0) +  # Placeholder for proper edge rendering
-    geom_point(data = node_df, aes(x = x, y = y,
-                                    color = !!sym(color_by),
+    ggplot2::geom_point(data = node_df, ggplot2::aes(x = x, y = y,
+                                    color = !!ggplot2::sym(color_by),
                                     size = degree), alpha = 0.8) +
-    geom_text(data = node_df, aes(x = x, y = y, label = label),
+    ggplot2::geom_text(data = node_df, ggplot2::aes(x = x, y = y, label = label),
               size = 3, hjust = 0.5, vjust = 0.5) +
-    scale_color_viridis_d(option = "plasma", begin = 0.1, end = 0.9) +
-    labs(
+    ggplot2::scale_color_viridis_d(option = "plasma", begin = 0.1, end = 0.9) +
+    ggplot2::labs(
       title = "Feature Network Connectivity",
       subtitle = sprintf("Nodes = features | Edges = significant similarities | Color = %s", color_by),
       color = color_by,

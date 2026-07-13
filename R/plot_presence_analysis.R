@@ -268,13 +268,19 @@ plot_presence_analysis <- function(table, threshold = 1,
 
     # Save combined plot if directory specified
     if (!is.null(save_dir)) {
-      combined_plot <- patchwork::wrap_plots(p1, p2, ncol = 2, widths = c(1, 1))
-      combined_plot <- combined_plot + patchwork::plot_annotation(
-        title = main_main,
-        tag_levels = "A",
-        tag_prefix = "",
-        theme = ggplot2::theme(plot.title = ggplot2::element_text(size = 16, face = "bold"))
-      )
+      if (requireNamespace("patchwork", quietly = TRUE)) {
+        combined_plot <- patchwork::wrap_plots(p1, p2, ncol = 2, widths = c(1, 1))
+        combined_plot <- combined_plot + patchwork::plot_annotation(
+          title = main_main,
+          tag_levels = "A",
+          tag_prefix = "",
+          theme = ggplot2::theme(plot.title = ggplot2::element_text(size = 16, face = "bold"))
+        )
+      } else {
+        # Fallback: save only the first plot
+        combined_plot <- p1
+        warning("patchwork not available. Saving only prevalence plot. Install patchwork for combined plots.")
+      }
 
       ggplot2::ggsave(
         filename = file.path(save_dir, paste0(prefix, "_presence_frequency_comparison.png")),
@@ -377,13 +383,19 @@ plot_presence_analysis <- function(table, threshold = 1,
 
     # Save combined plot if directory specified
     if (!is.null(save_dir)) {
-      combined_plot <- patchwork::wrap_plots(p1, p2, ncol = 2, widths = c(1, 1))
-      combined_plot <- combined_plot + patchwork::plot_annotation(
-        title = main_main,
-        tag_levels = "A",
-        tag_prefix = "",
-        theme = ggplot2::theme(plot.title = ggplot2::element_text(size = 16, face = "bold"))
-      )
+      if (requireNamespace("patchwork", quietly = TRUE)) {
+        combined_plot <- patchwork::wrap_plots(p1, p2, ncol = 2, widths = c(1, 1))
+        combined_plot <- combined_plot + patchwork::plot_annotation(
+          title = main_main,
+          tag_levels = "A",
+          tag_prefix = "",
+          theme = ggplot2::theme(plot.title = ggplot2::element_text(size = 16, face = "bold"))
+        )
+      } else {
+        # Fallback: save only the first plot
+        combined_plot <- p1
+        warning("patchwork not available. Saving only prevalence plot. Install patchwork for combined plots.")
+      }
 
       ggplot2::ggsave(
         filename = file.path(save_dir, paste0(prefix, "_presence_frequency.png")),
