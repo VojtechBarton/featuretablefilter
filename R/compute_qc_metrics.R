@@ -333,38 +333,44 @@ calc_simpson_ens <- function(abund_matrix) {
 #' colnames(mat) <- c("f1", "f2", "f3", "f4")
 #' calc_hill_numbers(mat, q = c(0, 0.5, 1, 2, 3))
 calc_hill_numbers <- function(abund_matrix, q = c(0, 1, 2)) {
-  result <- vapply(q, function(q_val) {
-    apply(abund_matrix, 2, function(sample_vec) {
-      counts <- sample_vec[sample_vec > 0]
-      if (length(counts) == 0) return(NA_real_)  # No data
-      if (length(counts) == 1) {
-        # Single species: ENS = 1 for all q > 0, richness = 1 for q = 0
-        if (q_val == 0) return(1)
-        return(1)
-      }
-      total <- sum(counts)
-      probs <- counts / total
+  n_samples <- ncol(abund_matrix)
+  result <- matrix(NA_real_, nrow = n_samples, ncol = length(q))
+  colnames(result) <- q
+  rownames(result) <- rownames(abund_matrix)
 
-      if (q_val == 0) {
-        # q=0: Species richness (count of non-zero features)
-        as.numeric(length(counts))
-      } else if (q_val == 1) {
-        # q=1: Shannon ENS (exp of Shannon entropy)
-        shannon_entropy <- -sum(probs * log(probs))
-        exp(shannon_entropy)
+  for (j in seq_along(q)) {
+    q_val <- q[j]
+    for (i in seq_len(n_samples)) {
+      sample_vec <- abund_matrix[, i]
+      counts <- sample_vec[sample_vec > 0]
+      if (length(counts) == 0) {
+        result[i, j] <- NA_real_
+      } else if (length(counts) == 1) {
+        # Single species: ENS = 1 for all q > 0, richness = 1 for q = 0
+        result[i, j] <- 1
       } else {
-        # q>0, q!=1: Generalized Hill number formula
-        # ^qD = (sum(p_i^q))^(1/(1-q))
-        sum_p_q <- sum(probs^q_val)
-        if (sum_p_q == 0) return(NA_real_)
-        sum_p_q^(1 / (1 - q_val))
+        total <- sum(counts)
+        probs <- counts / total
+
+        if (q_val == 0) {
+          # q=0: Species richness (count of non-zero features)
+          result[i, j] <- as.numeric(length(counts))
+        } else if (q_val == 1) {
+          # q=1: Shannon ENS (exp of Shannon entropy)
+          shannon_entropy <- -sum(probs * log(probs))
+          result[i, j] <- exp(shannon_entropy)
+        } else {
+          # q>0, q!=1: Generalized Hill number formula
+          # ^qD = (sum(p_i^q))^(1/(1-q))
+          sum_p_q <- sum(probs^q_val)
+          if (sum_p_q == 0) {
+            result[i, j] <- NA_real_
+          } else {
+            result[i, j] <- sum_p_q^(1 / (1 - q_val))
+          }
+        }
       }
-    })
-  }, numeric(nrow(abund_matrix)))
-  # Ensure result is always a matrix even with single column
-  if (!is.matrix(result)) {
-    result <- matrix(result, ncol = length(q))
-    colnames(result) <- q
+    }
   }
   result
 }

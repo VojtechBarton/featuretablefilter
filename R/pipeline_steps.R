@@ -56,13 +56,13 @@
       max(est$cutoff, min_reads)
     },
     "good" = {
-      est <- filter_by_coverage_estimator(table, estimator = "good",
+      est <- filter_by_coverage_estimator(table, method = "good",
                                            target_coverage = target_coverage,
                                            min_reads = min_reads)
       return(est$filtered_table)
     },
     "chao" = {
-      est <- filter_by_coverage_estimator(table, estimator = "chao",
+      est <- filter_by_coverage_estimator(table, method = "chao",
                                            target_coverage = target_coverage,
                                            min_reads = min_reads)
       return(est$filtered_table)
@@ -179,7 +179,7 @@
                            metric, method))
 
   # Run analysis
-  analysis_result <- analyze_depth_sparsity(table, metric = metric, method = method,
+  analysis_result <- analyze_depth_sparsity(table, metric = metric, outlier_method = method,
                                              multiplier = multiplier, direction = direction)
   result$analysis_result <- analysis_result
 
@@ -191,7 +191,7 @@
   # Remove outliers
   if (verbose) cat("Removing depth-sparsity outliers...\n")
   result$filtered_table <- filter_depth_sparsity_outliers(table, metric = metric,
-                                                           method = method,
+                                                           outlier_method = method,
                                                            multiplier = multiplier,
                                                            direction = direction)
   result
@@ -226,20 +226,22 @@
 
   switch(method,
     "absolute" = filter_features_by_abundance(
-      table, min_reads = threshold, min_samples = min_samples,
-      remove_features = remove_features
+      table, threshold = threshold, mode = "absolute",
+      min_samples = min_samples, remove_zeros = !remove_features
     ),
     "relative" = filter_features_by_abundance(
-      table, min_relative_abundance = threshold, min_samples = min_samples,
-      remove_features = remove_features
+      table, threshold = threshold, mode = "relative",
+      min_samples = min_samples, remove_zeros = !remove_features
     ),
     "relative_cutoff" = filter_by_relative_cutoff(
-      table, relative_cutoff = threshold,
-      min_coverage_for_relative = min_coverage_for_relative
+      table, min_coverage = min_coverage_for_relative,
+      relative_threshold = threshold, remove_features = remove_features
     ),
     "joint" = filter_features_joint(
-      table, min_abundance = threshold, min_prevalence = prevalence_threshold,
-      min_samples = min_samples, logic = logic, remove_features = remove_features
+      table, abundance_threshold = threshold,
+      prevalence_threshold = prevalence_threshold,
+      mode = if (threshold > 1) "absolute" else "relative",
+      logic = logic, remove_zeros = !remove_features
     ),
     stop("Unknown abundance method: ", method)
   )

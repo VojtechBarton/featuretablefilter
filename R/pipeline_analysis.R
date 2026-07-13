@@ -36,7 +36,7 @@
 .run_depth_sparsity_analysis <- function(table, metric, method, multiplier, direction, verbose = TRUE) {
   if (verbose) cat(sprintf("Running depth-sparsity analysis (metric: %s, method: %s)...\n",
                            metric, method))
-  analyze_depth_sparsity(table, metric = metric, method = method,
+  analyze_depth_sparsity(table, metric = metric, outlier_method = method,
                           multiplier = multiplier, direction = direction)
 }
 
@@ -62,11 +62,13 @@
     ),
     "absolute_feature" = compute_scree(
       table, type = "absolute_feature",
-      n_features = n_steps
+      thresholds = seq(1, n_steps),
+      n_steps = n_steps
     ),
     "relative_feature" = compute_scree(
       table, type = "relative_feature",
-      n_features = n_steps
+      thresholds = seq(0.1, 1, length.out = n_steps),
+      n_steps = n_steps
     ),
     "custom" = compute_scree(
       table, type = "custom",
