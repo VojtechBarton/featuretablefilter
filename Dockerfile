@@ -49,6 +49,9 @@ RUN Rscript -e "install.packages('BiocManager', repos = 'https://cran.r-project.
 # Copy package source to container
 COPY . /workspace/featuretablefilter/
 
+# Generate documentation and NAMESPACE with roxygen2 before installation
+RUN Rscript -e "roxygen2::roxygenise('/workspace/featuretablefilter')"
+
 # Install the featuretablefilter package from local source using Rscript
 # This properly checks library paths for dependencies
 RUN Rscript -e "install.packages('/workspace/featuretablefilter', repos = NULL, type = 'source', dependencies = FALSE)"
