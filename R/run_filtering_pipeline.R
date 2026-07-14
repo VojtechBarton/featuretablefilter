@@ -188,6 +188,7 @@ run_filtering_pipeline <- function(input,
                                     verbose = TRUE) {
   # Validate inputs
   cov_filter_method <- match.arg(cov_filter_method)
+  singleton_filter_method <- match.arg(singleton_filter_method)
   singleton_count_type <- match.arg(singleton_count_type)
   crosstalk_filter_method <- match.arg(crosstalk_filter_method)
   sparsity_elbow_method <- match.arg(sparsity_elbow_method)
@@ -250,10 +251,22 @@ run_filtering_pipeline <- function(input,
   # === Step 4: Cross-Talk Filtering ===
   if (crosstalk_filter_method != "none") {
     if (verbose) cat("\n=== Step 4: Cross-Talk Filtering ===\n")
-    table_current <- .apply_crosstalk_filter(
+    stats_before <- .get_table_stats(table_current)
+    crosstalk_result <- .apply_crosstalk_filter(
       table_current, crosstalk_filter_method, crosstalk_threshold,
       crosstalk_min_abs_cutoff, crosstalk_return_details, verbose
     )
+    stats_after <- .get_table_stats(crosstalk_result$table)
+    table_current <- crosstalk_result$table
+    filtering_steps$crosstalk <- .format_step_summary(
+      "Cross-Talk", crosstalk_filter_method,
+      list(threshold = crosstalk_threshold, min_abs_cutoff = crosstalk_min_abs_cutoff),
+      stats_before, stats_after
+    )
+    # Store detailed leakage info if returned
+    if (!is.null(crosstalk_result$detailed_leakage)) {
+      filtering_steps$crosstalk$detailed_leakage <- crosstalk_result$detailed_leakage
+    }
   }
 
   # === Step 5: Sparsity Elbow Detection/Filtering ===
@@ -380,12 +393,44 @@ run_filtering_pipeline <- function(input,
   }
 
   # === Step 13: Generate Report ===
-  if (generate_report && !is.null(input_file_path)) {
+  if (generate_report) {
     if (verbose) cat("\n=== Step 13: Generating Report ===\n")
-    .generate_filtering_report(
+    # Determine input description
+    if (!is.null(input_file_path)) {
+      input_desc <- input_file_path
+    } else {
+      input_desc <- sprintf("%s object (%d features x %d samples)",
+                            input_class, original_stats$features, original_stats$samples)
+    }
+    # Collect pipeline parameters for report
+    pipeline_params <- list(
+      cov_filter_method = cov_filter_method,
+      cov_threshold = cov_threshold,
+      cov_floor = cov_floor,
+      cov_target_coverage = cov_target_coverage,
+      cov_min_reads = cov_min_reads,
+      singleton_filter_method = singleton_filter_method,
+      singleton_max_ratio = singleton_max_ratio,
+      crosstalk_filter_method = crosstalk_filter_method,
+      crosstalk_threshold = crosstalk_threshold,
+      apply_sparsity_elbow = apply_sparsity_elbow,
+      apply_depth_sparsity_outliers = apply_depth_sparsity_outliers,
+      abun_filter_method = abun_filter_method,
+      abun_threshold = abun_threshold,
+      abun_min_samples = abun_min_samples,
+      abun_logic = abun_logic,
+      abun_prevalence_threshold = abun_prevalence_threshold
+    )
+    # Get filtered table stats
+    filtered_stats <- .get_table_stats(table_current)
+
+    report_paths <- .generate_filtering_report(
       original_stats, qc_metrics, presence_stats, filtering_steps,
       sparsity_elbow_result, depth_sparsity_result, scree_result,
-      output_dir, prefix, verbose
+      output_dir, prefix, verbose,
+      input_description = input_desc,
+      pipeline_params = pipeline_params,
+      filtered_stats = filtered_stats
     )
   }
 

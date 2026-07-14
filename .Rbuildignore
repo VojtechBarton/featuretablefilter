@@ -1,9 +1,50 @@
+# Ignore version control and IDE files
+.git
+.gitignore
 .claude
-.github
-docker
-docker-compose.yml
-Dockerfile
-SECURITY.md
-CODE_OF_CONDUCT.md
-CONTRIBUTING.md
-SHINY_DASHBOARD_PLAN.md
+.idea
+.*\.Rproj$
+^.*\.Rproj$
+
+# Ignore build and check artifacts
+.*\.tar\.gz$
+^.*_Rcheck/$
+^\.Rcheck/
+.*\.Rout$
+.*\.Rout\.save$
+.*\.o$
+.*\.so$
+.*\.dll$
+
+# IDE and editor files
+.vscode/
+.*\.swp$
+.*\.swo$
+.*~$
+\.DS_Store$
+Thumbs\.db$
+
+# Temporary files
+^tmp/$
+^temp/
+.*\.tmp$
+\.Rplots\.pdf$
+
+# Vignette caches
+^vignettes/cache/
+
+# Local configuration
+\.local/
+
+# Environment variables
+\.env$
+
+# Log files
+.*\.log$
+
+# Claude Code session data
+.claude/
+
+# Report outputs from pipeline examples
+.*_filtering_report\..*$
+^results/

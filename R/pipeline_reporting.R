@@ -126,25 +126,109 @@
 #' @param output_dir Output directory
 #' @param prefix Prefix for filename
 #' @param verbose Logical. Print progress messages?
+#' @param input_description Description of input source (file path or object type)
+#' @param pipeline_params Named list of pipeline parameters used
+#' @param filtered_stats Stats after filtering (optional, for comparison)
 #'
 #' @return Path to saved report file
 .generate_filtering_report <- function(original_stats, qc_metrics, presence_stats,
                                         filtering_steps, sparsity_elbow_result,
                                         depth_sparsity_result, scree_result,
-                                        output_dir, prefix, verbose = TRUE) {
+                                        output_dir, prefix, verbose = TRUE,
+                                        input_description = NULL,
+                                        pipeline_params = NULL,
+                                        filtered_stats = NULL) {
   if (verbose) cat("Generating summary report...\n")
 
+  # Generate header with metadata
   report_lines <- c(
-    "========================================",
-    "FEATURE TABLE FILTERING PIPELINE REPORT",
-    "========================================",
+    "================================================================================",
+    "                    FEATURE TABLE FILTERING PIPELINE REPORT",
+    "================================================================================",
     "",
+    sprintf("Report Generated: %s", format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")),
+    sprintf("Pipeline Version: %s", utils::packageVersion("featuretablefilter")),
+    ""
+  )
+
+  # Input and output information
+  report_lines <- c(report_lines,
+    "--- INPUT / OUTPUT ---",
+    sprintf("Input Source: %s", input_description %||% "Unknown"),
+    sprintf("Output Prefix: %s", prefix),
+    sprintf("Output Directory: %s", normalizePath(output_dir, mustWork = FALSE)),
+    ""
+  )
+
+  # Pipeline parameters summary
+  if (!is.null(pipeline_params) && length(pipeline_params) > 0) {
+    report_lines <- c(report_lines, "--- PIPELINE PARAMETERS ---")
+    param_lines <- sapply(names(pipeline_params), function(name) {
+      val <- pipeline_params[[name]]
+      if (is.null(val)) {
+        sprintf("  %s: NULL", name)
+      } else if (is.logical(val)) {
+        sprintf("  %s: %s", name, ifelse(val, "TRUE", "FALSE"))
+      } else if (is.numeric(val) && length(val) == 1) {
+        sprintf("  %s: %.4g", name, val)
+      } else if (is.character(val) && length(val) == 1) {
+        sprintf("  %s: \"%s\"", name, val)
+      } else {
+        sprintf("  %s: %s", name, paste(val, collapse = ", "))
+      }
+    })
+    report_lines <- c(report_lines, unlist(param_lines), "")
+  }
+
+  report_lines <- c(report_lines,
     "--- ORIGINAL TABLE STATISTICS ---",
     sprintf("Features: %d", original_stats$features),
     sprintf("Samples: %d", original_stats$samples),
     sprintf("Total Reads: %d", original_stats$reads),
     ""
   )
+
+  # Add Hill numbers (diversity) for original table
+  if (!is.na(qc_metrics$shannon_ens_original)) {
+    report_lines <- c(report_lines,
+      sprintf("Shannon ENS (q=1): %.2f", qc_metrics$shannon_ens_original)
+    )
+  }
+  if (!is.na(qc_metrics$simpson_ens_original)) {
+    report_lines <- c(report_lines,
+      sprintf("Simpson ENS (q=2): %.2f", qc_metrics$simpson_ens_original)
+    )
+  }
+  report_lines <- c(report_lines, "")
+
+  # Add filtered table statistics if available
+  if (!is.null(filtered_stats)) {
+    report_lines <- c(report_lines,
+      "--- FILTERED TABLE STATISTICS ---",
+      sprintf("Features: %d (removed: %d)",
+              filtered_stats$features, original_stats$features - filtered_stats$features),
+      sprintf("Samples: %d (removed: %d)",
+              filtered_stats$samples, original_stats$samples - filtered_stats$samples),
+      sprintf("Total Reads: %d (removed: %d)",
+              filtered_stats$reads, original_stats$reads - filtered_stats$reads),
+      ""
+    )
+
+    # Add Hill numbers for filtered table
+    if (!is.na(qc_metrics$shannon_ens_filtered)) {
+      report_lines <- c(report_lines,
+        sprintf("Shannon ENS (q=1): %.2f (retained: %.2f%%)",
+                qc_metrics$shannon_ens_filtered, qc_metrics$shannon_ens_retention_percent)
+      )
+    }
+    if (!is.na(qc_metrics$simpson_ens_filtered)) {
+      report_lines <- c(report_lines,
+        sprintf("Simpson ENS (q=2): %.2f (retained: %.2f%%)",
+                qc_metrics$simpson_ens_filtered, qc_metrics$simpson_ens_retention_percent)
+      )
+    }
+    report_lines <- c(report_lines, "")
+  }
 
   # Add filtering steps summary
   if (length(filtering_steps) > 0) {
@@ -194,6 +278,27 @@
     )
   }
 
+  # Add Procrustes analysis (compositional similarity)
+  if (!is.na(qc_metrics$procrustes_m2)) {
+    report_lines <- c(report_lines,
+      ""
+    )
+    if (!is.na(qc_metrics$procrustes_correlation)) {
+      report_lines <- c(report_lines,
+        sprintf("Procrustes Correlation: %.4f", qc_metrics$procrustes_correlation)
+      )
+      if (!is.na(qc_metrics$procrustes_pvalue)) {
+        report_lines <- c(report_lines,
+          sprintf("Procrustes p-value: %.4f", qc_metrics$procrustes_pvalue)
+        )
+      }
+    }
+    report_lines <- c(report_lines,
+      sprintf("Procrustes M^2 Statistic: %.6f", qc_metrics$procrustes_m2),
+      "(Lower M^2 = more similar compositional structure between original and filtered)"
+    )
+  }
+
   report_lines <- c(report_lines,
     "",
     "--- TOP N FEATURE COMPARISON ---",
@@ -211,9 +316,351 @@
     "========================================"
   )
 
-  # Save report
+  # Ensure output directory exists
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+
+  # Save text report
   report_path <- file.path(output_dir, paste0(prefix, "_filtering_report.txt"))
   writeLines(report_lines, report_path)
-  if (verbose) cat(sprintf("Report saved to: %s\n", report_path))
-  report_path
+  if (verbose) cat(sprintf("Text report saved to: %s\n", report_path))
+
+  # Generate Markdown report
+  md_path <- .generate_markdown_report(
+    original_stats, qc_metrics, presence_stats, filtering_steps,
+    sparsity_elbow_result, depth_sparsity_result, scree_result,
+    output_dir, prefix, input_description, pipeline_params, filtered_stats
+  )
+  if (!is.null(md_path) && verbose) {
+    cat(sprintf("Markdown report saved to: %s\n", md_path))
+  }
+
+  # Generate PDF report
+  pdf_path <- .generate_pdf_report(
+    original_stats, qc_metrics, presence_stats, filtering_steps,
+    sparsity_elbow_result, depth_sparsity_result, scree_result,
+    output_dir, prefix, input_description, pipeline_params, filtered_stats, verbose
+  )
+  if (!is.null(pdf_path) && verbose) {
+    cat(sprintf("PDF report saved to: %s\n", pdf_path))
+  }
+
+  list(text = report_path, markdown = md_path, pdf = pdf_path)
+}
+
+
+#' Generate Markdown version of the filtering report
+.generate_markdown_report <- function(original_stats, qc_metrics, presence_stats,
+                                       filtering_steps, sparsity_elbow_result,
+                                       depth_sparsity_result, scree_result,
+                                       output_dir, prefix, input_description,
+                                       pipeline_params, filtered_stats) {
+  md_lines <- c(
+    "# Feature Table Filtering Pipeline Report",
+    "",
+    sprintf("**Report Generated:** %s", format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")),
+    sprintf("**Pipeline Version:** %s", utils::packageVersion("featuretablefilter")),
+    ""
+  )
+
+  # Input and output
+  md_lines <- c(md_lines,
+    "## Input / Output",
+    "",
+    sprintf("- **Input Source:** %s", input_description %||% "Unknown"),
+    sprintf("- **Output Prefix:** %s", prefix),
+    sprintf("- **Output Directory:** %s", normalizePath(output_dir, mustWork = FALSE)),
+    ""
+  )
+
+  # Pipeline parameters
+  if (!is.null(pipeline_params) && length(pipeline_params) > 0) {
+    md_lines <- c(md_lines, "## Pipeline Parameters", "")
+    md_lines <- c(md_lines, "| Parameter | Value |")
+    md_lines <- c(md_lines, "|-----------|-------|")
+    for (name in names(pipeline_params)) {
+      val <- pipeline_params[[name]]
+      if (is.null(val)) {
+        val_str <- "NULL"
+      } else if (is.logical(val)) {
+        val_str <- ifelse(val, "TRUE", "FALSE")
+      } else if (is.numeric(val) && length(val) == 1) {
+        val_str <- sprintf("%.4g", val)
+      } else if (is.character(val) && length(val) == 1) {
+        val_str <- sprintf("`%s`", val)
+      } else {
+        val_str <- paste(val, collapse = ", ")
+      }
+      md_lines <- c(md_lines, sprintf("| %s | %s |", name, val_str))
+    }
+    md_lines <- c(md_lines, "")
+  }
+
+  # Original table statistics
+  md_lines <- c(md_lines,
+    "## Original Table Statistics",
+    "",
+    sprintf("- **Features:** %d", original_stats$features),
+    sprintf("- **Samples:** %d", original_stats$samples),
+    sprintf("- **Total Reads:** %d", original_stats$reads),
+    ""
+  )
+
+  # Hill numbers for original
+  if (!is.na(qc_metrics$shannon_ens_original)) {
+    md_lines <- c(md_lines, sprintf("- **Shannon ENS (q=1):** %.2f", qc_metrics$shannon_ens_original))
+  }
+  if (!is.na(qc_metrics$simpson_ens_original)) {
+    md_lines <- c(md_lines, sprintf("- **Simpson ENS (q=2):** %.2f", qc_metrics$simpson_ens_original))
+  }
+  md_lines <- c(md_lines, "")
+
+  # Filtered table statistics
+  if (!is.null(filtered_stats)) {
+    md_lines <- c(md_lines,
+      "## Filtered Table Statistics",
+      "",
+      sprintf("- **Features:** %d (*removed:* %d)",
+              filtered_stats$features, original_stats$features - filtered_stats$features),
+      sprintf("- **Samples:** %d (*removed:* %d)",
+              filtered_stats$samples, original_stats$samples - filtered_stats$samples),
+      sprintf("- **Total Reads:** %d (*removed:* %d)",
+              filtered_stats$reads, original_stats$reads - filtered_stats$reads),
+      ""
+    )
+
+    # Hill numbers for filtered
+    if (!is.na(qc_metrics$shannon_ens_filtered)) {
+      md_lines <- c(md_lines,
+        sprintf("- **Shannon ENS (q=1):** %.2f (*retained:* %.2f%%)",
+                qc_metrics$shannon_ens_filtered, qc_metrics$shannon_ens_retention_percent)
+      )
+    }
+    if (!is.na(qc_metrics$simpson_ens_filtered)) {
+      md_lines <- c(md_lines,
+        sprintf("- **Simpson ENS (q=2):** %.2f (*retained:* %.2f%%)",
+                qc_metrics$simpson_ens_filtered, qc_metrics$simpson_ens_retention_percent)
+      )
+    }
+    md_lines <- c(md_lines, "")
+  }
+
+  # Filtering steps
+  if (length(filtering_steps) > 0) {
+    md_lines <- c(md_lines, "## Filtering Steps", "")
+    for (step_name in names(filtering_steps)) {
+      step <- filtering_steps[[step_name]]
+      md_lines <- c(md_lines,
+        sprintf("### %s (%s)", toupper(step_name), step$method),
+        "",
+        sprintf("| Metric | Before | After | Removed |"),
+        sprintf("|--------|--------|-------|---------|"),
+        sprintf("| Samples | %d | %d | %d |",
+                step$samples_before, step$samples_after, step$samples_removed),
+        sprintf("| Features | %d | %d | %d |",
+                step$features_before, step$features_after, step$features_removed),
+        sprintf("| Reads | %d | %d | %d |",
+                step$reads_before, step$reads_after, step$reads_removed),
+        ""
+      )
+    }
+  }
+
+  # QC metrics summary
+  md_lines <- c(md_lines,
+    "## QC Metrics Summary",
+    "",
+    sprintf("- **Sparsity:** %.2f%% → %.2f%% (drop: %.2f pp)",
+            qc_metrics$sparsity_original * 100,
+            qc_metrics$sparsity_filtered * 100,
+            qc_metrics$sparsity_drop_percent),
+    sprintf("- **Read Retention:** %.2f%%", qc_metrics$read_retention_percent),
+    sprintf("- **Feature Retention:** %.2f%%", qc_metrics$feature_retention_percent),
+    sprintf("- **Sample Retention:** %.2f%%", qc_metrics$sample_retention_percent),
+    ""
+  )
+
+  # Diversity retention
+  if (!is.na(qc_metrics$shannon_ens_retention_percent)) {
+    md_lines <- c(md_lines, sprintf("- **Shannon ENS Retention:** %.2f%%", qc_metrics$shannon_ens_retention_percent))
+  }
+  if (!is.na(qc_metrics$simpson_ens_retention_percent)) {
+    md_lines <- c(md_lines, sprintf("- **Simpson ENS Retention:** %.2f%%", qc_metrics$simpson_ens_retention_percent))
+  }
+
+  # Procrustes
+  if (!is.na(qc_metrics$procrustes_m2)) {
+    md_lines <- c(md_lines, "")
+    if (!is.na(qc_metrics$procrustes_correlation)) {
+      md_lines <- c(md_lines, sprintf("- **Procrustes Correlation:** %.4f", qc_metrics$procrustes_correlation))
+    }
+    if (!is.na(qc_metrics$procrustes_pvalue)) {
+      md_lines <- c(md_lines, sprintf("- **Procrustes p-value:** %.4f", qc_metrics$procrustes_pvalue))
+    }
+    md_lines <- c(md_lines,
+      sprintf("- **Procrustes M² Statistic:** %.6f *(lower = more similar)*", qc_metrics$procrustes_m2)
+    )
+  }
+  md_lines <- c(md_lines, "")
+
+  # Top N comparison
+  md_lines <- c(md_lines,
+    "## Top N Feature Comparison",
+    "",
+    sprintf("- **Top %d Overlap:** %d features (%.2f%%)",
+            length(qc_metrics$orig_top_features),
+            qc_metrics$top_n_overlap_count,
+            qc_metrics$top_n_overlap_percent),
+    sprintf("- **Jaccard Similarity:** %.4f", qc_metrics$top_n_jaccard_similarity),
+    sprintf("- **Rank Correlation:** %.4f (p = %.4f)",
+            qc_metrics$rank_abundance_correlation,
+            qc_metrics$rank_abundance_pvalue),
+    ""
+  )
+
+  # Save Markdown
+  md_path <- file.path(output_dir, paste0(prefix, "_filtering_report.md"))
+  writeLines(md_lines, md_path)
+  md_path
+}
+
+
+#' Generate PDF version of the filtering report
+.generate_pdf_report <- function(original_stats, qc_metrics, presence_stats,
+                                  filtering_steps, sparsity_elbow_result,
+                                  depth_sparsity_result, scree_result,
+                                  output_dir, prefix, input_description,
+                                  pipeline_params, filtered_stats, verbose = TRUE) {
+  # Check for required packages
+  if (!requireNamespace("rmarkdown", quietly = TRUE)) {
+    if (verbose) cat("  rmarkdown not available - skipping PDF report\n")
+    return(NULL)
+  }
+
+  # Create temporary Rmd file
+  tmp_rmd <- tempfile(fileext = ".Rmd")
+
+  # Generate Rmd content
+  rmd_content <- c(
+    "---",
+    sprintf("title: \"Feature Table Filtering Report\""),
+    sprintf("subtitle: \"%s\"", Sys.time()),
+    "output:",
+    "  pdf_document:",
+    "    toc: true",
+    "    number_sections: true",
+    "---",
+    "",
+    "```{r setup, include=FALSE}",
+    "knitr::opts_chunk$set(echo = FALSE)",
+    "```",
+    ""
+  )
+
+  # Header
+  rmd_content <- c(rmd_content,
+    "# Summary",
+    "",
+    sprintf("- **Input Source:** %s", input_description %||% "Unknown"),
+    sprintf("- **Output Prefix:** %s", prefix),
+    sprintf("- **Pipeline Version:** %s", utils::packageVersion("featuretablefilter")),
+    ""
+  )
+
+  # Original table
+  rmd_content <- c(rmd_content,
+    "## Original Table",
+    "",
+    sprintf("| Metric | Value |"),
+    "|--------|-------|",
+    sprintf("| Features | %d |", original_stats$features),
+    sprintf("| Samples | %d |", original_stats$samples),
+    sprintf("| Total Reads | %d |", original_stats$reads),
+    ""
+  )
+
+  # Filtered table
+  if (!is.null(filtered_stats)) {
+    rmd_content <- c(rmd_content,
+      "## Filtered Table",
+      "",
+      sprintf("| Metric | Value | Removed |"),
+      "|--------|-------|---------|",
+      sprintf("| Features | %d | %d |",
+              filtered_stats$features, original_stats$features - filtered_stats$features),
+      sprintf("| Samples | %d | %d |",
+              filtered_stats$samples, original_stats$samples - filtered_stats$samples),
+      sprintf("| Total Reads | %d | %d |",
+              filtered_stats$reads, original_stats$reads - filtered_stats$reads),
+      ""
+    )
+  }
+
+  # QC metrics
+  rmd_content <- c(rmd_content,
+    "## QC Metrics",
+    "",
+    sprintf("| Metric | Value |"),
+    "|--------|-------|",
+    sprintf("| Sparsity (original) | %.2f%% |", qc_metrics$sparsity_original * 100),
+    sprintf("| Sparsity (filtered) | %.2f%% |", qc_metrics$sparsity_filtered * 100),
+    sprintf("| Read Retention | %.2f%% |", qc_metrics$read_retention_percent),
+    sprintf("| Feature Retention | %.2f%% |", qc_metrics$feature_retention_percent),
+    sprintf("| Sample Retention | %.2f%% |", qc_metrics$sample_retention_percent),
+    ""
+  )
+
+  # Diversity
+  if (!is.na(qc_metrics$shannon_ens_retention_percent) || !is.na(qc_metrics$simpson_ens_retention_percent)) {
+    rmd_content <- c(rmd_content,
+      "## Diversity Retention",
+      ""
+    )
+    if (!is.na(qc_metrics$shannon_ens_retention_percent)) {
+      rmd_content <- c(rmd_content, sprintf("- Shannon ENS (q=1): %.2f%% retained", qc_metrics$shannon_ens_retention_percent))
+    }
+    if (!is.na(qc_metrics$simpson_ens_retention_percent)) {
+      rmd_content <- c(rmd_content, sprintf("- Simpson ENS (q=2): %.2f%% retained", qc_metrics$simpson_ens_retention_percent))
+    }
+    rmd_content <- c(rmd_content, "")
+  }
+
+  # Procrustes
+  if (!is.na(qc_metrics$procrustes_m2)) {
+    rmd_content <- c(rmd_content,
+      "## Compositional Similarity",
+      "",
+      sprintf("- Procrustes M²: %.6f *(lower = more similar)*", qc_metrics$procrustes_m2)
+    )
+    if (!is.na(qc_metrics$procrustes_correlation)) {
+      rmd_content <- c(rmd_content, sprintf("- Procrustes Correlation: %.4f", qc_metrics$procrustes_correlation))
+    }
+    rmd_content <- c(rmd_content, "")
+  }
+
+  # Write Rmd and render
+  writeLines(rmd_content, tmp_rmd)
+
+  # Ensure output directory is absolute and exists
+  output_dir_abs <- normalizePath(output_dir, mustWork = FALSE)
+  if (!dir.exists(output_dir_abs)) {
+    dir.create(output_dir_abs, recursive = TRUE)
+  }
+
+  pdf_path <- file.path(output_dir_abs, paste0(prefix, "_filtering_report.pdf"))
+
+  tryCatch({
+    # Save original working directory and set to output dir for rendering
+    orig_wd <- getwd()
+    on.exit(setwd(orig_wd), add = TRUE)
+    setwd(output_dir_abs)
+    rmarkdown::render(tmp_rmd, output_file = basename(pdf_path), quiet = !verbose)
+    unlink(tmp_rmd)
+    pdf_path
+  }, error = function(e) {
+    if (verbose) cat(sprintf("  Error generating PDF: %s\n", e$message))
+    unlink(tmp_rmd)
+    NULL
+  })
 }

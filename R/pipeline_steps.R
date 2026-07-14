@@ -70,7 +70,7 @@
     stop("Unknown coverage method: ", method)
   )
 
-  if (verbose) cat(sprintf("Filtering samples with coverage < %d reads...\n", cutoff))
+  if (verbose) cat(sprintf("Filtering samples with coverage < %.0f reads...\n", cutoff))
   filter_by_coverage(table, min_reads = cutoff)
 }
 
@@ -91,14 +91,20 @@
                                      return_details, verbose = TRUE) {
   if (method == "none") {
     if (verbose) cat("Skipping cross-talk filtering (method = 'none')\n")
-    return(table)
+    return(list(table = table, detailed_leakage = NULL))
   }
 
   if (verbose) cat(sprintf("Applying cross-talk filter (threshold: %.4f, method: %s)...\n",
                            threshold, method))
-  filter_cross_talk(table, max_rel_threshold = threshold,
-                     min_abs_cutoff = min_abs_cutoff, mode = method,
-                     return_details = return_details)
+  result <- filter_cross_talk(table, max_rel_threshold = threshold,
+                              min_abs_cutoff = min_abs_cutoff, mode = method,
+                              return_details = return_details)
+  # Return consistent list format
+  if (is.list(result) && !is.data.frame(result)) {
+    result
+  } else {
+    list(table = result, detailed_leakage = NULL)
+  }
 }
 
 

@@ -2,16 +2,19 @@
 citHeader("To cite featuretablefilter in publications use:")
 
 citEntry(
-  entry = "manual",
+  entry = "article",
   title = "featuretablefilter: Feature Table Filtering for Microbiome Data",
   author = person("Vojtech", "Barton", email = "vojtech.barton@gmail.com"),
+  journal = "Bioconductor",
   year = "2026",
+  volume = "3.24",
+  url = "https://bioconductor.org/packages/featuretablefilter",
   textVersion = paste(
-    "Barton V (2026). featuretablefilter: Feature Table Filtering for Microbiome Data.",
-    "Version 1.0.0.",
-    "https://github.com/VojtechBarton/featuretablefilter",
+    "Barton V (2026). 'featuretablefilter: Feature Table Filtering for Microbiome Data.'",
+    "Bioconductor Version 3.24, R Package Version 1.0.0.",
+    "https://bioconductor.org/packages/featuretablefilter",
     sep = "\n"
   )
 )
 
-citFooter("For information about citing R packages, see citation().")
+citFooter("For information about citing R packages and Bioconductor, see citation('Biobase').")
