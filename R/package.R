@@ -26,8 +26,11 @@ NULL
 #' }
 #'
 #' @section Example Data:
-#' \code{example_feature_table} - A synthetic feature table (50 features x 20 samples)
-#' for testing and demonstration.
+#' \describe{
+#'   \item{\code{example_feature_table}}{Synthetic feature table (50 features x 20 samples)}
+#'   \item{\code{example_phyloseq}}{Synthetic phyloseq object (100 features x 30 samples)}
+#'   \item{\code{example_treesummarizedexperiment}}{Synthetic TSE object (100 features x 30 samples)}
+#' }
 #'
 #' @docType package
 #' @name featuretablefilter
