@@ -37,18 +37,4 @@ Useful links:
 }
 
 }
-\author{
-\strong{Maintainer}: Vojtech Barton \email{vojtech.barton@gmail.com} (\href{https://orcid.org/0000-0002-1918-2989}{ORCID})
-
-Authors:
-\itemize{
-  \item Vojtech Barton \email{vojtech.barton@gmail.com} (\href{https://orcid.org/0000-0002-1918-2989}{ORCID})
-}
-
-Other contributors:
-\itemize{
-  \item Maintainer Vojtech Barton \email{vojtech.barton@gmail.com}
-}
-
-}
 \keyword{internal}

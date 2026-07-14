@@ -1,5 +1,6 @@
 #' @importFrom S4Vectors DataFrame
 #' @importFrom zoo rollapply
+#' @import ggplot2
 NULL
 
 # Null coalescing operator for default values
