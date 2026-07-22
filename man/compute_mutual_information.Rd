@@ -23,7 +23,7 @@ Default is TRUE (recommended for small sample sizes).}
 
 \item{min_prevalence}{Minimum proportion of samples where a feature must be present
 (non-zero) to be included in MI calculation. Default is 0.05
-(5% of samples). Features below this are excluded to reduce
+(5\% of samples). Features below this are excluded to reduce
 computational burden and focus on meaningful signals.}
 }
 \value{
@@ -40,11 +40,8 @@ This function uses a k-nearest neighbors approach for continuous data,
 which is more robust than histogram-based methods for sparse microbiome data.
 }
 \examples{
-# Create example feature table
-# mat <- matrix(rpois(100 * 20, lambda = 5), nrow = 100, ncol = 20)
-# mi_matrix <- compute_mutual_information(mat)
-
-# Use with prevalence filtering
-# filtered_mat <- table[table[, -1] > 0][rowSums(table[, -1] > 0) / ncol(table) > 0.05, ]
-# mi_matrix <- compute_mutual_information(as.matrix(filtered_mat[, -1]))
+data(example_feature_table)
+abund <- as.matrix(example_feature_table[1:5, -1])
+result <- compute_mutual_information(abund, k = 3)
+result
 }

@@ -19,8 +19,7 @@ For uneven communities, ENS < S, reflecting that rare species contribute less
 to the "effective" diversity.
 }
 \examples{
-# Example feature table (rows = samples, cols = features)
-mat <- matrix(c(25, 25, 25, 25, 80, 5, 5, 5), nrow = 2, byrow = TRUE)
-colnames(mat) <- c("f1", "f2", "f3", "f4")
-calc_shannon_ens(mat)
+data(example_feature_table)
+result <- calc_shannon_ens(as.matrix(example_feature_table[, -1]))
+head(result)
 }

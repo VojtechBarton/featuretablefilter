@@ -10,17 +10,21 @@
 #' @param floor Minimum possible cutoff value. The returned cutoff will not be lower than this.
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{cutoff}{The estimated minimum read threshold}
 #'   \item{q1}{First quartile (25th percentile) of coverage}
 #'   \item{q3}{Third quartile (75th percentile) of coverage}
 #'   \item{iqr}{Interquartile range (Q3 - Q1)}
 #'   \item{n_samples}{Total number of samples}
 #'   \item{n_filtered}{Number of samples that would be filtered at this cutoff}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # estimate_iqr_cutoff(my_table, multiplier = 1.5)
+#' data(example_feature_table)
+#' result <- estimate_iqr_cutoff(example_feature_table)
+#' result$cutoff
 estimate_iqr_cutoff <- function(table, multiplier = 1.5, floor = 0) {
   # Calculate total reads per sample
   sample_sums <- colSums(table[, -1, drop = FALSE])

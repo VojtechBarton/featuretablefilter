@@ -40,21 +40,9 @@ Creates a TreeSummarizedExperiment object from a standard feature table data.fra
 Optionally incorporates rowData (taxonomy), colData (sample metadata), and reduced dimensions.
 }
 \examples{
-# Create simple TSE from feature table
-# table <- data.frame(feature_id = paste0("ASV_", 1:10), matrix(rpois(100, 5), 10, 10))
-# tse <- to_TSE(table)
-
-# With rowData (taxonomy) and colData (sample metadata)
-# rowData <- data.frame(
-#   Kingdom = rep("Bacteria", 10),
-#   Phylum = sample(c("Firmicutes", "Bacteroidetes"), 10, replace = TRUE)
-# )
-# rownames(rowData) <- paste0("ASV_", 1:10)
-#
-# colData <- data.frame(
-#   Condition = rep(c("Control", "Treatment"), 5)
-# )
-# rownames(colData) <- colnames(table)[-1]
-#
-# tse <- to_TSE(table, rowData = rowData, colData = colData)
+if (requireNamespace("TreeSummarizedExperiment", quietly = TRUE)) {
+  data(example_feature_table)
+  tse <- to_TSE(example_feature_table)
+  print(tse)
+}
 }

@@ -17,7 +17,7 @@ First column should be feature IDs, remaining columns are sample counts.}
 
 \item{min_coverage}{Minimum total reads required per sample. Samples below this are removed first.}
 
-\item{relative_threshold}{Relative abundance threshold as a proportion (e.g., 0.01 for 1%).
+\item{relative_threshold}{Relative abundance threshold as a proportion (e.g., 0.01 for 1\%).
 This is converted to an absolute threshold based on the
 minimum coverage sample.}
 
@@ -26,11 +26,13 @@ in all samples. Default is TRUE.}
 }
 \value{
 A list containing:
+\describe{
   \item{table}{The filtered feature table}
   \item{absolute_threshold}{The calculated absolute threshold (relative_threshold * min_sample_coverage)}
   \item{min_sample_coverage}{Coverage of the least covered sample after initial filtering}
   \item{n_samples_removed}{Number of samples removed due to low coverage}
   \item{n_features_removed}{Number of features removed (if remove_features = TRUE)}
+}
 }
 \description{
 Calculates an absolute abundance threshold based on a relative percentage
@@ -38,7 +40,11 @@ of the least covered sample, then applies this threshold to filter features.
 This ensures consistent filtering across all samples.
 }
 \examples{
-# Filter: min 1000 reads/sample, then 1\% relative threshold
-# result <- filter_by_relative_cutoff(table, min_coverage = 1000, relative_threshold = 0.01)
-# filtered_table <- result$table
+data(example_feature_table)
+result <- filter_by_relative_cutoff(
+  example_feature_table,
+  min_coverage = 1000,
+  relative_threshold = 0.01
+)
+nrow(result$table)
 }

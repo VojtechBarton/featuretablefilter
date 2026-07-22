@@ -10,16 +10,20 @@
 #' @param floor Minimum possible cutoff value. The returned cutoff will not be lower than this.
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{cutoff}{The estimated minimum read threshold}
 #'   \item{median}{Median coverage across samples}
 #'   \item{mad}{Median Absolute Deviation of coverage}
 #'   \item{n_samples}{Total number of samples}
 #'   \item{n_filtered}{Number of samples that would be filtered at this cutoff}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # estimate_mad_cutoff(my_table, multiplier = 3)
+#' data(example_feature_table)
+#' result <- estimate_mad_cutoff(example_feature_table)
+#' result$cutoff
 estimate_mad_cutoff <- function(table, multiplier = 3, floor = 0) {
   # Calculate total reads per sample
   sample_sums <- colSums(table[, -1, drop = FALSE])

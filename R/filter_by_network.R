@@ -15,7 +15,7 @@
 #'                        Default is TRUE (recommended for small sample sizes).
 #' @param min_prevalence Minimum proportion of samples where a feature must be present
 #'                       (non-zero) to be included in MI calculation. Default is 0.05
-#'                       (5% of samples). Features below this are excluded to reduce
+#'                       (5\% of samples). Features below this are excluded to reduce
 #'                       computational burden and focus on meaningful signals.
 #'
 #' @return A symmetric matrix of mutual information values between features.
@@ -24,13 +24,10 @@
 #' @export
 #'
 #' @examples
-#' # Create example feature table
-#' # mat <- matrix(rpois(100 * 20, lambda = 5), nrow = 100, ncol = 20)
-#' # mi_matrix <- compute_mutual_information(mat)
-#'
-#' # Use with prevalence filtering
-#' # filtered_mat <- table[table[, -1] > 0][rowSums(table[, -1] > 0) / ncol(table) > 0.05, ]
-#' # mi_matrix <- compute_mutual_information(as.matrix(filtered_mat[, -1]))
+#' data(example_feature_table)
+#' abund <- as.matrix(example_feature_table[1:5, -1])
+#' result <- compute_mutual_information(abund, k = 3)
+#' result
 compute_mutual_information <- function(abundances, k = 3, bias_correction = TRUE,
                                         min_prevalence = 0.05) {
   # Validate inputs
@@ -203,26 +200,26 @@ estimate_mi_knn <- function(x, y, k = 3, bias_correction = TRUE) {
 #'                                   or "mst" (minimum spanning tree). Default is "mean_sd".
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{degree_centrality}{Number of significant connections per feature}
 #'   \item{strength}{Sum of connection strengths per feature}
 #'   \item{betweenness}{Betweenness centrality (if igraph available)}
 #'   \item{threshold_used}{The threshold value used}
 #'   \item{n_edges}{Total number of edges in the network}
 #'   \item{adjacency_matrix}{Binary adjacency matrix (1 = connected, 0 = not)}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Compute MI matrix first
-#' # mi_matrix <- compute_mutual_information(feature_table)
-#'
-#' # Get network metrics
-#' # network_metrics <- analyze_feature_network(mi_matrix)
-#'
-#' # Features with zero degree are likely artifacts
-#' # disconnected_features <- names(network_metrics$degree_centrality[
-#' #   network_metrics$degree_centrality == 0
-#' # ])
+#' if (requireNamespace("igraph", quietly = TRUE)) {
+#'   data(example_feature_table)
+#'   abund <- as.matrix(example_feature_table[, -1])
+#'   similarity <- abs(cor(t(abund)))
+#'   diag(similarity) <- 0
+#'   result <- analyze_feature_network(similarity)
+#'   head(result$degree_centrality)
+#' }
 analyze_feature_network <- function(similarity_matrix, threshold = NULL,
                                      method = c("mi", "cor"),
                                      automatic_threshold_method = c("mean_sd", "percentile", "mst")) {
@@ -343,21 +340,20 @@ analyze_feature_network <- function(similarity_matrix, threshold = NULL,
 #'
 #' @return A filtered feature table with disconnected features removed.
 #'         Attributes include:
+#' \describe{
 #'   \item{n_filtered_out}{Number of features removed}
 #'   \item{network_summary}{List with network statistics}
 #'   \item{disconnected_features}{Character vector of removed feature names}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Filter out features with no network connections
-#' # cleaned_table <- filter_by_network_connectivity(my_table)
-#'
-#' # Use correlation instead of MI (faster but less sensitive to non-linear patterns)
-#' # cleaned_table <- filter_by_network_connectivity(my_table, similarity_type = "cor")
-#'
-#' # Require at least 2 connections to keep a feature
-#' # cleaned_table <- filter_by_network_connectivity(my_table, min_degree = 2)
+#' if (requireNamespace("igraph", quietly = TRUE)) {
+#'   data(example_feature_table)
+#'   result <- filter_by_network_connectivity(example_feature_table, verbose = FALSE)
+#'   nrow(result)
+#' }
 filter_by_network_connectivity <- function(table, similarity_type = c("mi", "cor"),
                                             threshold = NULL, min_degree = 1,
                                             min_prevalence = 0.05, k = 3,
@@ -485,9 +481,14 @@ filter_by_network_connectivity <- function(table, similarity_type = c("mi", "cor
 #' @export
 #'
 #' @examples
-#' # mi_matrix <- compute_mutual_information(feature_table)
-#' # network <- analyze_feature_network(mi_matrix)
-#' # plot_feature_network(network, rownames(feature_table))
+#' if (requireNamespace("igraph", quietly = TRUE)) {
+#'   data(example_feature_table)
+#'   abund <- as.matrix(example_feature_table[, -1])
+#'   similarity <- abs(cor(t(abund)))
+#'   diag(similarity) <- 0
+#'   net <- analyze_feature_network(similarity)
+#'   plot_feature_network(net)
+#' }
 plot_feature_network <- function(network_metrics, feature_names = NULL,
                                   top_n = 10, color_by = c("degree", "strength")) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {

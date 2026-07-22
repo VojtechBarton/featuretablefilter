@@ -25,8 +25,10 @@ Extracts the assay data from a TreeSummarizedExperiment object and converts it t
 the standard data.frame format used by this package.
 }
 \examples{
-# if (requireNamespace("TreeSummarizedExperiment", quietly = TRUE)) {
-#   # Assuming tse is a TreeSummarizedExperiment object
-#   df <- from_TSE(tse)
-# }
+if (requireNamespace("TreeSummarizedExperiment", quietly = TRUE)) {
+  example_treesummarizedexperiment <- readRDS(system.file("extdata",
+    "example_treesummarizedexperiment_object.rds", package = "featuretablefilter"))
+  df <- from_TSE(example_treesummarizedexperiment)
+  head(df[, 1:3])
+}
 }

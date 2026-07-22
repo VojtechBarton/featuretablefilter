@@ -5,18 +5,8 @@
 # All functions are internal (. prefix).
 # =============================================================================
 
-
-#' Generate all QC comparison plots
-#'
-#' Creates and saves all QC visualization plots comparing original and filtered tables.
-#'
-#' @param original_table Original feature table
-#' @param filtered_table Filtered feature table
-#' @param output_dir Output directory for plots
-#' @param prefix Prefix for output filenames
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return List of paths to generated plot files
+#' Generate all QC comparison plots#'#' Creates and saves all QC visualization plots comparing original and filtered tables.#'#' @param original_table Original feature table#' @param filtered_table Filtered feature table#' @param output_dir Output directory for plots#' @param prefix Prefix for output filenames#' @param verbose Logical. Print progress messages?#'#' @return List of paths to generated plot files
+#' @noRd
 .generate_qc_plots <- function(original_table, filtered_table, output_dir, prefix, verbose = TRUE) {
   plot_paths <- list()
 
@@ -33,18 +23,8 @@
   plot_paths
 }
 
-
-#' Generate sparsity elbow plot
-#'
-#' Saves a plot of the sparsity elbow detection result.
-#'
-#' @param elbow_result Result from identify_sparsity_elbow()
-#' @param output_dir Output directory
-#' @param prefix Prefix for filename
-#' @param main Plot title
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return Path to saved plot file
+#' Generate sparsity elbow plot#'#' Saves a plot of the sparsity elbow detection result.#'#' @param elbow_result Result from identify_sparsity_elbow()#' @param output_dir Output directory#' @param prefix Prefix for filename#' @param main Plot title#' @param verbose Logical. Print progress messages?#'#' @return Path to saved plot file
+#' @noRd
 .generate_sparsity_elbow_plot <- function(elbow_result, output_dir, prefix, main, verbose = TRUE) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     warning("ggplot2 required for sparsity elbow plot")
@@ -59,18 +39,8 @@
   plot_path
 }
 
-
-#' Generate depth-sparsity outlier plot
-#'
-#' Saves a plot of the depth-sparsity outlier analysis result.
-#'
-#' @param analysis_result Result from analyze_depth_sparsity()
-#' @param output_dir Output directory
-#' @param prefix Prefix for filename
-#' @param main Plot title
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return Path to saved plot file
+#' Generate depth-sparsity outlier plot#'#' Saves a plot of the depth-sparsity outlier analysis result.#'#' @param analysis_result Result from analyze_depth_sparsity()#' @param output_dir Output directory#' @param prefix Prefix for filename#' @param main Plot title#' @param verbose Logical. Print progress messages?#'#' @return Path to saved plot file
+#' @noRd
 .generate_depth_sparsity_plot <- function(analysis_result, output_dir, prefix, main, verbose = TRUE) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     warning("ggplot2 required for depth-sparsity plot")
@@ -85,18 +55,8 @@
   plot_path
 }
 
-
-#' Generate scree analysis plot
-#'
-#' Saves a plot of the scree/saturation analysis result.
-#'
-#' @param scree_result Result from compute_scree()
-#' @param output_dir Output directory
-#' @param prefix Prefix for filename
-#' @param main Plot title
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return Path to saved plot file
+#' Generate scree analysis plot#'#' Saves a plot of the scree/saturation analysis result.#'#' @param scree_result Result from compute_scree()#' @param output_dir Output directory#' @param prefix Prefix for filename#' @param main Plot title#' @param verbose Logical. Print progress messages?#'#' @return Path to saved plot file
+#' @noRd
 .generate_scree_plot <- function(scree_result, output_dir, prefix, main, verbose = TRUE) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     warning("ggplot2 required for scree plot")
@@ -111,26 +71,8 @@
   plot_path
 }
 
-
-#' Generate text summary report
-#'
-#' Creates a comprehensive text report of the filtering pipeline results.
-#'
-#' @param original_stats Stats before filtering
-#' @param qc_metrics QC metrics from compute_filtering_qc()
-#' @param presence_stats Presence analysis statistics
-#' @param filtering_steps List of filtering step summaries
-#' @param sparsity_elbow_result Sparsity elbow result (optional)
-#' @param depth_sparsity_result Depth-sparsity result (optional)
-#' @param scree_result Scree analysis result (optional)
-#' @param output_dir Output directory
-#' @param prefix Prefix for filename
-#' @param verbose Logical. Print progress messages?
-#' @param input_description Description of input source (file path or object type)
-#' @param pipeline_params Named list of pipeline parameters used
-#' @param filtered_stats Stats after filtering (optional, for comparison)
-#'
-#' @return Path to saved report file
+#' Generate text summary report#'#' Creates a comprehensive text report of the filtering pipeline results.#'#' @param original_stats Stats before filtering#' @param qc_metrics QC metrics from compute_filtering_qc()#' @param presence_stats Presence analysis statistics#' @param filtering_steps List of filtering step summaries#' @param sparsity_elbow_result Sparsity elbow result (optional)#' @param depth_sparsity_result Depth-sparsity result (optional)#' @param scree_result Scree analysis result (optional)#' @param output_dir Output directory#' @param prefix Prefix for filename#' @param verbose Logical. Print progress messages?#' @param input_description Description of input source (file path or object type)#' @param pipeline_params Named list of pipeline parameters used#' @param filtered_stats Stats after filtering (optional, for comparison)#'#' @return Path to saved report file
+#' @noRd
 .generate_filtering_report <- function(original_stats, qc_metrics, presence_stats,
                                         filtering_steps, sparsity_elbow_result,
                                         depth_sparsity_result, scree_result,
@@ -163,7 +105,7 @@
   # Pipeline parameters summary
   if (!is.null(pipeline_params) && length(pipeline_params) > 0) {
     report_lines <- c(report_lines, "--- PIPELINE PARAMETERS ---")
-    param_lines <- sapply(names(pipeline_params), function(name) {
+    param_lines <- vapply(names(pipeline_params), function(name) {
       val <- pipeline_params[[name]]
       if (is.null(val)) {
         sprintf("  %s: NULL", name)
@@ -176,8 +118,8 @@
       } else {
         sprintf("  %s: %s", name, paste(val, collapse = ", "))
       }
-    })
-    report_lines <- c(report_lines, unlist(param_lines), "")
+    }, character(1))
+    report_lines <- c(report_lines, param_lines, "")
   }
 
   report_lines <- c(report_lines,
@@ -349,8 +291,8 @@
   list(text = report_path, markdown = md_path, pdf = pdf_path)
 }
 
-
 #' Generate Markdown version of the filtering report
+#' @noRd
 .generate_markdown_report <- function(original_stats, qc_metrics, presence_stats,
                                        filtering_steps, sparsity_elbow_result,
                                        depth_sparsity_result, scree_result,
@@ -471,7 +413,7 @@
   md_lines <- c(md_lines,
     "## QC Metrics Summary",
     "",
-    sprintf("- **Sparsity:** %.2f%% → %.2f%% (drop: %.2f pp)",
+    sprintf("- **Sparsity:** %.2f%% -> %.2f%% (drop: %.2f pp)",
             qc_metrics$sparsity_original * 100,
             qc_metrics$sparsity_filtered * 100,
             qc_metrics$sparsity_drop_percent),
@@ -499,7 +441,7 @@
       md_lines <- c(md_lines, sprintf("- **Procrustes p-value:** %.4f", qc_metrics$procrustes_pvalue))
     }
     md_lines <- c(md_lines,
-      sprintf("- **Procrustes M² Statistic:** %.6f *(lower = more similar)*", qc_metrics$procrustes_m2)
+      sprintf("- **Procrustes M^2 Statistic:** %.6f *(lower = more similar)*", qc_metrics$procrustes_m2)
     )
   }
   md_lines <- c(md_lines, "")
@@ -525,8 +467,8 @@
   md_path
 }
 
-
 #' Generate PDF version of the filtering report
+#' @noRd
 .generate_pdf_report <- function(original_stats, qc_metrics, presence_stats,
                                   filtering_steps, sparsity_elbow_result,
                                   depth_sparsity_result, scree_result,
@@ -631,7 +573,7 @@
     rmd_content <- c(rmd_content,
       "## Compositional Similarity",
       "",
-      sprintf("- Procrustes M²: %.6f *(lower = more similar)*", qc_metrics$procrustes_m2)
+      sprintf("- Procrustes M^2: %.6f *(lower = more similar)*", qc_metrics$procrustes_m2)
     )
     if (!is.na(qc_metrics$procrustes_correlation)) {
       rmd_content <- c(rmd_content, sprintf("- Procrustes Correlation: %.4f", qc_metrics$procrustes_correlation))

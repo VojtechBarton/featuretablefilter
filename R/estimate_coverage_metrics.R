@@ -10,9 +10,10 @@
 #' @param table A feature table (data.frame or matrix) with features as rows and samples as columns.
 #'              First column should be feature IDs, remaining columns are sample counts.
 #' @param target_coverage Target coverage threshold (0-1). Samples below this coverage will be flagged.
-#'                        Default is 0.95 (95% coverage).
+#'                        Default is 0.95 (95\% coverage).
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{sample_coverage}{Named vector of coverage estimates for each sample}
 #'   \item{mean_coverage}{Mean coverage across all samples}
 #'   \item{min_coverage}{Minimum coverage among all samples}
@@ -23,16 +24,14 @@
 #'   \item{n_samples_below_target}{Number of samples below target coverage}
 #'   \item{target_coverage}{The target coverage value used}
 #'   \item{suggested_cutoff}{Suggested minimum read cutoff based on coverage analysis}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Estimate Good's coverage for all samples
-#' # coverage_est <- estimate_good_coverage(table, target_coverage = 0.95)
-#' # print(coverage_est)
-#'
-#' # Filter samples to achieve at least 90% coverage
-#' # coverage_est <- estimate_good_coverage(table, target_coverage = 0.90)
+#' data(example_feature_table)
+#' result <- estimate_good_coverage(example_feature_table)
+#' result$mean_coverage
 estimate_good_coverage <- function(table, target_coverage = 0.95) {
   # Extract abundance matrix (exclude feature ID column)
   abundances <- as.matrix(table[, -1, drop = FALSE])
@@ -97,9 +96,10 @@ estimate_good_coverage <- function(table, target_coverage = 0.95) {
 #' @param table A feature table (data.frame or matrix) with features as rows and samples as columns.
 #'              First column should be feature IDs, remaining columns are sample counts.
 #' @param target_coverage Target coverage threshold (0-1). Samples below this coverage will be flagged.
-#'                        Default is 0.90 (90% coverage).
+#'                        Default is 0.90 (90\% coverage).
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{sample_coverage}{Named vector of Chao coverage estimates for each sample}
 #'   \item{mean_coverage}{Mean coverage across all samples}
 #'   \item{min_coverage}{Minimum coverage among all samples}
@@ -112,17 +112,14 @@ estimate_good_coverage <- function(table, target_coverage = 0.95) {
 #'   \item{n_samples_below_target}{Number of samples below target coverage}
 #'   \item{target_coverage}{The target coverage value used}
 #'   \item{suggested_cutoff}{Suggested minimum read cutoff based on coverage analysis}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Estimate Chao's coverage for all samples
-#' # coverage_est <- estimate_chao_coverage(table, target_coverage = 0.90)
-#' # print(coverage_est)
-#'
-#' # Compare Good's vs Chao's coverage
-#' # good_cov <- estimate_good_coverage(table, target_coverage = 0.95)
-#' # chao_cov <- estimate_chao_coverage(table, target_coverage = 0.90)
+#' data(example_feature_table)
+#' result <- estimate_chao_coverage(example_feature_table)
+#' result$mean_coverage
 estimate_chao_coverage <- function(table, target_coverage = 0.90) {
   # Extract abundance matrix (exclude feature ID column)
   abundances <- as.matrix(table[, -1, drop = FALSE])

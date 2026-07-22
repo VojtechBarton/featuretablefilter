@@ -25,11 +25,10 @@ Extracts the OTU table from a phyloseq object and converts it to the standard
 data.frame format used by this package (feature IDs in first column, samples as columns).
 }
 \examples{
-# if (requireNamespace("phyloseq", quietly = TRUE)) {
-#   ps <- phyloseq::phyloseq(
-#     phyloseq::otu_table(matrix(rpois(100, 5), 10, 10), taxa_are_rows = TRUE),
-#     phyloseq::tax_table(matrix(sample(c("A","B","C"), 100, replace=TRUE), 10, 10))
-#   )
-#   df <- from_phyloseq(ps)
-# }
+if (requireNamespace("phyloseq", quietly = TRUE)) {
+  example_phyloseq <- readRDS(system.file("extdata", "example_phyloseq_object.rds",
+    package = "featuretablefilter"))
+  df <- from_phyloseq(example_phyloseq)
+  head(df[, 1:3])
+}
 }

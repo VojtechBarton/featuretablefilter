@@ -11,8 +11,10 @@
 #'                        Default is 0.95 for Good's, 0.90 for Chao's.
 #' @param min_reads Optional minimum absolute read count cutoff applied in addition to coverage.
 #'                  Useful as a safety floor. Default is 0 (no additional cutoff).
+#' @param verbose Logical. If TRUE, prints progress messages. Default is TRUE.
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{table}{Filtered feature table}
 #'   \item{coverage_before}{Coverage estimates before filtering}
 #'   \item{coverage_after}{Coverage estimates after filtering}
@@ -23,17 +25,18 @@
 #'   \item{n_samples_filtered}{Number of samples removed}
 #'   \item{method}{Method used ("good" or "chao")}
 #'   \item{target_coverage}{Target coverage threshold used}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Filter using Good's coverage (keep samples with >= 95% coverage)
-#' # result <- filter_by_coverage_estimator(table, method = "good", target_coverage = 0.95)
-#'
-#' # Filter using Chao's coverage (keep samples with >= 90% coverage)
-#' # result <- filter_by_coverage_estimator(table, method = "chao", target_coverage = 0.90)
+#' data(example_feature_table)
+#' result <- filter_by_coverage_estimator(example_feature_table, method = "good",
+#'                                        verbose = FALSE)
+#' ncol(result$table)
 filter_by_coverage_estimator <- function(table, method = c("good", "chao"),
-                                          target_coverage = NULL, min_reads = 0) {
+                                          target_coverage = NULL, min_reads = 0,
+                                          verbose = TRUE) {
   # Validate method
   method <- match.arg(method)
 
@@ -60,6 +63,9 @@ filter_by_coverage_estimator <- function(table, method = c("good", "chao"),
 
   # Also ensure we don't remove all samples - keep at least the best ones
   if (all(!keep_samples)) {
+    if (verbose) {
+      message("No samples met the coverage threshold; keeping the best sample.")
+    }
     # Keep the sample with highest coverage
     best_sample <- which.max(coverage_before)
     keep_samples <- rep(FALSE, length(keep_samples))
@@ -69,6 +75,13 @@ filter_by_coverage_estimator <- function(table, method = c("good", "chao"),
   # Filter the table
   filtered_table <- filter_by_coverage(table, min_reads = 0)  # Get all data first
   filtered_table <- filtered_table[, c(TRUE, keep_samples), drop = FALSE]
+
+  if (verbose) {
+    message(sprintf(
+      "Filtered %d of %d samples by %s coverage (target: %.2f%%)",
+      sum(!keep_samples), n_samples_before, method, target_coverage * 100
+    ))
+  }
 
   # Preserve column names
   if (is.matrix(filtered_table)) {

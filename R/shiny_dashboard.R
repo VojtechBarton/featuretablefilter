@@ -18,18 +18,10 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # Launch the dashboard in default browser (100 MB max upload)
-#' runDashboard()
-#'
-#' # Launch on specific port
-#' runDashboard(port = 3838)
-#'
-#' # Launch without auto-opening browser
-#' runDashboard(launch.browser = FALSE)
-#'
-#' # Launch with larger upload limit (500 MB)
-#' runDashboard(max_upload_size = 500 * 1024 * 1024)
+#' \donttest{
+#' if (interactive()) {
+#'   runDashboard()
+#' }
 #' }
 runDashboard <- function(host = "127.0.0.1", port = 0,
                           launch.browser = TRUE, max_upload_size = 100 * 1024 * 1024,

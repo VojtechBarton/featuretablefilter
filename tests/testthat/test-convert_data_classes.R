@@ -65,6 +65,8 @@ test_that("to_phyloseq creates valid object", {
     Sample_3 = rpois(10, 5)
   )
 
+  skip_if_not_installed("phyloseq")
+
   # Convert to phyloseq
   ps <- to_phyloseq(df)
 

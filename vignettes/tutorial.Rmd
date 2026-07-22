@@ -1,8 +1,15 @@
 ---
 title: "featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering"
-author: "Vojtech Barton"
+author:
+  - name: "Vojtech Barton"
+    email: "vojtech.barton@gmail.com"
 date: "`r Sys.Date()`"
-output: html_document
+package: featuretablefilter
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_float: true
+    fig_crop: false
 vignette: >
   %\VignetteIndexEntry{featuretablefilter Tutorial}
   %\VignetteEngine{knitr::rmarkdown}
@@ -14,8 +21,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.width = 8,
-  fig.height = 6,
-  eval = FALSE  # Set to TRUE when running with actual data
+  fig.height = 6
 )
 ```
 
@@ -38,70 +44,47 @@ Microbiome sequencing data often contains artifacts that can bias downstream ana
 - **Cross-talk/index-hopping**: Reads misassigned between samples on Illumina patterned flow cells
 - **Rare features**: May represent contamination or technical artifacts
 
-Proper filtering improves:
-- Statistical power by reducing noise
-- Computational efficiency
-- Biological interpretability
-- Reproducibility across studies
+Proper filtering improves statistical power, computational efficiency, biological interpretability, and reproducibility across studies.
 
-# Installation
+# Loading the Package and Example Data
 
-```{r installation, eval = FALSE}
-# Install from GitHub
-devtools::install_github("VojtechBarton/featuretablefilter")
-
-# Load the package
+```{r loading}
 library(featuretablefilter)
 
-# Required dependencies (optional features)
-# install.packages(c("phyloseq", "vegan", "igraph"))
-# BiocManager::install(c("TreeSummarizedExperiment", "SingleCellExperiment"))
+# Load example feature table shipped with the package
+data(example_feature_table)
+head(example_feature_table[, 1:4])
+dim(example_feature_table)
 ```
 
 # Loading Your Data
 
 ## From File (TSV or CSV)
 
-```{r load-file, eval = FALSE}
-# Auto-detects format (TSV vs CSV) and header presence
-table <- load_feature_table("my_feature_table.tsv")
+`load_feature_table()` auto-detects format (TSV vs CSV) and header presence:
 
-head(table)
-#   FeatureID Sample_1 Sample_2 Sample_3 ...
-# 1     ASV_1      125       89      234
-# 2     ASV_2       45       67       12
-# ...
-
-dim(table)
-# [1] 1247   48  # 1247 features, 47 samples (+ 1 feature ID column)
+```{r load-file}
+file_path <- system.file("extdata", "example_feature_table.tsv",
+                         package = "featuretablefilter")
+table <- load_feature_table(file_path)
+head(table[, 1:4])
 ```
 
 ## From phyloseq Object
 
 ```{r load-phyloseq, eval = FALSE}
 library(phyloseq)
-
-# Load your phyloseq object
 ps <- readRDS("my_phyloseq_object.rds")
-
-# Convert to feature table format
 table <- from_phyloseq(ps, include_taxa = TRUE)
-
-# Preserve the original for later conversion back
-original_ps <- ps
 ```
 
 ## From TreeSummarizedExperiment
 
 ```{r load-tse, eval = FALSE}
 library(TreeSummarizedExperiment)
-
 tse <- readRDS("my_tse_object.rds")
-
-# Extract assay with rowData (taxonomy) if available
 result <- from_TSE(tse, add_row_data = TRUE, add_col_data = TRUE)
 table <- result$table
-sample_metadata <- result$sample_data
 ```
 
 # Understanding Filtering Methods
@@ -124,75 +107,90 @@ sample_metadata <- result$sample_data
 If you used **DADA2** or **Deblur** (ASV-level resolution):
 
 - **Avoid aggressive singleton filtering**: ASVs with single reads may be real biological variants, especially in low-biomass samples. DADA2's error modeling already distinguishes true variants from sequencing errors.
-- **Use `mad` or `iqr` coverage methods** (NOT Good's/Chao's): Statistical outlier detection is more appropriate because:
-  - Good's/Chao's coverage assume random sampling, but DADA2's denoising changes the error structure
-  - DADA2 produces variable sequencing depths naturally; the algorithm works across different depths
-  - MAD/IQR only remove true statistical outliers, preserving valid low-biomass samples
-- **Skip cross-talk filtering**: DADA2 already removes chimeric sequences; additional cross-talk filtering may remove real rare variants
+- **Use `mad` or `iqr` coverage methods** (NOT Good's/Chao's): Statistical outlier detection is more appropriate because DADA2's denoising changes the error structure and produces variable sequencing depths naturally.
+- **Skip cross-talk filtering**: DADA2 already removes chimeric sequences; additional cross-talk filtering may remove real rare variants.
 
-```{r dada2-recommended, eval = FALSE}
-# Recommended for DADA2 data
+```{r dada2-recommended}
+data(example_feature_table)
 result <- run_filtering_pipeline(
-  input = "dada2_table.tsv",
-  cov_filter_method = "mad",         # Statistical outlier detection (NOT good/chao)
-  cov_threshold = 2,                 # Remove true outliers only (2 MAD below median)
-  abun_filter_method = "joint",      # Combined abundance-prevalence
-  abun_threshold = 0.0001,           # Very low abundance threshold
-  abun_prevalence_threshold = 0.05,  # Present in at least 5% of samples
-  abun_logic = "OR",                 # Keep if meets either criterion
-  crosstalk_filter_method = "none",  # Skip cross-talk for DADA2
-  singleton_filter_method = "none"   # Don't filter singletons (DADA2 handled errors)
+  input = example_feature_table,
+  output_dir = tempdir(),
+  prefix = "dada2_example",
+  cov_filter_method = "mad",
+  cov_threshold = 2,
+  abun_filter_method = "joint",
+  abun_threshold = 0.0001,
+  abun_prevalence_threshold = 0.05,
+  abun_logic = "OR",
+  crosstalk_filter_method = "none",
+  singleton_filter_method = "none",
+  generate_report = FALSE,
+  verbose = FALSE
 )
+result$filtering_summary$coverage$n_samples_after
 ```
 
 #### For OTU Clustering (97% similarity)
 
 OTU tables are more robust to some artifacts but still benefit from filtering:
 
-```{r otu-recommended, eval = FALSE}
-# Recommended for OTU data
+```{r otu-recommended}
+data(example_feature_table)
 result <- run_filtering_pipeline(
-  input = "otu_table.tsv",
-  cov_filter_method = "mad",         # MAD-based outlier detection
-  cov_threshold = 2,                 # 2 MAD below median
-  abun_filter_method = "absolute",   # Remove very rare OTUs
-  abun_threshold = 5,                # At least 5 total reads
-  singleton_filter_method = "absolute",  # Filter high singleton ratios
-  singleton_max_ratio = 0.15         # Max 15% singletons
+  input = example_feature_table,
+  output_dir = tempdir(),
+  prefix = "otu_example",
+  cov_filter_method = "mad",
+  cov_threshold = 2,
+  abun_filter_method = "absolute",
+  abun_threshold = 5,
+  singleton_filter_method = "absolute",
+  singleton_max_ratio = 0.15,
+  generate_report = FALSE,
+  verbose = FALSE
 )
+result$filtering_summary$abundance$n_features_after
 ```
 
 #### For 16S rRNA Amplicon Data (General)
 
-```{r 16s-general, eval = FALSE}
-# General recommendation for 16S amplicon data
+```{r 16s-general}
+data(example_feature_table)
 result <- run_filtering_pipeline(
-  input = "16s_table.tsv",
-  cov_filter_method = "good",
-  cov_target_coverage = 0.95,
-  abun_filter_method = "relative_cutoff",
-  abun_threshold = 0.01,             # 1% of min-coverage sample
-  min_coverage_for_relative = 1000,
+  input = example_feature_table,
+  output_dir = tempdir(),
+  prefix = "16s_example",
+  cov_filter_method = "absolute",
+  cov_threshold = 1000,
+  abun_filter_method = "relative",
+  abun_threshold = 0.001,
   generate_plots = TRUE,
-  generate_report = TRUE
+  generate_report = FALSE,
+  verbose = FALSE
 )
+result$filtering_summary$coverage$n_samples_after
 ```
 
 #### For Metagenomic Count Data
 
 Metagenomic feature tables (gene families, pathways) have different characteristics:
 
-```{r metagenomic, eval = FALSE}
-# For metagenomic count data
+```{r metagenomic}
+data(example_feature_table)
 result <- run_filtering_pipeline(
-  input = "metagenome_counts.tsv",
-  cov_filter_method = "iqr",         # IQR handles skewed distributions well
+  input = example_feature_table,
+  output_dir = tempdir(),
+  prefix = "metagenome_example",
+  cov_filter_method = "iqr",
   cov_threshold = 1.5,
   abun_filter_method = "absolute",
-  abun_threshold = 10,               # Higher absolute threshold for genes
-  abun_min_samples = 3,              # Must appear in at least 3 samples
-  run_scree_analysis = TRUE          # Help determine optimal cutoffs
+  abun_threshold = 10,
+  abun_min_samples = 3,
+  run_scree_analysis = TRUE,
+  generate_report = FALSE,
+  verbose = FALSE
 )
+result$filtering_summary$abundance$n_features_after
 ```
 
 ## Abundance Filtering Methods
@@ -209,229 +207,102 @@ result <- run_filtering_pipeline(
 
 ## Basic Usage
 
-```{r basic-pipeline, eval = FALSE}
+```{r basic-pipeline}
+data(example_feature_table)
 result <- run_filtering_pipeline(
-  # Input specification
-  input = "my_feature_table.tsv",    # Or phyloseq/TSE object
-
-  # Output settings
-  output_dir = "results/",            # Where to save outputs
-  prefix = "analysis1",               # Filename prefix
-
-  # Coverage filtering
-  cov_filter_method = "good",         # See table above for options
-  cov_target_coverage = 0.95,         # Target 95% ecological coverage
-
-  # Abundance filtering
+  input = example_feature_table,
+  output_dir = tempdir(),
+  prefix = "analysis1",
+  cov_filter_method = "good",
+  cov_target_coverage = 0.95,
   abun_filter_method = "joint",
-  abun_threshold = 0.001,             # 0.1% relative abundance
-  abun_prevalence_threshold = 0.2,    # Present in 20% of samples
-  abun_logic = "OR",                  # Keep if meets EITHER criterion
-
-  # Optional filters (default: none)
+  abun_threshold = 0.001,
+  abun_prevalence_threshold = 0.2,
+  abun_logic = "OR",
   singleton_filter_method = "none",
   crosstalk_filter_method = "none",
-
-  # Diagnostic analyses (default: TRUE)
   sparsity_elbow_detect = TRUE,
   depth_sparsity_detect = TRUE,
   run_scree_analysis = TRUE,
-
-  # Apply diagnostic recommendations (default: FALSE - review first!)
   apply_sparsity_elbow = FALSE,
   apply_depth_sparsity_outliers = FALSE,
-
-  # Output options
   generate_plots = TRUE,
-  generate_report = TRUE,
-  verbose = TRUE
+  generate_report = FALSE,
+  verbose = FALSE
 )
+
+nrow(result$filtered_table)
+ncol(result$filtered_table)
 ```
 
 ## Working with phyloseq Objects
 
 ```{r phyloseq-pipeline, eval = FALSE}
 library(phyloseq)
-
-# Load your phyloseq object
 ps <- readRDS("my_data.rds")
-
-# Run pipeline (automatically converts and preserves class)
 result <- run_filtering_pipeline(
-  input = ps,                          # Pass phyloseq object directly
+  input = ps,
   prefix = "ps_filtered",
   cov_filter_method = "good",
   abun_filter_method = "joint",
   generate_plots = TRUE,
-  generate_report = TRUE
+  generate_report = FALSE,
+  verbose = FALSE
 )
-
-# Result filtered_table is ALSO a phyloseq object!
 filtered_ps <- result$filtered_table
-
-# Verify class
 class(filtered_ps)
-# [1] "phyloseq"
-
-# Access components
-otu_table(filtered_ps)
-tax_table(filtered_ps)
-phy_tree(filtered_ps)  # Preserved if present in original
-sam_data(filtered_ps)
 ```
 
 ## Working with TreeSummarizedExperiment
 
 ```{r tse-pipeline, eval = FALSE}
 library(TreeSummarizedExperiment)
-
 tse <- readRDS("my_tse.rds")
-
 result <- run_filtering_pipeline(
   input = tse,
   prefix = "tse_filtered",
   cov_filter_method = "mad",
   abun_filter_method = "absolute",
-  abun_threshold = 10
+  abun_threshold = 10,
+  generate_report = FALSE,
+  verbose = FALSE
 )
-
-# filtered_table is also a TreeSummarizedExperiment
 filtered_tse <- result$filtered_table
-
-# Metadata preserved
-rowData(filtered_tse)
-colData(filtered_tse)
-rowTree(filtered_tse)  # If present
+class(filtered_tse)
 ```
 
 # Understanding Pipeline Outputs
 
 ## Return Value Structure
 
-The pipeline returns a list with these components:
-
-```{r return-structure, eval = FALSE}
-str(result)
-# List of 9
-# $ original_table       : 'phyloseq' num [1:1247, 1:47] ...
-# $ filtered_table       : 'phyloseq' num [1:856, 1:42] ...
-# $ qc_metrics           :List of 15
-#   $ sparsity_original          : num 0.623
-#   $ sparsity_filtered          : num 0.412
-#   $ sparsity_drop_percent      : num 21.1
-#   $ read_retention_percent     : num 94.5
-#   $ feature_retention_percent  : num 68.6
-#   $ sample_retention_percent   : num 89.4
-#   ... (more metrics)
-# $ presence_stats       :List of 10
-#   $ mean_sample_richness       : num 234
-#   $ mean_sample_richness_filt  : num 198
-#   ... (more statistics)
-# $ filtering_summary    :List of 8
-#   $ coverage           :List of 5
-#   $ abundance          :List of 7
-#   ... (details of each step)
-# $ sparsity_elbow_result:List of 7
-# $ depth_sparsity_result:List of 8
-# $ scree_result         :List of 6
-# $ input_class          : chr "phyloseq"
+```{r return-structure}
+names(result)
+str(result$qc_metrics)
 ```
 
 ## Key Metrics to Report
 
 When publishing, report these metrics:
 
-```{r reporting-metrics, eval = FALSE}
+```{r reporting-metrics}
 qc <- result$qc_metrics
 
-cat(sprintf("Initial dataset: %d features, %d samples\n",
+cat(sprintf("Initial dataset: %d features, %d samples\\n",
             nrow(result$original_table), ncol(result$original_table) - 1))
-cat(sprintf("After filtering: %d features, %d samples\n",
+cat(sprintf("After filtering: %d features, %d samples\\n",
             nrow(result$filtered_table), ncol(result$filtered_table) - 1))
-cat(sprintf("\nRetention rates:\n"))
-cat(sprintf("  Features: %.1f%% (%d removed)\n",
+cat(sprintf("\\nRetention rates:\\n"))
+cat(sprintf("  Features: %.1f%% (%d removed)\\n",
             qc$feature_retention_percent,
             nrow(result$original_table) - nrow(result$filtered_table)))
-cat(sprintf("  Samples: %.1f%% (%d removed)\n",
+cat(sprintf("  Samples: %.1f%% (%d removed)\\n",
             qc$sample_retention_percent,
             ncol(result$original_table) - ncol(result$filtered_table) - 1))
-cat(sprintf("  Reads: %.1f%%\n", qc$read_retention_percent))
-cat(sprintf("\nSparsity: %.1f%% → %.1f%% (%.1f pp improvement)\n",
+cat(sprintf("  Reads: %.1f%%\\n", qc$read_retention_percent))
+cat(sprintf("\\nSparsity: %.1f%% -> %.1f%% (%.1f pp improvement)\\n",
             qc$sparsity_original * 100,
             qc$sparsity_filtered * 100,
             qc$sparsity_drop_percent))
-```
-
-## Interpreting Generated Files
-
-### Text Report (`prefix_report.txt`)
-
-The pipeline generates a detailed text report:
-
-```
-========================================
-FEATURE TABLE FILTERING PIPELINE REPORT
-========================================
-
-Input file: my_data.tsv
-Output directory: results/
-Prefix: analysis1
-Date: 2026-01-15 14:32:45
-
---- ORIGINAL TABLE ---
-Features: 1247
-Samples: 47
-Total reads: 2,456,789
-
---- COVERAGE FILTERING ---
-Method: good
-Target coverage: 0.95 (95%)
-Mean coverage before filtering: 0.9234 (92.34%)
-Mean coverage after filtering: 0.9567 (95.67%)
-Samples filtered: 5 / 47 (10.6%)
-
---- ABUNDANCE FILTERING ---
-Method: joint
-Abundance threshold: 0.001 (0.10%)
-Prevalence threshold: 0.20 (20% of samples)
-Logic: OR
-
-Feature retention breakdown:
-  Met abundance only: 124 features
-  Met prevalence only: 89 features
-  Met both criteria: 643 features
-  Met neither (removed): 391 features
-
---- QC METRICS ---
-Sparsity (original): 62.30%
-Sparsity (filtered): 41.20%
-Read retention: 94.50%
-Feature retention: 68.60%
-...
-```
-
-### Plots Generated
-
-1. **Coverage distribution** - Log-scaled histogram showing sample depths
-2. **Feature abundance distribution** - Distribution of feature frequencies
-3. **Sparsity comparison** - Per-sample zero proportions
-4. **Retention rates** - Barplot of what was kept/removed
-5. **Heatmaps** - Top variable features (before/after)
-6. **Top features stacked** - Relative abundance of dominant features
-7. **Presence frequency** - Feature prevalence distributions
-
-### Scree Plot
-
-Shows how feature retention changes with different thresholds:
-
-```{r scree-interpretation, eval = FALSE}
-# The elbow point indicates where additional filtering
-# yields diminishing returns
-scree <- result$scree_result
-
-cat(sprintf("Elbow at threshold: %.4f\n", scree$summary$elbow_point$threshold))
-cat(sprintf("Features retained at elbow: %.1f%%\n",
-            scree$summary$elbow_point$retention_at_elbow))
 ```
 
 ## Using Diagnostic Results
@@ -440,254 +311,217 @@ cat(sprintf("Features retained at elbow: %.1f%%\n",
 
 Identifies the sequencing depth where ASV discovery crashes:
 
-```{r elbow-usage, eval = FALSE}
+```{r elbow-usage}
 elbow <- result$sparsity_elbow_result
-
 cat(elbow$recommendation)
-# "Consider filtering out 8 samples (17.0%) below depth 1245 reads..."
-
-# Review before applying!
-if (elbow$elbow_threshold > 1000) {  # Only apply if reasonable
-  filtered <- filter_by_coverage(original, min_reads = elbow$elbow_threshold)
-}
 ```
 
 ### Depth-Sparsity Outlier Analysis
 
 Finds samples that deviate from expected depth-sparsity relationship:
 
-```{r outlier-usage, eval = FALSE}
+```{r outlier-usage}
 outliers <- result$depth_sparsity_result
-
-cat(sprintf("Detected %d outliers:\n", outliers$n_outliers))
-print(outliers$outliers$sample_name)
-
-# View the plot for manual inspection
-# Check plot_<prefix>_depth_sparsity_outliers.png
-
-# Only remove if you confirm they're technical artifacts
+cat(sprintf("Detected %d outliers\\n", outliers$n_outliers))
 ```
 
 # Step-by-Step Manual Filtering
 
-Sometimes you want more control than the pipeline provides:
+Sometimes you want more control than the pipeline provides.
 
 ## Step 1: Explore Your Data
 
-```{r explore-data, eval = FALSE}
-table <- load_feature_table("my_table.tsv")
-
+```{r explore-data}
 # Coverage per sample
-coverages <- colSums(table[, -1])
+coverages <- colSums(example_feature_table[, -1])
 summary(coverages)
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
-#    523     890    1245    1389    1678    4567
 
 # Histogram of coverages
-plot_coverage_histogram(table, threshold = 1000)
+plot_coverage_histogram(example_feature_table, threshold = 1000)
 
 # Calculate sparsity
-sparsities <- apply(table[, -1], 2, function(x) mean(x == 0))
+sparsities <- apply(example_feature_table[, -1], 2, function(x) mean(x == 0))
 hist(sparsities, main = "Per-Sample Sparsity", xlab = "Proportion Zeros")
 ```
 
 ## Step 2: Choose Coverage Cutoff
 
-```{r choose-cutoff, eval = FALSE}
-# Option A: MAD-based (statistical outlier detection)
-mad_est <- estimate_mad_cutoff(table, multiplier = 2, floor = 500)
-cat(sprintf("MAD recommendation: >= %.0f reads\n", mad_est$cutoff))
+```{r choose-cutoff}
+# Option A: MAD-based
+mad_est <- estimate_mad_cutoff(example_feature_table, multiplier = 2, floor = 500)
+cat(sprintf("MAD recommendation: >= %.0f reads\\n", mad_est$cutoff))
 
-# Option B: Good's coverage (ecological completeness)
-good_est <- estimate_good_coverage(table, target_coverage = 0.95)
-cat(sprintf("Good's coverage: mean=%.2f%%, min=%.2f%%\n",
+# Option B: Good's coverage
+good_est <- estimate_good_coverage(example_feature_table, target_coverage = 0.95)
+cat(sprintf("Good's coverage: mean=%.2f%%, min=%.2f%%\\n",
             good_est$mean_coverage * 100, good_est$min_coverage * 100))
-
-# Option C: Visual inspection from histogram
-# Look for natural gap in coverage distribution
 ```
 
 ## Step 3: Apply Coverage Filter
 
-```{r apply-coverage, eval = FALSE}
-filtered <- filter_by_coverage(table, min_reads = mad_est$cutoff)
-cat(sprintf("Removed %d low-coverage samples\n",
+```{r apply-coverage}
+filtered <- filter_by_coverage(example_feature_table, min_reads = mad_est$cutoff)
+cat(sprintf("Removed %d low-coverage samples\\n",
             attr(filtered, "n_filtered_out")))
 ```
 
 ## Step 4: Choose Abundance Filter
 
-```{r choose-abundance, eval = FALSE}
-# Scree analysis to find optimal threshold
-scree <- compute_scree(filtered, type = "mad_multiplier", n_steps = 20)
-
-# View saturation curve
+```{r choose-abundance}
+scree <- compute_scree(filtered, type = "absolute_feature", n_steps = 10, verbose = FALSE)
 plot_scree(scree)
-
-# Check elbow point
-cat(sprintf("Recommended threshold: %.4f\n",
-            scree$summary$elbow_point$threshold))
 ```
 
 ## Step 5: Apply Abundance Filter
 
-```{r apply-abundance, eval = FALSE}
+```{r apply-abundance}
 final <- filter_features_by_abundance(
   filtered,
-  threshold = 0.001,      # 0.1% relative abundance
+  threshold = 0.001,
   mode = "relative",
-  min_samples = 2         # Must appear in at least 2 samples
+  min_samples = 2
 )
-cat(sprintf("Removed %d rare features\n",
+cat(sprintf("Removed %d rare features\\n",
             attr(final, "n_filtered_out")))
 ```
 
 ## Step 6: Compute QC Metrics
 
-```{r compute-qc, eval = FALSE}
-qc <- compute_filtering_qc(table, final)
-
-# Key metrics
+```{r compute-qc}
+qc <- compute_filtering_qc(example_feature_table, final)
 print(qc[c("sparsity_original", "sparsity_filtered",
            "read_retention_percent", "feature_retention_percent")])
-
-# Diversity retention (if using Hill numbers)
-cat(sprintf("Shannon ENS retention: %.1f%%\n",
-            qc$shannon_ens_retention_percent))
 ```
 
 # Common Workflows
 
 ## Workflow 1: Quick Quality Control
 
-For routine quality control with minimal decisions:
-
-```{r quick-qc, eval = FALSE}
+```{r quick-qc}
+data(example_feature_table)
 result <- run_filtering_pipeline(
-  input = "data.tsv",
+  input = example_feature_table,
+  output_dir = tempdir(),
+  prefix = "quick_qc",
   cov_filter_method = "mad",
   cov_threshold = 2,
   abun_filter_method = "absolute",
   abun_threshold = 5,
   generate_plots = TRUE,
-  generate_report = TRUE
+  generate_report = FALSE,
+  verbose = FALSE
 )
+result$qc_metrics$feature_retention_percent
 ```
 
 ## Workflow 2: Conservative Diversity Analysis
 
-For studies where retaining rare taxa is important:
-
-```{r conservative, eval = FALSE}
+```{r conservative}
+data(example_feature_table)
 result <- run_filtering_pipeline(
-  input = "data.tsv",
+  input = example_feature_table,
+  output_dir = tempdir(),
+  prefix = "conservative",
   cov_filter_method = "good",
   cov_target_coverage = 0.95,
   abun_filter_method = "joint",
   abun_threshold = 0.0001,
   abun_prevalence_threshold = 0.05,
   abun_logic = "OR",
-  generate_plots = TRUE
+  generate_plots = TRUE,
+  generate_report = FALSE,
+  verbose = FALSE
 )
+result$qc_metrics$sample_retention_percent
 ```
 
 ## Workflow 3: Stringent Pathogen Detection
 
-For studies focusing on abundant, reliable signals:
-
-```{r stringent, eval = FALSE}
+```{r stringent}
+data(example_feature_table)
 result <- run_filtering_pipeline(
-  input = "data.tsv",
+  input = example_feature_table,
+  output_dir = tempdir(),
+  prefix = "stringent",
   cov_filter_method = "iqr",
   cov_threshold = 2,
   abun_filter_method = "absolute",
   abun_threshold = 50,
   abun_min_samples = 5,
   singleton_filter_method = "absolute",
-  singleton_max_ratio = 0.10
+  singleton_max_ratio = 0.10,
+  generate_report = FALSE,
+  verbose = FALSE
 )
+result$qc_metrics$read_retention_percent
 ```
 
 # Troubleshooting
 
 ## All Samples Removed by Coverage Filter
 
-```{r troubleshoot-coverage, eval = FALSE}
-# Check coverage distribution
-coverages <- colSums(table[, -1])
+```{r troubleshoot-coverage}
+coverages <- colSums(example_feature_table[, -1])
 summary(coverages)
 
-# If all samples have low coverage, lower your threshold
-# Or use Good's coverage which adapts to your data
 result <- filter_by_coverage_estimator(
-  table,
+  example_feature_table,
   method = "good",
-  target_coverage = 0.90  # Lower target
+  target_coverage = 0.90,
+  verbose = FALSE
 )
+ncol(result$table)
 ```
 
 ## Too Many Features Removed
 
-```{r troubleshoot-features, eval = FALSE}
-# Use joint filtering with OR logic instead of AND
+```{r troubleshoot-features}
 result <- filter_features_joint(
-  table,
+  example_feature_table,
   abundance_threshold = 0.001,
   prevalence_threshold = 0.1,
-  logic = "OR"  # Less stringent than AND
+  logic = "OR"
 )
+result$n_features_after
 
-# Or use lower absolute threshold
 filtered <- filter_features_by_abundance(
-  table,
-  threshold = 2,  # Instead of 5 or 10
+  example_feature_table,
+  threshold = 2,
   mode = "absolute",
   min_samples = 2
 )
+nrow(filtered)
 ```
 
 ## High Sparsity After Filtering
 
-```{r troubleshoot-sparsity, eval = FALSE}
-# This might indicate over-filtering
-# Check if you're removing too many samples
-qc <- compute_filtering_qc(original, filtered)
-
+```{r troubleshoot-sparsity}
+qc <- compute_filtering_qc(example_feature_table, final)
 if (qc$sample_retention_percent < 70) {
-  cat("Consider relaxing coverage filter\n")
+  message("Consider relaxing coverage filter")
+} else {
+  message("Sample retention is acceptable")
 }
-
-# Or check for batch effects
-# Some batches may have systematically lower coverage
 ```
 
 # Best Practices Summary
 
 ## Do's
 
-✓ **Always visualize** your data before filtering (coverage histograms, sparsity plots)
-
-✓ **Review diagnostic outputs** (scree plots, elbow detection) before applying automatically
-
-✓ **Document your filtering choices** in methods sections
-
-✓ **Report retention rates** for features, samples, and reads
-
-✓ **Use appropriate methods** for your sequencing pipeline (see tables above)
-
-✓ **Keep raw data** separate from filtered data
+- **Always visualize** your data before filtering (coverage histograms, sparsity plots)
+- **Review diagnostic outputs** (scree plots, elbow detection) before applying automatically
+- **Document your filtering choices** in methods sections
+- **Report retention rates** for features, samples, and reads
+- **Use appropriate methods** for your sequencing pipeline (see tables above)
+- **Keep raw data** separate from filtered data
 
 ## Don'ts
 
-✗ **Don't apply aggressive singleton filtering** to DADA2/Deblur ASV data
-
-✗ **Don't filter without understanding** why a method is recommended
-
-✗ **Don't use default parameters blindly** - adjust based on your data characteristics
-
-✗ **Don't remove all rare features** - some may be biologically relevant
-
-✗ **Don't ignore QC metrics** - they tell you if filtering worked as intended
+- **Don't apply aggressive singleton filtering** to DADA2/Deblur ASV data
+- **Don't filter without understanding** why a method is recommended
+- **Don't use default parameters blindly** - adjust based on your data characteristics
+- **Don't remove all rare features** - some may be biologically relevant
+- **Don't ignore QC metrics** - they tell you if filtering worked as intended
 
 # Session Info
 

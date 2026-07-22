@@ -3,6 +3,7 @@
 .gitignore
 .claude
 .idea
+.dockerignore
 .*\.Rproj$
 ^.*\.Rproj$
 
@@ -42,9 +43,24 @@ Thumbs\.db$
 # Log files
 .*\.log$
 
+# Docker
+\.dockerignore
+
+# BiocCheck / R check output directories
+.*\.BiocCheck$
+^\.\.Rcheck/
+^\.Rcheck/
+
+# Pre-built vignettes (Bioconductor builds these)
+^inst/doc/
+^vignettes/.*\.html$
+
 # Claude Code session data
 .claude/
 
 # Report outputs from pipeline examples
 .*_filtering_report\..*$
 ^results/
+
+# Data generation scripts
+^data-raw/$

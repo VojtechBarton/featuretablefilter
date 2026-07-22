@@ -51,12 +51,6 @@ Creates a histogram of total reads per sample with dynamic bin sizing.
 Optionally highlights samples above/below a threshold.
 }
 \examples{
-# Basic histogram
-# plot_coverage_histogram(table)
-
-# With threshold highlighting
-# plot_coverage_histogram(table, threshold = 1000)
-
-# Save to file
-# plot_coverage_histogram(table, plot_dir = "plots", prefix = "my_coverage")
+data(example_feature_table)
+plot_coverage_histogram(example_feature_table)
 }

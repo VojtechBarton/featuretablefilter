@@ -40,16 +40,21 @@ Ignored for other types (generated automatically).}
 \item{min_samples}{Minimum number of samples required for feature retention (passed to
 \code{\link{filter_features_by_abundance}}). Default is 1.}
 
+\item{count_type}{Type of low-count features for singleton ratio filtering:
+"singleton", "doubleton", or "both". Default is "both".}
+
 \item{verbose}{Logical. Print progress information. Default is TRUE.}
 }
 \value{
 A list containing:
+\describe{
   \item{results}{data.frame with columns: threshold, n_features_retained, pct_features_retained,
                  n_samples_retained, pct_samples_retained, n_reads_retained, pct_reads_retained,
                  sparsity, collapse_rate}
   \item{summary}{list with key statistics including elbow points and saturation metrics}
   \item{type}{the type of sweep performed}
   \item{parameters}{list of parameters used}
+}
 }
 \description{
 Evaluates feature and sample retention across a gradient of thresholds to help
@@ -59,35 +64,15 @@ This is particularly useful for MAD/IQR multiplier sweeps, coverage target sweep
 }
 \details{
 The function generates diagnostic curves showing:
-- Feature retention rate (% features kept at each threshold)
-- Sample retention rate (% samples kept at each threshold)
-- Total read retention (% reads preserved)
+- Feature retention rate (\% features kept at each threshold)
+- Sample retention rate (\% samples kept at each threshold)
+- Total read retention (\% reads preserved)
 - Sparsity changes (proportion of zeros in the table)
 - "Collapse rate" - derivative showing where rapid losses occur
 }
 \examples{
-# Sweep MAD multipliers from 1 to 5 (for coverage-based sample filtering)
-# scree <- compute_scree(my_table, type = "mad_multiplier", n_steps = 20)
-# plot(scree$results$threshold, scree$results$pct_features_retained, type = "l")
-
-# Sweep IQR multipliers from 0.5 to 3 (Tukey fence-based sample filtering)
-# scree <- compute_scree(my_table, type = "iqr_multiplier", n_steps = 20)
-
-# Sweep Good's coverage targets from 70\% to 99\%
-# scree <- compute_scree(my_table, type = "good_coverage", n_steps = 20)
-
-# Sweep Chao's coverage targets from 70\% to 99\%
-# scree <- compute_scree(my_table, type = "chao_coverage", n_steps = 20)
-
-# Sweep singleton ratio thresholds from 1\% to 30\% (for PCR artifact detection)
-# scree <- compute_scree(my_table, type = "singleton_ratio", n_steps = 20)
-
-# Sweep cross-talk relative thresholds from 0.01\% to 1\% (for index hopping detection)
-# scree <- compute_scree(my_table, type = "cross_talk", n_steps = 20)
-
-# Sweep absolute feature abundance thresholds
-# scree <- compute_scree(my_table, type = "absolute_feature", n_steps = 30)
-
-# Custom threshold sweep
-# scree <- compute_scree(my_table, type = "custom", thresholds = c(1, 2, 5, 10, 20, 50))
+data(example_feature_table)
+result <- compute_scree(example_feature_table, type = "absolute_feature",
+                        n_steps = 5, verbose = FALSE)
+head(result$results)
 }

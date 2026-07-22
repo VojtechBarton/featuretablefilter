@@ -11,10 +11,11 @@ estimate_good_coverage(table, target_coverage = 0.95)
 First column should be feature IDs, remaining columns are sample counts.}
 
 \item{target_coverage}{Target coverage threshold (0-1). Samples below this coverage will be flagged.
-Default is 0.95 (95% coverage).}
+Default is 0.95 (95\% coverage).}
 }
 \value{
 A list containing:
+\describe{
   \item{sample_coverage}{Named vector of coverage estimates for each sample}
   \item{mean_coverage}{Mean coverage across all samples}
   \item{min_coverage}{Minimum coverage among all samples}
@@ -26,6 +27,7 @@ A list containing:
   \item{target_coverage}{The target coverage value used}
   \item{suggested_cutoff}{Suggested minimum read cutoff based on coverage analysis}
 }
+}
 \description{
 Calculates Good's coverage estimator, which measures the completeness of sampling
 by estimating the probability that the next read will belong to a previously observed feature.
@@ -36,10 +38,7 @@ Good's coverage formula: C = 1 - (n_1 / n)
 where n_1 is the number of singletons (features with exactly one read) and n is total reads.
 }
 \examples{
-# Estimate Good's coverage for all samples
-# coverage_est <- estimate_good_coverage(table, target_coverage = 0.95)
-# print(coverage_est)
-
-# Filter samples to achieve at least 90\% coverage
-# coverage_est <- estimate_good_coverage(table, target_coverage = 0.90)
+data(example_feature_table)
+result <- estimate_good_coverage(example_feature_table)
+result$mean_coverage
 }

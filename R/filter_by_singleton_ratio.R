@@ -7,7 +7,7 @@
 #' @param table A feature table (data.frame or matrix) with features as rows and samples as columns.
 #'              First column should be feature IDs, remaining columns are sample counts.
 #' @param max_singleton_ratio Maximum allowed ratio of (singletons + doubletons) / total_reads.
-#'                            Samples exceeding this ratio will be removed. Default is 0.1 (10%).
+#'                            Samples exceeding this ratio will be removed. Default is 0.1 (10\%).
 #' @param count_type Type of low-count features to consider: "singleton" (count=1 only),
 #'                   "doubleton" (count=2 only), or "both" (counts 1 and 2). Default is "both".
 #'
@@ -19,11 +19,9 @@
 #' @export
 #'
 #' @examples
-#' # Remove samples where >10% of reads are in singletons/doubletons
-#' # filtered_table <- filter_by_singleton_ratio(my_table, max_singleton_ratio = 0.1)
-#'
-#' # Only consider true singletons (count = 1)
-#' # filtered_table <- filter_by_singleton_ratio(my_table, max_singleton_ratio = 0.05, count_type = "singleton")
+#' data(example_feature_table)
+#' result <- filter_by_singleton_ratio(example_feature_table)
+#' ncol(result)
 filter_by_singleton_ratio <- function(table, max_singleton_ratio = 0.1, count_type = "both") {
   # Validate inputs
   if (!is.data.frame(table) && !is.matrix(table)) {

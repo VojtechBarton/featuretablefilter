@@ -34,12 +34,7 @@ Sets low-abundance features to zero and removes features that are all zeros.
 Works with both absolute counts and relative abundances.
 }
 \examples{
-# Filter features with absolute count < 5
-# filtered <- filter_features_by_abundance(table, threshold = 5, mode = "absolute")
-
-# Filter features with relative abundance < 0.001 (0.1\%)
-# filtered <- filter_features_by_abundance(table, threshold = 0.001, mode = "relative")
-
-# Keep only features present in at least 3 samples
-# filtered <- filter_features_by_abundance(table, threshold = 1, min_samples = 3)
+data(example_feature_table)
+result <- filter_features_by_abundance(example_feature_table, threshold = 10)
+nrow(result)
 }

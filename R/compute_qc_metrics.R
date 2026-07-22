@@ -17,6 +17,7 @@
 #' @param top_n Number of taxa to consider for Rank-Abundance Stability. Default is 10.
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{sparsity_original}{Sparsity of original table}
 #'   \item{sparsity_filtered}{Sparsity of filtered table}
 #'   \item{sparsity_drop_percent}{Percentage point drop in sparsity}
@@ -40,17 +41,15 @@
 #'   \item{simpson_ens_original}{Mean Simpson effective number of species (Hill q=2) across samples}
 #'   \item{simpson_ens_filtered}{Mean Simpson ENS after filtering}
 #'   \item{simpson_ens_retention_percent}{Percentage of Simpson ENS retained}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Compare original and filtered tables
-#' # qc <- compute_filtering_qc(original_table, filtered_table)
-#' # print(qc)
-#'
-#' # Access diversity retention metrics
-#' # qc$shannon_ens_retention_percent  # How much Shannon diversity (q=1) was retained
-#' # qc$simpson_ens_retention_percent  # How much Simpson diversity (q=2) was retained
+#' data(example_feature_table)
+#' filtered <- filter_by_coverage(example_feature_table, min_reads = 1000)
+#' qc <- compute_filtering_qc(example_feature_table, filtered)
+#' qc$feature_retention_percent
 compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
   # Extract abundance matrices
   orig_abund <- as.matrix(original_table[, -1, drop = FALSE])
@@ -274,10 +273,9 @@ compute_filtering_qc <- function(original_table, filtered_table, top_n = 10) {
 #' @export
 #'
 #' @examples
-#' # Example feature table (rows = samples, cols = features)
-#' mat <- matrix(c(25, 25, 25, 25, 80, 5, 5, 5), nrow = 2, byrow = TRUE)
-#' colnames(mat) <- c("f1", "f2", "f3", "f4")
-#' calc_shannon_ens(mat)
+#' data(example_feature_table)
+#' result <- calc_shannon_ens(as.matrix(example_feature_table[, -1]))
+#' head(result)
 calc_shannon_ens <- function(abund_matrix) {
   apply(abund_matrix, 2, function(sample_vec) {
     counts <- sample_vec[sample_vec > 0]
@@ -300,10 +298,9 @@ calc_shannon_ens <- function(abund_matrix) {
 #' @export
 #'
 #' @examples
-#' # Example feature table
-#' mat <- matrix(c(20, 20, 20, 20, 20, 50, 10, 10, 15, 15), nrow = 2, byrow = TRUE)
-#' colnames(mat) <- c("f1", "f2", "f3", "f4", "f5")
-#' calc_simpson_ens(mat)
+#' data(example_feature_table)
+#' result <- calc_simpson_ens(as.matrix(example_feature_table[, -1]))
+#' head(result)
 calc_simpson_ens <- function(abund_matrix) {
   apply(abund_matrix, 2, function(sample_vec) {
     counts <- sample_vec[sample_vec > 0]
@@ -329,9 +326,9 @@ calc_simpson_ens <- function(abund_matrix) {
 #' @export
 #'
 #' @examples
-#' mat <- matrix(c(25, 25, 25, 25, 80, 5, 5, 5), nrow = 2, byrow = TRUE)
-#' colnames(mat) <- c("f1", "f2", "f3", "f4")
-#' calc_hill_numbers(mat, q = c(0, 0.5, 1, 2, 3))
+#' data(example_feature_table)
+#' result <- calc_hill_numbers(as.matrix(example_feature_table[, -1]))
+#' head(result)
 calc_hill_numbers <- function(abund_matrix, q = c(0, 1, 2)) {
   n_samples <- ncol(abund_matrix)
   result <- matrix(NA_real_, nrow = n_samples, ncol = length(q))

@@ -21,7 +21,7 @@ Lower q values are more sensitive to rare species; higher q values focus
 on dominant species.
 }
 \examples{
-mat <- matrix(c(25, 25, 25, 25, 80, 5, 5, 5), nrow = 2, byrow = TRUE)
-colnames(mat) <- c("f1", "f2", "f3", "f4")
-calc_hill_numbers(mat, q = c(0, 0.5, 1, 2, 3))
+data(example_feature_table)
+result <- calc_hill_numbers(as.matrix(example_feature_table[, -1]))
+head(result)
 }

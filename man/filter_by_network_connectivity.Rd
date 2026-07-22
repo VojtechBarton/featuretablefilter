@@ -39,9 +39,11 @@ Default is 0.05.}
 \value{
 A filtered feature table with disconnected features removed.
         Attributes include:
+\describe{
   \item{n_filtered_out}{Number of features removed}
   \item{network_summary}{List with network statistics}
   \item{disconnected_features}{Character vector of removed feature names}
+}
 }
 \description{
 Removes features that have no significant connections to other features
@@ -55,12 +57,9 @@ ecological interactions, shared environmental responses, or phylogenetic
 relationships.
 }
 \examples{
-# Filter out features with no network connections
-# cleaned_table <- filter_by_network_connectivity(my_table)
-
-# Use correlation instead of MI (faster but less sensitive to non-linear patterns)
-# cleaned_table <- filter_by_network_connectivity(my_table, similarity_type = "cor")
-
-# Require at least 2 connections to keep a feature
-# cleaned_table <- filter_by_network_connectivity(my_table, min_degree = 2)
+if (requireNamespace("igraph", quietly = TRUE)) {
+  data(example_feature_table)
+  result <- filter_by_network_connectivity(example_feature_table, verbose = FALSE)
+  nrow(result)
+}
 }

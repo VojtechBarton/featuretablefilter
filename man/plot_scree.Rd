@@ -8,9 +8,7 @@ plot_scree(
   scree_obj,
   main = "Filtering Threshold Scree Analysis",
   show_collapse = TRUE,
-  color = "blue",
-  verbose = TRUE,
-  ...
+  color = "blue"
 )
 }
 \arguments{
@@ -30,6 +28,8 @@ Creates a multi-panel visualization of scree analysis results showing
 retention curves, sparsity changes, and collapse rates.
 }
 \examples{
-# scree <- compute_scree(my_table, type = "absolute_feature")
-# plot_scree(scree)
+data(example_feature_table)
+scree <- compute_scree(example_feature_table, type = "absolute_feature",
+                       n_steps = 5, verbose = FALSE)
+plot_scree(scree)
 }

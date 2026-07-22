@@ -27,9 +27,11 @@ beyond (median + multiplier * MAD) are flagged. Default is 3.}
 }
 \value{
 A list containing:
+\describe{
   \item{plot}{ggplot object}
   \item{outliers}{data.frame of flagged outlier samples}
   \item{metrics}{data.frame with all sample metrics}
+}
 }
 \description{
 Simple visualization showing the relationship between sequencing depth (total reads)
@@ -43,13 +45,7 @@ This plot helps identify:
 - Samples that deviate from the expected depth-richness curve
 }
 \examples{
-# Simple plot with automatic outlier detection
-# result <- plot_reads_vs_asvs(my_table)
-# print(result$plot)
-
-# Adjust sensitivity
-# result <- plot_reads_vs_asvs(my_table, mad_multiplier = 2.5)
-
-# Access outlier information
-# outlier_samples <- result$outliers$sample_name
+data(example_feature_table)
+result <- plot_reads_vs_asvs(example_feature_table)
+result$plot
 }

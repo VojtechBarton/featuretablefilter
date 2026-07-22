@@ -14,7 +14,7 @@
 #' @param abundance_threshold Minimum abundance threshold. Features below this in a sample are considered "absent"
 #'                            for the abundance criterion. Default is 0 (any non-zero value counts).
 #' @param prevalence_threshold Proportion of samples (0-1) where feature must meet abundance threshold.
-#'                             For example, 0.3 means the feature must exceed abundance_threshold in at least 30% of samples.
+#'                             For example, 0.3 means the feature must exceed abundance_threshold in at least 30\% of samples.
 #' @param mode Abundance measurement mode: "absolute" for raw counts, "relative" for proportions.
 #'             Default is "relative".
 #' @param logic Logical operator: "AND" requires both criteria to be met, "OR" requires either criterion.
@@ -22,6 +22,7 @@
 #' @param remove_zeros Logical. If TRUE (default), remove features that don't meet the filtering criteria.
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{table}{Filtered feature table (data.frame)}
 #'   \item{n_features_before}{Number of features before filtering}
 #'   \item{n_features_after}{Number of features after filtering}
@@ -35,23 +36,15 @@
 #'   \item{logic}{The logic operator used ("AND" or "OR")}
 #'   \item{mode}{The abundance mode used ("absolute" or "relative")}
 #'   \item{feature_details}{Data.frame with per-feature filtering details}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Keep features that are EITHER >0.1% relative abundance OR present in >=30% of samples
-#' # result <- filter_features_joint(table,
-#' #                                 abundance_threshold = 0.001,
-#' #                                 prevalence_threshold = 0.3,
-#' #                                 mode = "relative",
-#' #                                 logic = "OR")
-#'
-#' # Keep features that are BOTH >5 reads AND present in >=50% of samples
-#' # result <- filter_features_joint(table,
-#' #                                 abundance_threshold = 5,
-#' #                                 prevalence_threshold = 0.5,
-#' #                                 mode = "absolute",
-#' #                                 logic = "AND")
+#' data(example_feature_table)
+#' result <- filter_features_joint(example_feature_table, abundance_threshold = 0.01,
+#'                                 prevalence_threshold = 0.1)
+#' nrow(result$table)
 filter_features_joint <- function(table,
                                    abundance_threshold = 0,
                                    prevalence_threshold = 0.3,

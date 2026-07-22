@@ -49,6 +49,7 @@ shows original vs filtered side by side.}
 }
 \value{
 Returns a list containing:
+\describe{
   \item{feature_prevalence}{Named vector: number of samples each feature appears in (original)}
   \item{sample_richness}{Named vector: number of features in each sample (original)}
   \item{feature_prevalence_filtered}{Named vector: filtered feature prevalence (if table_filtered provided)}
@@ -57,22 +58,13 @@ Returns a list containing:
   \item{mean_sample_richness}{Mean number of features per sample (original)}
   \item{plots}{List containing the ggplot objects}
 }
+}
 \description{
 Creates histograms showing:
 - In how many samples each feature is present (feature prevalence)
 - How many features are present in each sample (sample richness)
 }
 \examples{
-# Display plots for original table only
-# plot_presence_analysis(table)
-
-# Compare original vs filtered
-# plot_presence_analysis(table, table_filtered = filtered_table)
-
-# Save plots
-# plot_presence_analysis(table, save_dir = "plots", prefix = "my_analysis")
-
-# Get statistics
-# stats <- plot_presence_analysis(table)
-# print(stats$mean_sample_richness)
+data(example_feature_table)
+plot_presence_analysis(example_feature_table)
 }

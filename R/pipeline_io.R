@@ -5,20 +5,8 @@
 # All functions are internal (prefixed with '.') and not exported.
 # =============================================================================
 
-
-#' Load pipeline input data from file or object
-#'
-#' Handles multiple input types: file paths, phyloseq objects, TreeSummarizedExperiment,
-#' data.frame, or matrix. Returns a list with the table and input metadata.
-#'
-#' @param input Input source (file path string, phyloseq, TSE, data.frame, or matrix)
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return A list with components:
-#'   \item{table}{Feature table as data.frame}
-#'   \item{input_class}{Original input class ("data.frame", "phyloseq", "TreeSummarizedExperiment")}
-#'   \item{input_file_path}{File path if input was a file, NULL otherwise}
-#'   \item{original_object}{Original input object (for later conversion back)}
+#' Load pipeline input data from file or object#'#' Handles multiple input types: file paths, phyloseq objects, TreeSummarizedExperiment,#' data.frame, or matrix. Returns a list with the table and input metadata.#'#' @param input Input source (file path string, phyloseq, TSE, data.frame, or matrix)#' @param verbose Logical. Print progress messages?#'#' @return A list with components:#' \describe{#'   \item{table}{Feature table as data.frame}#'   \item{input_class}{Original input class ("data.frame", "phyloseq", "TreeSummarizedExperiment")}#'   \item{input_file_path}{File path if input was a file, NULL otherwise}#'   \item{original_object}{Original input object (for later conversion back)}#' }
+#' @noRd
 .load_pipeline_input <- function(input, verbose = TRUE) {
   input_class <- NULL
   input_file_path <- NULL
@@ -70,16 +58,8 @@
   )
 }
 
-
-#' Create output directory if it doesn't exist
-#'
-#' Only creates directory for file-based inputs (not for object inputs).
-#'
-#' @param output_dir Directory path to create
-#' @param input_file_path File path from input (NULL if input was an object)
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return The output directory path (invariant)
+#' Create output directory if it doesn't exist#'#' Only creates directory for file-based inputs (not for object inputs).#'#' @param output_dir Directory path to create#' @param input_file_path File path from input (NULL if input was an object)#' @param verbose Logical. Print progress messages?#'#' @return The output directory path (invariant)
+#' @noRd
 .create_output_directory <- function(output_dir, input_file_path, verbose = TRUE) {
   # Only create directory for file inputs
   if (!is.null(input_file_path)) {
@@ -91,17 +71,8 @@
   output_dir
 }
 
-
-#' Save filtered table to file
-#'
-#' Writes the filtered feature table to a TSV file.
-#'
-#' @param table Filtered feature table (data.frame)
-#' @param output_dir Output directory path
-#' @param prefix Prefix for output filename
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return Path to the saved file
+#' Save filtered table to file#'#' Writes the filtered feature table to a TSV file.#'#' @param table Filtered feature table (data.frame)#' @param output_dir Output directory path#' @param prefix Prefix for output filename#' @param verbose Logical. Print progress messages?#'#' @return Path to the saved file
+#' @noRd
 .save_filtered_table <- function(table, output_dir, prefix, verbose = TRUE) {
   output_path <- file.path(output_dir, paste0(prefix, "_filtered_table.tsv"))
   write.table(table, output_path, sep = "\t", row.names = FALSE, quote = FALSE)
@@ -109,17 +80,8 @@
   output_path
 }
 
-
-#' Convert filtered table back to original input class
-#'
-#' Converts the filtered data.frame back to phyloseq or TreeSummarizedExperiment
-#' if the original input was one of those classes.
-#'
-#' @param filtered_table Filtered feature table (data.frame)
-#' @param original_class Original input class
-#' @param original_object Original input object (phyloseq or TSE)
-#'
-#' @return A list with original_table and filtered_table in original class format
+#' Convert filtered table back to original input class#'#' Converts the filtered data.frame back to phyloseq or TreeSummarizedExperiment#' if the original input was one of those classes.#'#' @param filtered_table Filtered feature table (data.frame)#' @param original_class Original input class#' @param original_object Original input object (phyloseq or TSE)#'#' @return A list with original_table and filtered_table in original class format
+#' @noRd
 .convert_output_back_to_original_class <- function(filtered_table, original_class, original_object) {
   original_table_out <- filtered_table
   filtered_table_out <- filtered_table
@@ -139,7 +101,7 @@
       filtered_table,
       rowData = SummarizedExperiment::rowData(original_object),
       colData = SummarizedExperiment::colData(original_object),
-      reducedDims = TreeSummarizedExperiment::reducedDims(original_object),
+      reducedDims = SummarizedExperiment::reducedDims(original_object),
       rowTree = TreeSummarizedExperiment::rowTree(original_object),
       rowLinks = TreeSummarizedExperiment::rowLinks(original_object)
     )
@@ -151,18 +113,8 @@
   )
 }
 
-
-#' Generate filtering summary step entry
-#'
-#' Creates a standardized summary entry for a filtering step.
-#'
-#' @param step_name Name of the filtering step
-#' @param method Method used for filtering
-#' @param params Named list of parameters used
-#' @param before List with samples_before, features_before, reads_before
-#' @param after List with samples_after, features_after, reads_after
-#'
-#' @return A named list with step summary information
+#' Generate filtering summary step entry#'#' Creates a standardized summary entry for a filtering step.#'#' @param step_name Name of the filtering step#' @param method Method used for filtering#' @param params Named list of parameters used#' @param before List with samples_before, features_before, reads_before#' @param after List with samples_after, features_after, reads_after#'#' @return A named list with step summary information
+#' @noRd
 .format_step_summary <- function(step_name, method, params, before, after) {
   list(
     step = step_name,

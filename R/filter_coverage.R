@@ -11,7 +11,9 @@
 #' @export
 #'
 #' @examples
-#' # filter_by_coverage(my_table, min_reads = 1000)
+#' data(example_feature_table)
+#' result <- filter_by_coverage(example_feature_table, min_reads = 1000)
+#' ncol(result)
 filter_by_coverage <- function(table, min_reads) {
   # Calculate total reads per sample (sum of all rows for each sample column)
   sample_sums <- colSums(table[, -1, drop = FALSE])

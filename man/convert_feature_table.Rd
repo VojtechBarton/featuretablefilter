@@ -21,12 +21,7 @@ Automatically detects the input class and converts to the appropriate format.
 Supports phyloseq, TreeSummarizedExperiment, SingleCellExperiment, and data.frame inputs.
 }
 \examples{
-# Convert from phyloseq to data.frame
-# df <- convert_feature_table(phylo_obj, to = "data.frame")
-
-# Convert from data.frame to phyloseq
-# ps <- convert_feature_table(df, to = "phyloseq")
-
-# Convert from data.frame to TreeSummarizedExperiment
-# tse <- convert_feature_table(df, to = "TSE")
+data(example_feature_table)
+df <- convert_feature_table(example_feature_table, to = "data.frame")
+head(df)
 }

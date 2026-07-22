@@ -18,8 +18,7 @@ Simpson formula (1/sum(p^2)). This metric is more sensitive to dominant
 species than Shannon ENS.
 }
 \examples{
-# Example feature table
-mat <- matrix(c(20, 20, 20, 20, 20, 50, 10, 10, 15, 15), nrow = 2, byrow = TRUE)
-colnames(mat) <- c("f1", "f2", "f3", "f4", "f5")
-calc_simpson_ens(mat)
+data(example_feature_table)
+result <- calc_simpson_ens(as.matrix(example_feature_table[, -1]))
+head(result)
 }

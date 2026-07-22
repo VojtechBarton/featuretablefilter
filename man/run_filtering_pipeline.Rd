@@ -80,7 +80,7 @@ Useful as a safety floor. Default is 0 (no additional cutoff).}
 "absolute" - use fixed max_singleton_ratio threshold}
 
 \item{singleton_max_ratio}{Maximum allowed ratio of singletons+doubletons to total reads.
-Default is 0.1 (10%). Samples exceeding this are removed.}
+Default is 0.1 (10\%). Samples exceeding this are removed.}
 
 \item{singleton_count_type}{Type of low-count features: "singleton", "doubleton", or "both".
 Default is "both".}
@@ -93,7 +93,7 @@ Default is "both".}
 
 \item{crosstalk_threshold}{Maximum relative abundance threshold for leakage detection.
 Values < this fraction of feature's max are considered leakage.
-Default is 0.001 (0.1% of max).}
+Default is 0.001 (0.1\% of max).}
 
 \item{crosstalk_min_abs_cutoff}{Optional minimum absolute count to override relative threshold.
 Default is NULL (no absolute cutoff).}
@@ -142,7 +142,7 @@ Default is "mad_multiplier".}
 
 \item{abun_threshold}{Threshold value for abundance filtering.
 For "absolute": minimum read count per feature.
-For "relative": proportion (e.g., 0.01 for 1%).
+For "relative": proportion (e.g., 0.01 for 1\%).
 For "relative_cutoff": relative proportion used to calculate absolute threshold.
 For "joint": minimum abundance threshold for the joint filter.}
 
@@ -156,7 +156,7 @@ Default is "OR". Only used when abun_filter_method = "joint".}
 
 \item{abun_prevalence_threshold}{Proportion of samples (0-1) for joint filtering.
 Features must be present in at least this proportion of samples.
-Default is 0.3 (30% of samples). Only used when abun_filter_method = "joint".}
+Default is 0.3 (30\% of samples). Only used when abun_filter_method = "joint".}
 
 \item{min_coverage_for_relative}{If using "relative_cutoff" method, minimum coverage for samples.}
 
@@ -170,6 +170,7 @@ Default is 0.3 (30% of samples). Only used when abun_filter_method = "joint".}
 }
 \value{
 A list containing:
+\describe{
   \item{original_table}{Original loaded table (same class as input)}
   \item{filtered_table}{Filtered table (same class as input)}
   \item{qc_metrics}{List of QC metrics from compute_filtering_qc()}
@@ -180,6 +181,7 @@ A list containing:
   \item{scree_result}{Result from scree/saturation analysis (if enabled)}
   \item{input_class}{The class of the input object ("data.frame", "phyloseq", or "TreeSummarizedExperiment")}
 }
+}
 \description{
 A comprehensive pipeline that loads, filters, and analyzes a feature table.
 Allows selection of different coverage, abundance, and quality-based filtering methods.
@@ -188,39 +190,13 @@ Supports data.frame, phyloseq, and TreeSummarizedExperiment inputs and returns
 the same class as the input.
 }
 \examples{
-# Simple pipeline with absolute thresholds from file
-# result <- run_filtering_pipeline(
-#   input = "example_feature_table.tsv",
-#   output_dir = "results",
-#   prefix = "analysis1",
-#   cov_filter_method = "absolute",
-#   cov_threshold = 1000,
-#   abun_filter_method = "absolute",
-#   abun_threshold = 5
-# )
-
-# Pipeline with phyloseq object (returns phyloseq)
-# library(phyloseq)
-# ps <- load_phyloseq("my_data.rds")
-# result <- run_filtering_pipeline(
-#   input = ps,
-#   prefix = "ps_filtered",
-#   cov_filter_method = "mad",
-#   cov_threshold = 3,
-#   abun_filter_method = "relative_cutoff",
-#   abun_threshold = 0.01
-# )
-# filtered_ps <- result$filtered_table  # Still a phyloseq object
-
-# Pipeline with TreeSummarizedExperiment (returns TSE)
-# library(TreeSummarizedExperiment)
-# tse <- loadTSE("my_data.rds")
-# result <- run_filtering_pipeline(
-#   input = tse,
-#   prefix = "tse_filtered",
-#   cov_filter_method = "good",
-#   cov_target_coverage = 0.95,
-#   abun_filter_method = "joint"
-# )
-# filtered_tse <- result$filtered_table  # Still a TreeSummarizedExperiment
+data(example_feature_table)
+result <- run_filtering_pipeline(example_feature_table,
+                                 cov_filter_method = "absolute",
+                                 cov_threshold = 1000,
+                                 abun_filter_method = "absolute",
+                                 abun_threshold = 10,
+                                 generate_report = FALSE,
+                                 verbose = FALSE)
+nrow(result$filtered_table)
 }

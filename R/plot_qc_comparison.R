@@ -24,17 +24,18 @@
 #' @param dpi DPI for saved raster output. Default 300.
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{plots}{Named list of ggplot objects}
 #'   \item{paths}{Named list of file paths (if plot_dir provided)}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Display plots
-#' # plot_qc_comparison(original_table, filtered_table)
-#'
-#' # Save plots to directory
-#' # plot_qc_comparison(original_table, filtered_table, plot_dir = "qc_plots", prefix = "my_analysis")
+#' data(example_feature_table)
+#' filtered <- filter_by_coverage(example_feature_table, min_reads = 1000)
+#' plots <- plot_qc_comparison(example_feature_table, filtered)
+#' names(plots)
 plot_qc_comparison <- function(original_table, filtered_table,
                                 plot_dir = NULL, prefix = "qc_comparison",
                                 top_n = 10, heatmap_top = 50,

@@ -5,38 +5,16 @@
 # interfaces for use in the pipeline. All functions are internal (. prefix).
 # =============================================================================
 
-
-#' Apply singleton ratio filtering
-#'
-#' Wrapper around filter_by_singleton_ratio() with standardized return format.
-#'
-#' @param table Feature table (data.frame)
-#' @param max_ratio Maximum allowed singleton ratio
-#' @param count_type Type of low-count features: "singleton", "doubleton", or "both"
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return Filtered feature table
+#' Apply singleton ratio filtering#'#' Wrapper around filter_by_singleton_ratio() with standardized return format.#'#' @param table Feature table (data.frame)#' @param max_ratio Maximum allowed singleton ratio#' @param count_type Type of low-count features: "singleton", "doubleton", or "both"#' @param verbose Logical. Print progress messages?#'#' @return Filtered feature table
+#' @noRd
 .apply_singleton_filter <- function(table, max_ratio, count_type, verbose = TRUE) {
   if (verbose) cat(sprintf("Applying singleton ratio filter (max ratio: %.2f, type: %s)...\n",
                            max_ratio, count_type))
   filter_by_singleton_ratio(table, max_singleton_ratio = max_ratio, count_type = count_type)
 }
 
-
-#' Apply coverage filtering
-#'
-#' Wrapper that handles different coverage filtering methods and returns
-#' a standardized result.
-#'
-#' @param table Feature table (data.frame)
-#' @param method Method: "absolute", "mad", "iqr", "good", "chao"
-#' @param threshold Fixed threshold or multiplier
-#' @param floor Minimum possible cutoff
-#' @param target_coverage Target ecological coverage (for good/chao methods)
-#' @param min_reads Optional minimum absolute read count floor
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return Filtered feature table
+#' Apply coverage filtering#'#' Wrapper that handles different coverage filtering methods and returns#' a standardized result.#'#' @param table Feature table (data.frame)#' @param method Method: "absolute", "mad", "iqr", "good", "chao"#' @param threshold Fixed threshold or multiplier#' @param floor Minimum possible cutoff#' @param target_coverage Target ecological coverage (for good/chao methods)#' @param min_reads Optional minimum absolute read count floor#' @param verbose Logical. Print progress messages?#'#' @return Filtered feature table
+#' @noRd
 .apply_coverage_filter <- function(table, method, threshold = NULL, floor = 0,
                                     target_coverage = NULL, min_reads = 0, verbose = TRUE) {
   if (method == "none") {
@@ -58,14 +36,16 @@
     "good" = {
       est <- filter_by_coverage_estimator(table, method = "good",
                                            target_coverage = target_coverage,
-                                           min_reads = min_reads)
-      return(est$filtered_table)
+                                           min_reads = min_reads,
+                                           verbose = verbose)
+      return(est$table)
     },
     "chao" = {
       est <- filter_by_coverage_estimator(table, method = "chao",
                                            target_coverage = target_coverage,
-                                           min_reads = min_reads)
-      return(est$filtered_table)
+                                           min_reads = min_reads,
+                                           verbose = verbose)
+      return(est$table)
     },
     stop("Unknown coverage method: ", method)
   )
@@ -74,19 +54,8 @@
   filter_by_coverage(table, min_reads = cutoff)
 }
 
-
-#' Apply cross-talk (index hopping) filtering
-#'
-#' Wrapper around filter_cross_talk() with standardized interface.
-#'
-#' @param table Feature table (data.frame)
-#' @param method Method: "zero", "remove_feature", "flag", or "none"
-#' @param threshold Maximum relative abundance threshold
-#' @param min_abs_cutoff Minimum absolute count override
-#' @param return_details Return detailed leakage matrix?
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return Filtered feature table
+#' Apply cross-talk (index hopping) filtering#'#' Wrapper around filter_cross_talk() with standardized interface.#'#' @param table Feature table (data.frame)#' @param method Method: "zero", "remove_feature", "flag", or "none"#' @param threshold Maximum relative abundance threshold#' @param min_abs_cutoff Minimum absolute count override#' @param return_details Return detailed leakage matrix?#' @param verbose Logical. Print progress messages?#'#' @return Filtered feature table
+#' @noRd
 .apply_crosstalk_filter <- function(table, method, threshold, min_abs_cutoff,
                                      return_details, verbose = TRUE) {
   if (method == "none") {
@@ -107,20 +76,8 @@
   }
 }
 
-
-#' Apply sparsity elbow-based filtering
-#'
-#' Detects elbow point in richness-depth curve and uses it to set
-#' a coverage cutoff for sample filtering.
-#'
-#' @param table Feature table (data.frame)
-#' @param detect Whether to run detection
-#' @param method Elbow detection method
-#' @param apply Whether to apply the filter
-#' @param multiplier MAD multiplier for applying elbow cutoff
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return A list with filtered_table and elbow_result
+#' Apply sparsity elbow-based filtering#'#' Detects elbow point in richness-depth curve and uses it to set#' a coverage cutoff for sample filtering.#'#' @param table Feature table (data.frame)#' @param detect Whether to run detection#' @param method Elbow detection method#' @param apply Whether to apply the filter#' @param multiplier MAD multiplier for applying elbow cutoff#' @param verbose Logical. Print progress messages?#'#' @return A list with filtered_table and elbow_result
+#' @noRd
 .apply_sparsity_elbow_filter <- function(table, detect, method, apply, multiplier, verbose = TRUE) {
   result <- list(filtered_table = table, elbow_result = NULL)
 
@@ -156,22 +113,8 @@
   result
 }
 
-
-#' Apply depth-sparsity outlier filtering
-#'
-#' Identifies and optionally removes samples that are outliers in the
-#' depth-sparsity relationship.
-#'
-#' @param table Feature table (data.frame)
-#' @param detect Whether to run analysis
-#' @param metric Metric to analyze: "sparsity" or "richness"
-#' @param method Outlier detection method: "mad", "iqr", or "both"
-#' @param multiplier MAD/IQR multiplier
-#' @param direction Direction to flag: "high_sparsity", "low_sparsity", or "both"
-#' @param apply Whether to apply the filter
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return A list with filtered_table and analysis_result
+#' Apply depth-sparsity outlier filtering#'#' Identifies and optionally removes samples that are outliers in the#' depth-sparsity relationship.#'#' @param table Feature table (data.frame)#' @param detect Whether to run analysis#' @param metric Metric to analyze: "sparsity" or "richness"#' @param method Outlier detection method: "mad", "iqr", or "both"#' @param multiplier MAD/IQR multiplier#' @param direction Direction to flag: "high_sparsity", "low_sparsity", or "both"#' @param apply Whether to apply the filter#' @param verbose Logical. Print progress messages?#'#' @return A list with filtered_table and analysis_result
+#' @noRd
 .apply_depth_sparsity_filter <- function(table, detect, metric, method, multiplier,
                                           direction, apply, verbose = TRUE) {
   result <- list(filtered_table = table, analysis_result = NULL)
@@ -203,22 +146,8 @@
   result
 }
 
-
-#' Apply abundance filtering
-#'
-#' Wrapper that handles different abundance filtering methods.
-#'
-#' @param table Feature table (data.frame)
-#' @param method Method: "none", "absolute", "relative", "relative_cutoff", "joint"
-#' @param threshold Threshold value
-#' @param min_samples Minimum number of samples
-#' @param logic Logical operator for joint filtering: "OR" or "AND"
-#' @param prevalence_threshold Prevalence threshold for joint filtering
-#' @param min_coverage_for_relative Minimum coverage for relative_cutoff method
-#' @param remove_features Whether to remove features (vs. setting to zero)
-#' @param verbose Logical. Print progress messages?
-#'
-#' @return Filtered feature table
+#' Apply abundance filtering#'#' Wrapper that handles different abundance filtering methods.#'#' @param table Feature table (data.frame)#' @param method Method: "none", "absolute", "relative", "relative_cutoff", "joint"#' @param threshold Threshold value#' @param min_samples Minimum number of samples#' @param logic Logical operator for joint filtering: "OR" or "AND"#' @param prevalence_threshold Prevalence threshold for joint filtering#' @param min_coverage_for_relative Minimum coverage for relative_cutoff method#' @param remove_features Whether to remove features (vs. setting to zero)#' @param verbose Logical. Print progress messages?#'#' @return Filtered feature table
+#' @noRd
 .apply_abundance_filter <- function(table, method, threshold, min_samples,
                                      logic, prevalence_threshold,
                                      min_coverage_for_relative, remove_features, verbose = TRUE) {
@@ -248,7 +177,7 @@
       prevalence_threshold = prevalence_threshold,
       mode = if (threshold > 1) "absolute" else "relative",
       logic = logic, remove_zeros = !remove_features
-    ),
+    )$table,
     stop("Unknown abundance method: ", method)
   )
 }

@@ -30,7 +30,12 @@ Creates a visualization of the feature network showing connections between
 features. Useful for exploring ecological relationships and identifying
 }
 \examples{
-# mi_matrix <- compute_mutual_information(feature_table)
-# network <- analyze_feature_network(mi_matrix)
-# plot_feature_network(network, rownames(feature_table))
+if (requireNamespace("igraph", quietly = TRUE)) {
+  data(example_feature_table)
+  abund <- as.matrix(example_feature_table[, -1])
+  similarity <- abs(cor(t(abund)))
+  diag(similarity) <- 0
+  net <- analyze_feature_network(similarity)
+  plot_feature_network(net)
+}
 }

@@ -10,7 +10,6 @@
 #' @param log_transform Logical. If TRUE, applies log10 transformation to CV values for plotting.
 #'                      Useful when CV values span several orders of magnitude. Default is FALSE.
 #' @param main Plot title (only used if plot = TRUE).
-#' @param ... Additional arguments passed to plot functions.
 #'
 #' @return A data.frame with feature IDs and their corresponding CV values.
 #'         Columns: feature_id, mean, sd, cv
@@ -18,15 +17,9 @@
 #' @export
 #'
 #' @examples
-#' # Calculate CV for all features
-#' # cv_results <- calculate_feature_cv(table)
-#'
-#' # Calculate and plot distribution
-#' # cv_results <- calculate_feature_cv(table, plot = TRUE)
-#'
-#' # Find most variable features
-#' # cv_results <- calculate_feature_cv(table)
-#' # top_variable <- cv_results[order(-cv_results$cv), ][1:10, ]
+#' data(example_feature_table)
+#' result <- calculate_feature_cv(example_feature_table)
+#' head(result)
 calculate_feature_cv <- function(table, plot = FALSE, plot_type = c("histogram", "boxplot"),
                                   log_transform = FALSE, main = "Feature Coefficient of Variation") {
   # Extract feature IDs and abundance columns

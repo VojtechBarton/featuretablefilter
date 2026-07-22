@@ -28,6 +28,7 @@ or "mst" (minimum spanning tree). Default is "mean_sd".}
 }
 \value{
 A list containing:
+\describe{
   \item{degree_centrality}{Number of significant connections per feature}
   \item{strength}{Sum of connection strengths per feature}
   \item{betweenness}{Betweenness centrality (if igraph available)}
@@ -35,20 +36,19 @@ A list containing:
   \item{n_edges}{Total number of edges in the network}
   \item{adjacency_matrix}{Binary adjacency matrix (1 = connected, 0 = not)}
 }
+}
 \description{
 Based on a mutual information or correlation matrix, computes network
 centrality measures for each feature. Features with zero connections
 (degree = 0) are likely spurious or random artifacts.
 }
 \examples{
-# Compute MI matrix first
-# mi_matrix <- compute_mutual_information(feature_table)
-
-# Get network metrics
-# network_metrics <- analyze_feature_network(mi_matrix)
-
-# Features with zero degree are likely artifacts
-# disconnected_features <- names(network_metrics$degree_centrality[
-#   network_metrics$degree_centrality == 0
-# ])
+if (requireNamespace("igraph", quietly = TRUE)) {
+  data(example_feature_table)
+  abund <- as.matrix(example_feature_table[, -1])
+  similarity <- abs(cor(t(abund)))
+  diag(similarity) <- 0
+  result <- analyze_feature_network(similarity)
+  head(result$degree_centrality)
+}
 }

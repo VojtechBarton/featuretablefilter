@@ -24,8 +24,6 @@ First column should be feature IDs, remaining columns are sample counts/abundanc
 Useful when CV values span several orders of magnitude. Default is FALSE.}
 
 \item{main}{Plot title (only used if plot = TRUE).}
-
-\item{...}{Additional arguments passed to plot functions.}
 }
 \value{
 A data.frame with feature IDs and their corresponding CV values.
@@ -36,13 +34,7 @@ Computes the coefficient of variation (standard deviation / mean) for each featu
 across samples. This is a useful metric for identifying highly variable features.
 }
 \examples{
-# Calculate CV for all features
-# cv_results <- calculate_feature_cv(table)
-
-# Calculate and plot distribution
-# cv_results <- calculate_feature_cv(table, plot = TRUE)
-
-# Find most variable features
-# cv_results <- calculate_feature_cv(table)
-# top_variable <- cv_results[order(-cv_results$cv), ][1:10, ]
+data(example_feature_table)
+result <- calculate_feature_cv(example_feature_table)
+head(result)
 }

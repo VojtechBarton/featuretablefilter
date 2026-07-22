@@ -1,31 +1,32 @@
 Package: featuretablefilter
 Type: Package
 Title: Feature Table Filtering for Microbiome Data
-Version: 1.0.0
-Date: 2026-07-14
+Version: 0.99.0
 Author: Vojtech Barton [aut, cre]
 Maintainer: Vojtech Barton <vojtech.barton@gmail.com>
+Authors@R: person("Vojtech", "Barton", email = "vojtech.barton@gmail.com",
+    role = c("aut", "cre"))
 Description: Provides functions for filtering microbiome feature tables based on
     coverage, abundance, and network connectivity criteria. The package supports
     native handling of 'phyloseq' and 'TreeSummarizedExperiment' objects, providing
     comprehensive quality control metrics and visualizations for filtering decisions.
+    It is intended for microbiome researchers who need reproducible, class-preserving
+    filtering workflows with built-in diagnostics and interactive exploration.
 License: Artistic-2.0
+License-file: LICENSE
 URL: https://github.com/VojtechBarton/featuretablefilter
 BugReports: https://github.com/VojtechBarton/featuretablefilter/issues
 Depends:
-    R (>= 4.1.0)
+    R (>= 4.3.0)
 Imports:
     ggplot2 (>= 3.4.0),
     S4Vectors,
-    zoo,
-    grDevices,
-    graphics,
-    stats,
-    utils
+    zoo
 Suggests:
     BiocStyle,
     ComplexHeatmap,
     DT,
+    igraph,
     knitr,
     pheatmap,
     patchwork,
@@ -35,13 +36,14 @@ Suggests:
     SingleCellExperiment,
     SummarizedExperiment,
     testthat (>= 3.0.0),
+    tidyr,
     TreeSummarizedExperiment,
     vegan,
     shiny
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 RoxygenNote: 8.0.0
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-BiocViews: Microbiome, DataImport, DataProcessing, Filtering,
-    QualityControl, Visualization
+biocViews: Microbiome, DataImport, QualityControl, Visualization,
+    Sequencing, Network, Regression

@@ -21,6 +21,7 @@
 #' @param prefix_filtered Prefix for filtered plot files. Default is "filtered".
 #'
 #' @return Returns a list containing:
+#' \describe{
 #'   \item{feature_prevalence}{Named vector: number of samples each feature appears in (original)}
 #'   \item{sample_richness}{Named vector: number of features in each sample (original)}
 #'   \item{feature_prevalence_filtered}{Named vector: filtered feature prevalence (if table_filtered provided)}
@@ -28,22 +29,13 @@
 #'   \item{mean_feature_prevalence}{Mean number of samples per feature (original)}
 #'   \item{mean_sample_richness}{Mean number of features per sample (original)}
 #'   \item{plots}{List containing the ggplot objects}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Display plots for original table only
-#' # plot_presence_analysis(table)
-#'
-#' # Compare original vs filtered
-#' # plot_presence_analysis(table, table_filtered = filtered_table)
-#'
-#' # Save plots
-#' # plot_presence_analysis(table, save_dir = "plots", prefix = "my_analysis")
-#'
-#' # Get statistics
-#' # stats <- plot_presence_analysis(table)
-#' # print(stats$mean_sample_richness)
+#' data(example_feature_table)
+#' plot_presence_analysis(example_feature_table)
 plot_presence_analysis <- function(table, threshold = 1,
                                     save_dir = NULL, prefix = "presence_analysis",
                                     main_main = "Presence Frequency Analysis",

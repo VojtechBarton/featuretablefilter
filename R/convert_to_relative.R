@@ -16,11 +16,9 @@
 #' @export
 #'
 #' @examples
-#' # Convert to proportions
-#' # rel_table <- convert_to_relative(table)
-#'
-#' # Convert to percentages
-#' # rel_table <- convert_to_relative(table, percent = TRUE)
+#' data(example_feature_table)
+#' result <- convert_to_relative(example_feature_table)
+#' head(result[, 1:3])
 convert_to_relative <- function(table, percent = FALSE, zero_replace = 0) {
   # Extract feature IDs and count columns
   feature_ids <- table[, 1, drop = FALSE]

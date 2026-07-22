@@ -19,5 +19,7 @@ A filtered feature table (data.frame) with low-coverage samples removed.
 Removes samples with total read count below the threshold.
 }
 \examples{
-# filter_by_coverage(my_table, min_reads = 1000)
+data(example_feature_table)
+result <- filter_by_coverage(example_feature_table, min_reads = 1000)
+ncol(result)
 }

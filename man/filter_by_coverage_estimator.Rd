@@ -8,7 +8,8 @@ filter_by_coverage_estimator(
   table,
   method = c("good", "chao"),
   target_coverage = NULL,
-  min_reads = 0
+  min_reads = 0,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -22,9 +23,12 @@ Default is 0.95 for Good's, 0.90 for Chao's.}
 
 \item{min_reads}{Optional minimum absolute read count cutoff applied in addition to coverage.
 Useful as a safety floor. Default is 0 (no additional cutoff).}
+
+\item{verbose}{Logical. If TRUE, prints progress messages. Default is TRUE.}
 }
 \value{
 A list containing:
+\describe{
   \item{table}{Filtered feature table}
   \item{coverage_before}{Coverage estimates before filtering}
   \item{coverage_after}{Coverage estimates after filtering}
@@ -36,15 +40,15 @@ A list containing:
   \item{method}{Method used ("good" or "chao")}
   \item{target_coverage}{Target coverage threshold used}
 }
+}
 \description{
 Filters samples based on Good's or Chao's coverage estimates, which measure
 the completeness of sampling rather than just absolute sequencing depth.
 This approach removes samples that are likely undersampled ecologically.
 }
 \examples{
-# Filter using Good's coverage (keep samples with >= 95\% coverage)
-# result <- filter_by_coverage_estimator(table, method = "good", target_coverage = 0.95)
-
-# Filter using Chao's coverage (keep samples with >= 90\% coverage)
-# result <- filter_by_coverage_estimator(table, method = "chao", target_coverage = 0.90)
+data(example_feature_table)
+result <- filter_by_coverage_estimator(example_feature_table, method = "good",
+                                       verbose = FALSE)
+ncol(result$table)
 }

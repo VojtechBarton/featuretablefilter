@@ -25,6 +25,7 @@ Creates visualization of the relationship between sequencing depth and
 sparsity/richness, with outliers highlighted.
 }
 \examples{
-# result <- analyze_depth_sparsity(my_table)
-# plot_depth_sparsity(result)
+data(example_feature_table)
+analysis <- analyze_depth_sparsity(example_feature_table, verbose = FALSE)
+plot_depth_sparsity(analysis)
 }

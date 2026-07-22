@@ -38,12 +38,14 @@ Default is "high_sparsity" since high sparsity at low depth is concerning.}
 }
 \value{
 A list containing:
+\describe{
   \item{sample_metrics}{data.frame with sample_name, depth, sparsity, richness, residual}
   \item{outliers}{data.frame of flagged samples with reason}
   \item{n_outliers}{Number of outliers detected}
   \item{fit_summary}{List with regression coefficients and R-squared}
   \item{thresholds}{List with cutoff values used for outlier detection}
   \item{recommendation}{Character string with filtering advice}
+}
 }
 \description{
 Analyzes the relationship between sequencing depth (total reads) and sparsity
@@ -58,12 +60,7 @@ The function:
 4. Provides recommendations for which samples to consider removing
 }
 \examples{
-# Identify high-sparsity outliers using MAD method
-# result <- analyze_depth_sparsity(my_table, metric = "sparsity", method = "mad")
-
-# Check for outliers in richness vs depth relationship
-# result <- analyze_depth_sparsity(my_table, metric = "richness", method = "iqr")
-
-# Get both types of outliers
-# result <- analyze_depth_sparsity(my_table, outlier_method = "both", direction = "both")
+data(example_feature_table)
+result <- analyze_depth_sparsity(example_feature_table, verbose = FALSE)
+head(result$sample_metrics)
 }

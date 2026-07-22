@@ -15,11 +15,9 @@
 #' @export
 #'
 #' @examples
-#' # Overall table sparsity
-#' # sparsity <- calculate_sparsity(table)
-#'
-#' # Sparsity per sample
-#' # sample_sparsity <- calculate_sparsity(table, by_sample = TRUE)
+#' data(example_feature_table)
+#' result <- calculate_sparsity(example_feature_table)
+#' result
 calculate_sparsity <- function(table, by_sample = FALSE) {
   # Extract abundance columns (skip first column which is feature IDs)
   abundances <- table[, -1, drop = FALSE]

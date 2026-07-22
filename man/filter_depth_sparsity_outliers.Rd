@@ -9,6 +9,7 @@ filter_depth_sparsity_outliers(
   metric = c("sparsity", "richness"),
   outlier_method = c("mad", "iqr", "both"),
   multiplier = 3,
+  direction = c("high_sparsity", "low_sparsity", "both"),
   keep_outliers = FALSE
 )
 }
@@ -21,6 +22,9 @@ filter_depth_sparsity_outliers(
 
 \item{multiplier}{MAD multiplier for outlier detection}
 
+\item{direction}{Which outliers to filter: \code{"high_sparsity"}, \code{"low_sparsity"},
+or \code{"both"}. Default is \code{"high_sparsity"}.}
+
 \item{keep_outliers}{Logical. If TRUE, keep outliers; if FALSE (default), remove them.}
 }
 \value{
@@ -31,9 +35,7 @@ Combines \code{\link{analyze_depth_sparsity}} with filtering to remove
 flagged outlier samples in one step.
 }
 \examples{
-# Remove high-sparsity outlier samples
-# cleaned_table <- filter_depth_sparsity_outliers(my_table)
-
-# Keep only samples that pass the depth-sparsity check
-# cleaned_table <- filter_depth_sparsity_outliers(my_table, keep_outliers = FALSE)
+data(example_feature_table)
+result <- filter_depth_sparsity_outliers(example_feature_table)
+ncol(result)
 }

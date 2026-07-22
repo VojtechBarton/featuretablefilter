@@ -17,14 +17,10 @@
 #' @export
 #'
 #' @examples
-#' # Load TSV file (auto-detects format)
-#' # table <- load_feature_table("example_feature_table.tsv")
-#'
-#' # Load CSV file
-#' # table <- load_feature_table("feature-table.csv")
-#'
-#' # Specify feature column by name
-#' # table <- load_feature_table("table.tsv", feature_col = "OTU_ID")
+#' file <- system.file("extdata", "example_feature_table.tsv",
+#'                        package = "featuretablefilter")
+#' table <- load_feature_table(file)
+#' head(table[, 1:3])
 load_feature_table <- function(file, header = NULL, sep = NULL,
                                 feature_col = 1, feature_name_pattern = NULL) {
   # Check file exists
@@ -81,7 +77,7 @@ load_feature_table <- function(file, header = NULL, sep = NULL,
 
   # Ensure feature column is first
   if (is.numeric(feature_col) && feature_col != 1) {
-    cols <- c(feature_col, setdiff(1:ncol(table_data), feature_col))
+    cols <- c(feature_col, setdiff(seq_len(ncol(table_data)), feature_col))
     table_data <- table_data[, cols]
   } else if (is.character(feature_col) && colnames(table_data)[1] != feature_col) {
     cols <- c(feature_col, setdiff(colnames(table_data), feature_col))

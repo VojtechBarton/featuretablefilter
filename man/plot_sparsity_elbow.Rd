@@ -18,6 +18,7 @@ A ggplot object
 Creates visualization of the richness-depth relationship with elbow point marked.
 }
 \examples{
-# elbow <- identify_sparsity_elbow(my_table)
-# plot_sparsity_elbow(elbow)
+data(example_feature_table)
+elbow <- identify_sparsity_elbow(example_feature_table)
+plot_sparsity_elbow(elbow)
 }

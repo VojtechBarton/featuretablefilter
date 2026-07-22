@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Package Overview
 
-**featuretablefilter** - An R package for filtering microbiome feature tables based on coverage, abundance, and network connectivity criteria. Supports `data.frame`, `phyloseq`, and `TreeSummarizedExperiment` objects natively.
+**featuretablefilter** is an R package for filtering microbiome feature tables by coverage, abundance, and network connectivity. It supports `data.frame`, `matrix`, `phyloseq`, and `TreeSummarizedExperiment` inputs and returns the same class as the input.
+
+The package is organized as a standard R package with roxygen2 documentation, testthat v3 tests, Bioconductor metadata, and a new Shiny dashboard in `inst/shiny-dashboard/`.
 
 ## Development Commands
 
@@ -12,141 +14,113 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Run all tests
 Rscript -e "testthat::test_dir('tests/testthat')"
 
-# Run a specific test file
+# Run a single test file
 Rscript -e "testthat::test_file('tests/testthat/test-compute_qc_metrics.R')"
 
-# Run a specific test by name
+# Run tests matching a name filter
 Rscript -e "testthat::test_file('tests/testthat/test-compute_qc_metrics.R', filter = 'sparsity')"
 
-# Build and install package locally
-R CMD INSTALL .
+# Load package in development mode
+Rscript -e "devtools::load_all('.')"
 
-# Check package
-R CMD check .
-
-# Document functions with roxygen2
+# Generate roxygen2 documentation
 Rscript -e "roxygen2::roxygenise()"
 
-# Build package tarball
+# Build and install locally
+R CMD INSTALL .
+
+# Build source tarball
 R CMD build .
+
+# Run R package check (closest thing to linting for R packages)
+R CMD check .
+
+# Run the Shiny dashboard locally
+Rscript -e "featuretablefilter::runDashboard()"
 ```
 
-## Architecture
+## High-Level Architecture
 
-The package follows a modular structure with distinct functional categories:
+### Data Model
 
-### Core Filtering Functions
-- **`filter_coverage.R`** (`filter_by_coverage`) - Removes low-coverage samples using absolute thresholds
-- **`filter_features.R`** (`filter_features_by_abundance`) - Filters features by absolute or relative abundance with `min_samples` support
-- **`filter_relative_cutoff.R`** (`filter_by_relative_cutoff`) - Relative cutoff filtering based on min-coverage sample
+All functions assume a feature table in **wide format**: the first column contains feature IDs (e.g., ASVs, OTUs), and remaining columns contain per-sample counts. Functions generally preserve this structure rather than converting the first column to row names.
 
-### Coverage Estimation Functions
-- **`estimate_mad_cutoff.R`** (`estimate_mad_cutoff`) - MAD-based threshold estimation (median ± multiplier × MAD)
-- **`estimate_iqr_cutoff.R`** (`estimate_iqr_cutoff`) - IQR/Tukey-based threshold estimation
-- **`estimate_coverage_metrics.R`** (`estimate_good_coverage`, `estimate_chao_coverage`) - Ecological completeness estimators
-- **`filter_by_coverage_estimator.R`** (`filter_by_coverage_estimator`) - Filter samples by Good's or Chao's coverage threshold
+### Filtering Layers
 
-### Singleton Ratio & Cross-Talk Filtering
-- **`filter_by_singleton_ratio.R`** (`filter_by_singleton_ratio`) - PCR artifact detection via singleton/doubleton ratios
-- **`filter_cross_talk.R`** (`filter_cross_talk`, `filter_index_hopping`) - Index hopping/cross-contamination filtering
+Filtering is organized into independent, composable layers:
 
-### Network-Based Filtering
-- **`filter_by_network.R`** - Information theory and graph theory based filtering
-  - `compute_mutual_information()` - Pairwise MI using k-nearest neighbor (KSG) estimator
-  - `analyze_feature_network()` - Network centrality metrics (degree, strength, betweenness)
-  - `filter_by_network_connectivity()` - Remove disconnected features (likely artifacts)
-  - `plot_feature_network()` - Visualize feature connectivity network
+1. **Sample-level filtering** – remove low-coverage or low-quality samples.
+   - Absolute thresholds, MAD/IQR estimators, Good’s/Chao’s ecological coverage.
+   - Singleton-ratio filtering for PCR artifacts.
+   - Cross-talk / index-hopping correction.
+   - Depth-sparsity and sparsity-elbow outlier detection.
 
-### Sparsity & Outlier Detection
-- **`identify_sparsity_elbow.R`** (`identify_sparsity_elbow`) - Detect elbow point in richness-depth curve
-- **`compute_depth_sparsity.R`** (`analyze_depth_sparsity`, `filter_depth_sparsity_outliers`) - Depth-sparsity outlier analysis
-- **`plot_reads_vs_asvs.R`** - Total reads vs observed ASVs plot with outlier flagging
+2. **Feature-level filtering** – remove rare or spurious features.
+   - Absolute or relative abundance thresholds.
+   - Relative cutoff tied to the minimum-coverage sample.
+   - Joint abundance-prevalence filtering with AND/OR logic.
+   - Network connectivity filtering based on mutual information.
 
-### Joint Filtering
-- **`filter_features_joint.R`** (`filter_features_joint`) - Joint abundance-prevalence filtering with AND/OR logic
+3. **QC and visualization** – compare tables before and after filtering.
+   - Retention rates, sparsity changes, diversity retention, rank-abundance stability.
+   - Procrustes analysis via `vegan`.
+   - Plotting functions for coverage, abundance, sparsity, scree, and QC comparison.
 
-### Diversity Metrics
-- **`calculate_cv.R`** (`calculate_feature_cv`) - Coefficient of variation per feature
-- **`calculate_sparsity.R`** (`calculate_sparsity`) - Calculate sparsity metric
+### Pipeline Internals
 
-### QC & Metrics
-- **`compute_qc_metrics.R`** (`compute_filtering_qc`) - Comprehensive QC including:
-  - Sparsity changes (original vs filtered)
-  - Retention rates (reads, features, samples)
-  - Rank-abundance stability (top N overlap, Jaccard similarity, Spearman correlation)
-  - Procrustes analysis for compositional similarity (via vegan)
-  - Hill numbers / Effective Species Count diversity retention
+`run_filtering_pipeline()` is the main entry point. It delegates to internal pipeline modules in `R/`:
 
-### Visualization
-- **`plot_qc_comparison.R`** (`plot_qc_comparison`) - Generates 7 comparison plots:
-  1. Sample coverage distribution (log10, faceted)
-  2. Feature abundance distribution (log10, faceted)
-  3. Per-sample sparsity histogram
-  4. Retention rates barplot
-  5. Top features stacked barplot
-  6. Heatmaps (original and filtered)
-  7. Presence frequency comparison
-- **`plot_presence_analysis.R`** (`plot_presence_analysis`) - Feature prevalence and sample richness histograms (with optional comparison mode)
-- **`plot_coverage_histogram.R`** (`plot_coverage_histogram`) - Sample coverage histograms with threshold line
-- **`plot_top_features_stacked.R`** (`plot_top_features_stacked`) - Top N relative abundance stacked bars
-- **`plot_scree.R`** (`plot_scree`) - Scree/saturation diagnostic plots
-- **`plot_depth_sparsity.R`** (`plot_depth_sparsity`) - Depth-sparsity relationship with outliers
-- **`plot_sparsity_elbow.R`** (`plot_sparsity_elbow`) - Richness-depth curve with elbow marker
+- `pipeline_steps.R` – wrappers such as `.apply_coverage_filter()`, `.apply_abundance_filter()`, `.apply_crosstalk_filter()`, `.apply_sparsity_elbow_filter()`, `.apply_depth_sparsity_filter()`. These standardize arguments and call the public filtering functions.
+- `pipeline_io.R` – loading and saving inputs/outputs, preserving class.
+- `pipeline_analysis.R` – orchestrates QC metrics, presence stats, scree, and depth-sparsity analysis.
+- `pipeline_reporting.R` – generates text, Markdown, and PDF reports.
 
-### Pipeline & Utilities
-- **`run_filtering_pipeline.R`** (`run_filtering_pipeline`) - Complete filtering workflow with:
-  - Accepts `data.frame`, `matrix`, `phyloseq`, or `TreeSummarizedExperiment` as input
-  - Returns same class as input (preserving metadata)
-  - Configurable methods per step (coverage, abundance)
-  - File outputs (filtered table, plots, text report)
-- **`load_feature_table.R`** (`load_feature_table`) - Auto-detects TSV/CSV format, header detection, feature column identification
-- **`convert_to_relative.R`** (`convert_to_relative`) - Converts counts to relative abundances
+The pipeline returns a list with `original_table`, `filtered_table`, `qc_metrics`, `presence_stats`, `filtering_summary`, and optional analysis results.
 
-### Data Class Conversion
-- **`convert_data_classes.R`** - Native support for phyloseq and TreeSummarizedExperiment:
-  - `from_phyloseq()` - Convert phyloseq object to data.frame
-  - `to_phyloseq()` - Create phyloseq from data.frame (with optional taxonomy, tree, sample data)
-  - `from_TSE()` - Convert TreeSummarizedExperiment/SingleCellExperiment to data.frame
-  - `to_TSE()` - Create TreeSummarizedExperiment from data.frame
-  - `convert_feature_table()` - Generic auto-detect conversion between any supported format
+### Class Conversion
 
-### Scree Analysis
-- **`compute_scree.R`** (`compute_scree`) - Scree/saturation analysis for filtering threshold selection
+`convert_data_classes.R` handles conversions to/from `phyloseq` and `TreeSummarizedExperiment`. The pipeline uses `convert_feature_table()` to coerce inputs to `data.frame` for processing, then converts back to the original class on output, preserving metadata and tree structures when possible.
 
 ### Key Design Patterns
 
-1. **Feature Table Format**: First column contains feature IDs, remaining columns are sample counts. Functions preserve this structure (don't convert to row names).
+- **Method dispatch** via `match.arg()`. Common method sets:
+  - Coverage: `"none"`, `"absolute"`, `"mad"`, `"iqr"`, `"good"`, `"chao"`
+  - Abundance: `"none"`, `"absolute"`, `"relative"`, `"relative_cutoff"`, `"joint"`
+  - Cross-talk: `"none"`, `"zero"`, `"remove_feature"`, `"flag"`
+- **Return values**: most functions return a modified `data.frame` with attributes such as `n_filtered_out`, `threshold`, and `mode`.
+- **Optional dependencies**: use `requireNamespace()` for `vegan`, `pheatmap`, `ComplexHeatmap`, `phyloseq`, `TreeSummarizedExperiment`, `shiny`, and `DT` with graceful degradation.
+- **Reports**: the pipeline can write a text report, a Markdown report, and a PDF report (PDF requires LaTeX).
 
-2. **Method Dispatch**: Pipeline uses `match.arg()` for method selection:
-   - Coverage: "none", "absolute", "mad", "iqr", "good", "chao"
-   - Abundance: "none", "absolute", "relative", "relative_cutoff", "joint"
+## Shiny Dashboard
 
-3. **Return Values**: Most functions return modified data.frames with attributes (e.g., `n_filtered_out`, `threshold`, `mode`).
+An interactive dashboard is shipped under `inst/shiny-dashboard/` and launched with `runDashboard()`.
 
-4. **Optional Dependencies**: Uses `requireNamespace()` for optional packages (vegan, pheatmap, ComplexHeatmap, phyloseq, TreeSummarizedExperiment) with graceful degradation.
+- `app.R` – entry point.
+- `ui.R` and `server.R` – sidebar parameters and reactive filtering/visualization.
+- `www/style.css` – custom styling.
 
-5. **QC Metrics Structure**: `compute_filtering_qc()` returns comprehensive list including sparsity changes, retention percentages, top N feature comparisons with overlap statistics, rank correlations, and Procrustes analysis.
+The dashboard supports file upload, real-time parameter exploration, retention-rate previews, dynamic plots, and export of the filtered table, QC report, plots, and reproducible R code. Optional Suggested dependencies: `shiny`, `DT`.
 
-## Testing Structure
+## Testing
 
-Tests use testthat v3 with focused test files:
-- `test-load_feature_table.R` - File loading and auto-detection
-- `test-filter_coverage.R` - Sample coverage filtering
-- `test-filter_features.R` - Feature abundance filtering
-- `test-compute_qc_metrics.R` - QC metric calculations
-- `test-helpers.R` - Utility function tests
-- `test-estimate_coverage_metrics.R` - Coverage estimator tests
-- `test-filter_by_singleton_ratio.R` - Singleton ratio filtering
-- `test-filter_cross_talk.R` - Cross-talk filtering
-- `test-filter_features_joint.R` - Joint filtering
-- `test-compute_depth_sparsity.R` - Depth-sparsity analysis
-- `test-identify_sparsity_elbow.R` - Elbow detection
-- `test-compute_scree.R` - Scree analysis
-- `test-filter_by_network.R` - Network-based filtering
-- `test-convert_data_classes.R` - Class conversion functions
+Tests live in `tests/testthat/` and use testthat edition 3. The `helper.R` file loads `testthat` and the installed package. Synthetic `data.frame` fixtures are created inline.
 
-Test data is minimal synthetic data.frames created inline.
+There are focused test files for coverage, feature, network, joint, depth-sparsity, scree, elbow, cross-talk, singleton-ratio, QC metrics, class conversion, and file loading.
 
-## Example Data
+## Branch Workflow
 
-- `example_feature_table.tsv` - Synthetic dataset (50 features × 20 samples) for documentation and testing
+Per `CONTRIBUTING.md`, this project uses a **develop branch workflow**:
+
+- `master` is protected and production-ready.
+- `develop` is the integration branch; PRs target `develop`.
+- Feature/fix/docs branches branch from `develop` using prefixes like `feature/`, `fix/`, `docs/`.
+
+Commits follow conventional commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`).
+
+## Style Guidelines
+
+- 4-space indentation, spaces around operators, opening brace on the same line.
+- `snake_case` for functions and variables.
+- 80-character line limit (100 for comments).
+- All exported functions must have roxygen2 docs with `@param`, `@return`, and `@examples`.
+- Use `\dontrun{}` for examples requiring external data or long runtime.

@@ -35,17 +35,9 @@ The dashboard allows you to explore different filtering methods and parameters
 with real-time preview of results and visualizations.
 }
 \examples{
-\dontrun{
-# Launch the dashboard in default browser (100 MB max upload)
-runDashboard()
-
-# Launch on specific port
-runDashboard(port = 3838)
-
-# Launch without auto-opening browser
-runDashboard(launch.browser = FALSE)
-
-# Launch with larger upload limit (500 MB)
-runDashboard(max_upload_size = 500 * 1024 * 1024)
+\donttest{
+if (interactive()) {
+  runDashboard()
+}
 }
 }

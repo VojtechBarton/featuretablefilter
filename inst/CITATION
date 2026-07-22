@@ -1,0 +1,8 @@
+bibentry(
+  bibtype = "Manual",
+  title = "featuretablefilter: Feature Table Filtering for Microbiome Data",
+  author = person("Vojtech", "Barton"),
+  year = "2026",
+  note = "R package version 1.0.0",
+  url = "https://github.com/VojtechBarton/featuretablefilter"
+)

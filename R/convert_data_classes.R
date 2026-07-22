@@ -16,13 +16,12 @@
 #' @export
 #'
 #' @examples
-#' # if (requireNamespace("phyloseq", quietly = TRUE)) {
-#' #   ps <- phyloseq::phyloseq(
-#' #     phyloseq::otu_table(matrix(rpois(100, 5), 10, 10), taxa_are_rows = TRUE),
-#' #     phyloseq::tax_table(matrix(sample(c("A","B","C"), 100, replace=TRUE), 10, 10))
-#' #   )
-#' #   df <- from_phyloseq(ps)
-#' # }
+#' if (requireNamespace("phyloseq", quietly = TRUE)) {
+#'   example_phyloseq <- readRDS(system.file("extdata", "example_phyloseq_object.rds",
+#'     package = "featuretablefilter"))
+#'   df <- from_phyloseq(example_phyloseq)
+#'   head(df[, 1:3])
+#' }
 from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
   # Check for phyloseq
   if (!requireNamespace("phyloseq", quietly = TRUE)) {
@@ -126,17 +125,11 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
 #' @export
 #'
 #' @examples
-#' # Create simple phyloseq from feature table
-#' # table <- data.frame(feature_id = paste0("ASV_", 1:10), matrix(rpois(100, 5), 10, 10))
-#' # ps <- to_phyloseq(table)
-#'
-#' # With taxonomy
-#' # tax <- data.frame(
-#' #   feature_id = paste0("ASV_", 1:10),
-#' #   Kingdom = rep("Bacteria", 10),
-#' #   Phylum = sample(c("Firmicutes", "Bacteroidetes"), 10, replace = TRUE)
-#' # )
-#' # ps <- to_phyloseq(table, tax_table = tax)
+#' if (requireNamespace("phyloseq", quietly = TRUE)) {
+#'   data(example_feature_table)
+#'   ps <- to_phyloseq(example_feature_table)
+#'   print(ps)
+#' }
 to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
                          sample_data = NULL, feature_col = NULL) {
   # Check for phyloseq
@@ -262,10 +255,12 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
 #' @export
 #'
 #' @examples
-#' # if (requireNamespace("TreeSummarizedExperiment", quietly = TRUE)) {
-#' #   # Assuming tse is a TreeSummarizedExperiment object
-#' #   df <- from_TSE(tse)
-#' # }
+#' if (requireNamespace("TreeSummarizedExperiment", quietly = TRUE)) {
+#'   example_treesummarizedexperiment <- readRDS(system.file("extdata",
+#'     "example_treesummarizedexperiment_object.rds", package = "featuretablefilter"))
+#'   df <- from_TSE(example_treesummarizedexperiment)
+#'   head(df[, 1:3])
+#' }
 from_TSE <- function(tse, assay_name = NULL, add_row_data = FALSE, add_col_data = FALSE) {
   # Check for TreeSummarizedExperiment
   if (!requireNamespace("TreeSummarizedExperiment", quietly = TRUE)) {
@@ -371,23 +366,11 @@ from_TSE <- function(tse, assay_name = NULL, add_row_data = FALSE, add_col_data 
 #' @export
 #'
 #' @examples
-#' # Create simple TSE from feature table
-#' # table <- data.frame(feature_id = paste0("ASV_", 1:10), matrix(rpois(100, 5), 10, 10))
-#' # tse <- to_TSE(table)
-#'
-#' # With rowData (taxonomy) and colData (sample metadata)
-#' # rowData <- data.frame(
-#' #   Kingdom = rep("Bacteria", 10),
-#' #   Phylum = sample(c("Firmicutes", "Bacteroidetes"), 10, replace = TRUE)
-#' # )
-#' # rownames(rowData) <- paste0("ASV_", 1:10)
-#' #
-#' # colData <- data.frame(
-#' #   Condition = rep(c("Control", "Treatment"), 5)
-#' # )
-#' # rownames(colData) <- colnames(table)[-1]
-#' #
-#' # tse <- to_TSE(table, rowData = rowData, colData = colData)
+#' if (requireNamespace("TreeSummarizedExperiment", quietly = TRUE)) {
+#'   data(example_feature_table)
+#'   tse <- to_TSE(example_feature_table)
+#'   print(tse)
+#' }
 to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
                     rowTree = NULL, rowLinks = NULL,
                     feature_col = NULL, assay_name = "counts") {
@@ -542,14 +525,9 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
 #' @export
 #'
 #' @examples
-#' # Convert from phyloseq to data.frame
-#' # df <- convert_feature_table(phylo_obj, to = "data.frame")
-#'
-#' # Convert from data.frame to phyloseq
-#' # ps <- convert_feature_table(df, to = "phyloseq")
-#'
-#' # Convert from data.frame to TreeSummarizedExperiment
-#' # tse <- convert_feature_table(df, to = "TSE")
+#' data(example_feature_table)
+#' df <- convert_feature_table(example_feature_table, to = "data.frame")
+#' head(df)
 convert_feature_table <- function(x, to = c("data.frame", "phyloseq", "TSE"), ...) {
   to <- match.arg(to)
 

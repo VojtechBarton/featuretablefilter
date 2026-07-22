@@ -27,24 +27,21 @@
 #' @param verbose Logical. Print summary and recommendations. Default is TRUE.
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{sample_metrics}{data.frame with sample_name, depth, sparsity, richness, residual}
 #'   \item{outliers}{data.frame of flagged samples with reason}
 #'   \item{n_outliers}{Number of outliers detected}
 #'   \item{fit_summary}{List with regression coefficients and R-squared}
 #'   \item{thresholds}{List with cutoff values used for outlier detection}
 #'   \item{recommendation}{Character string with filtering advice}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Identify high-sparsity outliers using MAD method
-#' # result <- analyze_depth_sparsity(my_table, metric = "sparsity", method = "mad")
-#'
-#' # Check for outliers in richness vs depth relationship
-#' # result <- analyze_depth_sparsity(my_table, metric = "richness", method = "iqr")
-#'
-#' # Get both types of outliers
-#' # result <- analyze_depth_sparsity(my_table, outlier_method = "both", direction = "both")
+#' data(example_feature_table)
+#' result <- analyze_depth_sparsity(example_feature_table, verbose = FALSE)
+#' head(result$sample_metrics)
 analyze_depth_sparsity <- function(table, metric = c("sparsity", "richness"),
                                     outlier_method = c("mad", "iqr", "both"),
                                     multiplier = 3, iqr_multiplier = 1.5,
@@ -338,22 +335,18 @@ analyze_depth_sparsity <- function(table, metric = c("sparsity", "richness"),
 #' @param show_labels Logical. Show sample names for outliers. Default is TRUE if <= 10 outliers.
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{plot}{ggplot object}
 #'   \item{outliers}{data.frame of flagged outlier samples}
 #'   \item{metrics}{data.frame with all sample metrics}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Simple plot with automatic outlier detection
-#' # result <- plot_reads_vs_asvs(my_table)
-#' # print(result$plot)
-#'
-#' # Adjust sensitivity
-#' # result <- plot_reads_vs_asvs(my_table, mad_multiplier = 2.5)
-#'
-#' # Access outlier information
-#' # outlier_samples <- result$outliers$sample_name
+#' data(example_feature_table)
+#' result <- plot_reads_vs_asvs(example_feature_table)
+#' result$plot
 plot_reads_vs_asvs <- function(table, mad_multiplier = 3,
                                 main = "Total Reads vs Observed ASVs",
                                 color = "blue", show_labels = NULL) {
@@ -514,8 +507,9 @@ plot_reads_vs_asvs <- function(table, mad_multiplier = 3,
 #' @export
 #'
 #' @examples
-#' # result <- analyze_depth_sparsity(my_table)
-#' # plot_depth_sparsity(result)
+#' data(example_feature_table)
+#' analysis <- analyze_depth_sparsity(example_feature_table, verbose = FALSE)
+#' plot_depth_sparsity(analysis)
 plot_depth_sparsity <- function(analysis_result, main = "Depth-Sparsity Relationship",
                                  color = "blue") {
   # Check for ggplot2
@@ -600,6 +594,8 @@ plot_depth_sparsity <- function(analysis_result, main = "Depth-Sparsity Relation
 #' @param metric What to analyze: \code{"sparsity"} or \code{"richness"}
 #' @param outlier_method Method: \code{"mad"}, \code{"iqr"}, or \code{"both"}
 #' @param multiplier MAD multiplier for outlier detection
+#' @param direction Which outliers to filter: \code{"high_sparsity"}, \code{"low_sparsity"},
+#'                  or \code{"both"}. Default is \code{"high_sparsity"}.
 #' @param keep_outliers Logical. If TRUE, keep outliers; if FALSE (default), remove them.
 #'
 #' @return Filtered feature table (same structure as input)
@@ -607,21 +603,22 @@ plot_depth_sparsity <- function(analysis_result, main = "Depth-Sparsity Relation
 #' @export
 #'
 #' @examples
-#' # Remove high-sparsity outlier samples
-#' # cleaned_table <- filter_depth_sparsity_outliers(my_table)
-#'
-#' # Keep only samples that pass the depth-sparsity check
-#' # cleaned_table <- filter_depth_sparsity_outliers(my_table, keep_outliers = FALSE)
+#' data(example_feature_table)
+#' result <- filter_depth_sparsity_outliers(example_feature_table)
+#' ncol(result)
 filter_depth_sparsity_outliers <- function(table, metric = c("sparsity", "richness"),
                                             outlier_method = c("mad", "iqr", "both"),
-                                            multiplier = 3, keep_outliers = FALSE) {
+                                            multiplier = 3,
+                                            direction = c("high_sparsity", "low_sparsity", "both"),
+                                            keep_outliers = FALSE) {
   metric <- match.arg(metric)
   outlier_method <- match.arg(outlier_method)
+  direction <- match.arg(direction)
 
   # Run analysis
   result <- analyze_depth_sparsity(
     table, metric = metric, outlier_method = outlier_method,
-    multiplier = multiplier, verbose = FALSE
+    multiplier = multiplier, direction = direction, verbose = FALSE
   )
 
   # Get outlier sample names

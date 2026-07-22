@@ -23,9 +23,7 @@ Computes the proportion of zero cells in the table, which is a common
 quality control metric for microbiome and other sparse count data.
 }
 \examples{
-# Overall table sparsity
-# sparsity <- calculate_sparsity(table)
-
-# Sparsity per sample
-# sample_sparsity <- calculate_sparsity(table, by_sample = TRUE)
+data(example_feature_table)
+result <- calculate_sparsity(example_feature_table)
+result
 }

@@ -17,16 +17,20 @@ First column should be feature IDs, remaining columns are sample counts.}
 }
 \value{
 A list containing:
+\describe{
   \item{cutoff}{The estimated minimum read threshold}
   \item{median}{Median coverage across samples}
   \item{mad}{Median Absolute Deviation of coverage}
   \item{n_samples}{Total number of samples}
   \item{n_filtered}{Number of samples that would be filtered at this cutoff}
 }
+}
 \description{
 Calculates a data-driven threshold for filtering low-coverage samples
 based on the median and MAD of sample coverages.
 }
 \examples{
-# estimate_mad_cutoff(my_table, multiplier = 3)
+data(example_feature_table)
+result <- estimate_mad_cutoff(example_feature_table)
+result$cutoff
 }

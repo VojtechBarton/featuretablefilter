@@ -33,12 +33,14 @@ Default is c(10, 90) to avoid extreme outliers.}
 }
 \value{
 A list containing:
+\describe{
   \item{elbow_threshold}{The identified sequencing depth threshold}
   \item{samples_above_elbow}{Number of samples above the threshold}
   \item{samples_below_elbow}{Number of samples below the threshold}
   \item{richness_curve}{data.frame with sample_rank, depth, observed_richness, smoothed_richness, derivative}
   \item{recommendation}{Character string with filtering recommendation}
   \item{metrics}{List of diagnostic metrics including R-squared of fit, curvature at elbow}
+}
 }
 \description{
 Detects the critical sequencing depth threshold where low-prevalence ASVs
@@ -57,12 +59,7 @@ Samples below this elbow threshold are likely undersampled and may contain
 mostly noise/spurious features rather than true biological signal.
 }
 \examples{
-# Identify sparsity elbow in your data
-# elbow_result <- identify_sparsity_elbow(my_table)
-# filter_cutoff <- elbow_result$elbow_threshold
-# filtered_samples <- filter_by_coverage(my_table, min_reads = filter_cutoff)
-
-# Use different detection methods
-# elbow_kneedle <- identify_sparsity_elbow(my_table, method = "kneedle")
-# elbow_derivative <- identify_sparsity_elbow(my_table, method = "max_derivative")
+data(example_feature_table)
+result <- identify_sparsity_elbow(example_feature_table)
+result$elbow_threshold
 }

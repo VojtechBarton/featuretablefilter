@@ -1,6 +1,10 @@
 #' @importFrom S4Vectors DataFrame
 #' @importFrom zoo rollapply
 #' @import ggplot2
+#' @importFrom grDevices colorRampPalette dev.off png
+#' @importFrom graphics boxplot hist
+#' @importFrom stats cor cor.test dist lm mad median quantile sd setNames var
+#' @importFrom utils head read.table tail write.table
 NULL
 
 # Null coalescing operator for default values

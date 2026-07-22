@@ -17,6 +17,7 @@ First column should be feature IDs, remaining columns are sample counts.}
 }
 \value{
 A list containing:
+\describe{
   \item{cutoff}{The estimated minimum read threshold}
   \item{q1}{First quartile (25th percentile) of coverage}
   \item{q3}{Third quartile (75th percentile) of coverage}
@@ -24,10 +25,13 @@ A list containing:
   \item{n_samples}{Total number of samples}
   \item{n_filtered}{Number of samples that would be filtered at this cutoff}
 }
+}
 \description{
 Calculates a data-driven threshold for filtering low-coverage samples
 based on the first quartile and IQR of sample coverages.
 }
 \examples{
-# estimate_iqr_cutoff(my_table, multiplier = 1.5)
+data(example_feature_table)
+result <- estimate_iqr_cutoff(example_feature_table)
+result$cutoff
 }

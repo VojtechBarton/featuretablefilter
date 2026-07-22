@@ -34,12 +34,8 @@ Automatically detects the file format and structure of microbiome feature tables
 Handles common formats where the first column contains feature IDs.
 }
 \examples{
-# Load TSV file (auto-detects format)
-# table <- load_feature_table("example_feature_table.tsv")
-
-# Load CSV file
-# table <- load_feature_table("feature-table.csv")
-
-# Specify feature column by name
-# table <- load_feature_table("table.tsv", feature_col = "OTU_ID")
+file <- system.file("extdata", "example_feature_table.tsv",
+                       package = "featuretablefilter")
+table <- load_feature_table(file)
+head(table[, 1:3])
 }

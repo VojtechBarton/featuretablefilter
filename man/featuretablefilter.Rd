@@ -40,4 +40,13 @@ Useful links:
 }
 
 }
+\author{
+\strong{Maintainer}: Vojtech Barton \email{vojtech.barton@gmail.com}
+
+Authors:
+\itemize{
+  \item Vojtech Barton \email{vojtech.barton@gmail.com}
+}
+
+}
 \keyword{internal}

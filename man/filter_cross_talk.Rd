@@ -28,7 +28,7 @@ First column should be feature IDs, remaining columns are sample counts.}
 \item{max_rel_threshold}{Maximum allowed relative abundance as a fraction of the feature's
 maximum abundance across all samples. Values below this threshold
 relative to the max are considered leakage and set to zero.
-Default is 0.001 (0.1% of max).}
+Default is 0.001 (0.1\% of max).}
 
 \item{min_abs_cutoff}{Optional. Minimum absolute count required to be retained regardless
 of the relative threshold. Features with counts >= this value are kept.
@@ -65,13 +65,7 @@ This filter is particularly useful for:
 }
 }
 \examples{
-# Remove reads < 0.1\\% of each feature's maximum abundance
-# cleaned <- filter_cross_talk(my_table, max_rel_threshold = 0.001)
-
-# Stricter: 0.01\\% threshold with minimum absolute cutoff of 3 reads
-# cleaned <- filter_cross_talk(my_table, max_rel_threshold = 0.0001, min_abs_cutoff = 3)
-
-# Get detailed leakage information
-# result <- filter_cross_talk(my_table, return_details = TRUE)
-# leakage_pattern <- attr(result, "leakage_matrix")
+data(example_feature_table)
+result <- filter_cross_talk(example_feature_table)
+head(result[, 1:3])
 }

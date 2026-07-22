@@ -29,24 +29,21 @@
 #'                         Default is c(10, 90) to avoid extreme outliers.
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{elbow_threshold}{The identified sequencing depth threshold}
 #'   \item{samples_above_elbow}{Number of samples above the threshold}
 #'   \item{samples_below_elbow}{Number of samples below the threshold}
 #'   \item{richness_curve}{data.frame with sample_rank, depth, observed_richness, smoothed_richness, derivative}
 #'   \item{recommendation}{Character string with filtering recommendation}
 #'   \item{metrics}{List of diagnostic metrics including R-squared of fit, curvature at elbow}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Identify sparsity elbow in your data
-#' # elbow_result <- identify_sparsity_elbow(my_table)
-#' # filter_cutoff <- elbow_result$elbow_threshold
-#' # filtered_samples <- filter_by_coverage(my_table, min_reads = filter_cutoff)
-#'
-#' # Use different detection methods
-#' # elbow_kneedle <- identify_sparsity_elbow(my_table, method = "kneedle")
-#' # elbow_derivative <- identify_sparsity_elbow(my_table, method = "max_derivative")
+#' data(example_feature_table)
+#' result <- identify_sparsity_elbow(example_feature_table)
+#' result$elbow_threshold
 identify_sparsity_elbow <- function(table, method = c("kneedle", "max_derivative", "second_derivative"),
                                      smooth_window = 5, min_samples = 5,
                                      percentile_range = c(10, 90)) {
@@ -273,8 +270,9 @@ identify_sparsity_elbow <- function(table, method = c("kneedle", "max_derivative
 #' @export
 #'
 #' @examples
-#' # elbow <- identify_sparsity_elbow(my_table)
-#' # plot_sparsity_elbow(elbow)
+#' data(example_feature_table)
+#' elbow <- identify_sparsity_elbow(example_feature_table)
+#' plot_sparsity_elbow(elbow)
 plot_sparsity_elbow <- function(elbow_result, main = "Sparsity Elbow Analysis") {
   # Check for ggplot2
   if (!requireNamespace("ggplot2", quietly = TRUE)) {

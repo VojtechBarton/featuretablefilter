@@ -11,10 +11,11 @@ estimate_chao_coverage(table, target_coverage = 0.9)
 First column should be feature IDs, remaining columns are sample counts.}
 
 \item{target_coverage}{Target coverage threshold (0-1). Samples below this coverage will be flagged.
-Default is 0.90 (90% coverage).}
+Default is 0.90 (90\% coverage).}
 }
 \value{
 A list containing:
+\describe{
   \item{sample_coverage}{Named vector of Chao coverage estimates for each sample}
   \item{mean_coverage}{Mean coverage across all samples}
   \item{min_coverage}{Minimum coverage among all samples}
@@ -28,6 +29,7 @@ A list containing:
   \item{target_coverage}{The target coverage value used}
   \item{suggested_cutoff}{Suggested minimum read cutoff based on coverage analysis}
 }
+}
 \description{
 Calculates Chao's sample coverage estimator, a more conservative measure of
 sampling completeness that accounts for unseen species/features. This estimator
@@ -39,11 +41,7 @@ C_hat = 1 - (f1/S) + (f1/n) * ((n-1)/n) * ((S-1)/S)
 where f1 = singletons, S = number of features, n = total reads
 }
 \examples{
-# Estimate Chao's coverage for all samples
-# coverage_est <- estimate_chao_coverage(table, target_coverage = 0.90)
-# print(coverage_est)
-
-# Compare Good's vs Chao's coverage
-# good_cov <- estimate_good_coverage(table, target_coverage = 0.95)
-# chao_cov <- estimate_chao_coverage(table, target_coverage = 0.90)
+data(example_feature_table)
+result <- estimate_chao_coverage(example_feature_table)
+result$mean_coverage
 }

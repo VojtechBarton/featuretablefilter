@@ -15,6 +15,7 @@ compute_filtering_qc(original_table, filtered_table, top_n = 10)
 }
 \value{
 A list containing:
+\describe{
   \item{sparsity_original}{Sparsity of original table}
   \item{sparsity_filtered}{Sparsity of filtered table}
   \item{sparsity_drop_percent}{Percentage point drop in sparsity}
@@ -39,6 +40,7 @@ A list containing:
   \item{simpson_ens_filtered}{Mean Simpson ENS after filtering}
   \item{simpson_ens_retention_percent}{Percentage of Simpson ENS retained}
 }
+}
 \description{
 Calculates multiple QC metrics to assess the impact of filtering on a feature table.
 Includes sparsity change, retention rates, rank-abundance stability, compositional similarity,
@@ -54,11 +56,8 @@ converted to effective species count) per sample and reports how much diversity 
 after filtering. This reveals whether filtering preserves biological diversity or flattens it.
 }
 \examples{
-# Compare original and filtered tables
-# qc <- compute_filtering_qc(original_table, filtered_table)
-# print(qc)
-
-# Access diversity retention metrics
-# qc$shannon_ens_retention_percent  # How much Shannon diversity (q=1) was retained
-# qc$simpson_ens_retention_percent  # How much Simpson diversity (q=2) was retained
+data(example_feature_table)
+filtered <- filter_by_coverage(example_feature_table, min_reads = 1000)
+qc <- compute_filtering_qc(example_feature_table, filtered)
+qc$feature_retention_percent
 }

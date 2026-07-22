@@ -33,15 +33,9 @@ Optionally incorporates taxonomy, phylogenetic tree, and sample data
 if provided.
 }
 \examples{
-# Create simple phyloseq from feature table
-# table <- data.frame(feature_id = paste0("ASV_", 1:10), matrix(rpois(100, 5), 10, 10))
-# ps <- to_phyloseq(table)
-
-# With taxonomy
-# tax <- data.frame(
-#   feature_id = paste0("ASV_", 1:10),
-#   Kingdom = rep("Bacteria", 10),
-#   Phylum = sample(c("Firmicutes", "Bacteroidetes"), 10, replace = TRUE)
-# )
-# ps <- to_phyloseq(table, tax_table = tax)
+if (requireNamespace("phyloseq", quietly = TRUE)) {
+  data(example_feature_table)
+  ps <- to_phyloseq(example_feature_table)
+  print(ps)
+}
 }

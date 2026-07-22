@@ -30,7 +30,7 @@
 #'                                "none" - no singleton ratio filtering
 #'                                "absolute" - use fixed max_singleton_ratio threshold
 #' @param singleton_max_ratio Maximum allowed ratio of singletons+doubletons to total reads.
-#'                            Default is 0.1 (10%). Samples exceeding this are removed.
+#'                            Default is 0.1 (10\%). Samples exceeding this are removed.
 #' @param singleton_count_type Type of low-count features: "singleton", "doubleton", or "both".
 #'                             Default is "both".
 #' @param crosstalk_filter_method Method for cross-talk filtering:
@@ -40,7 +40,7 @@
 #'                                "flag" - flag leakage but don't modify data
 #' @param crosstalk_threshold Maximum relative abundance threshold for leakage detection.
 #'                            Values < this fraction of feature's max are considered leakage.
-#'                            Default is 0.001 (0.1% of max).
+#'                            Default is 0.001 (0.1\% of max).
 #' @param crosstalk_min_abs_cutoff Optional minimum absolute count to override relative threshold.
 #'                                 Default is NULL (no absolute cutoff).
 #' @param crosstalk_return_details Logical. Return detailed leakage matrix? Default FALSE.
@@ -71,7 +71,7 @@
 #'                           "joint" - joint abundance and prevalence filtering with AND/OR logic
 #' @param abun_threshold Threshold value for abundance filtering.
 #'                       For "absolute": minimum read count per feature.
-#'                       For "relative": proportion (e.g., 0.01 for 1%).
+#'                       For "relative": proportion (e.g., 0.01 for 1\%).
 #'                       For "relative_cutoff": relative proportion used to calculate absolute threshold.
 #'                       For "joint": minimum abundance threshold for the joint filter.
 #' @param abun_min_samples Minimum number of samples where feature must exceed threshold (default: 1).
@@ -82,7 +82,7 @@
 #'                   Default is "OR". Only used when abun_filter_method = "joint".
 #' @param abun_prevalence_threshold Proportion of samples (0-1) for joint filtering.
 #'                                  Features must be present in at least this proportion of samples.
-#'                                  Default is 0.3 (30% of samples). Only used when abun_filter_method = "joint".
+#'                                  Default is 0.3 (30\% of samples). Only used when abun_filter_method = "joint".
 #' @param min_coverage_for_relative If using "relative_cutoff" method, minimum coverage for samples.
 #' @param remove_features Logical. Remove features below threshold? Default TRUE.
 #' @param generate_plots Logical. Generate QC visualization plots? Default TRUE.
@@ -90,6 +90,7 @@
 #' @param verbose Logical. Print progress messages? Default TRUE.
 #'
 #' @return A list containing:
+#' \describe{
 #'   \item{original_table}{Original loaded table (same class as input)}
 #'   \item{filtered_table}{Filtered table (same class as input)}
 #'   \item{qc_metrics}{List of QC metrics from compute_filtering_qc()}
@@ -99,45 +100,20 @@
 #'   \item{depth_sparsity_result}{Result from depth-sparsity outlier analysis (if enabled)}
 #'   \item{scree_result}{Result from scree/saturation analysis (if enabled)}
 #'   \item{input_class}{The class of the input object ("data.frame", "phyloseq", or "TreeSummarizedExperiment")}
+#' }
 #'
 #' @export
 #'
 #' @examples
-#' # Simple pipeline with absolute thresholds from file
-#' # result <- run_filtering_pipeline(
-#' #   input = "example_feature_table.tsv",
-#' #   output_dir = "results",
-#' #   prefix = "analysis1",
-#' #   cov_filter_method = "absolute",
-#' #   cov_threshold = 1000,
-#' #   abun_filter_method = "absolute",
-#' #   abun_threshold = 5
-#' # )
-#'
-#' # Pipeline with phyloseq object (returns phyloseq)
-#' # library(phyloseq)
-#' # ps <- load_phyloseq("my_data.rds")
-#' # result <- run_filtering_pipeline(
-#' #   input = ps,
-#' #   prefix = "ps_filtered",
-#' #   cov_filter_method = "mad",
-#' #   cov_threshold = 3,
-#' #   abun_filter_method = "relative_cutoff",
-#' #   abun_threshold = 0.01
-#' # )
-#' # filtered_ps <- result$filtered_table  # Still a phyloseq object
-#'
-#' # Pipeline with TreeSummarizedExperiment (returns TSE)
-#' # library(TreeSummarizedExperiment)
-#' # tse <- loadTSE("my_data.rds")
-#' # result <- run_filtering_pipeline(
-#' #   input = tse,
-#' #   prefix = "tse_filtered",
-#' #   cov_filter_method = "good",
-#' #   cov_target_coverage = 0.95,
-#' #   abun_filter_method = "joint"
-#' # )
-#' # filtered_tse <- result$filtered_table  # Still a TreeSummarizedExperiment
+#' data(example_feature_table)
+#' result <- run_filtering_pipeline(example_feature_table,
+#'                                  cov_filter_method = "absolute",
+#'                                  cov_threshold = 1000,
+#'                                  abun_filter_method = "absolute",
+#'                                  abun_threshold = 10,
+#'                                  generate_report = FALSE,
+#'                                  verbose = FALSE)
+#' nrow(result$filtered_table)
 run_filtering_pipeline <- function(input,
                                     output_dir = ".",
                                     prefix = "filtered",
@@ -308,8 +284,11 @@ run_filtering_pipeline <- function(input,
     if (apply_depth_sparsity_outliers) {
       stats_before <- .get_table_stats(table_current)
       table_current <- filter_depth_sparsity_outliers(
-        table_current, depth_sparsity_metric, depth_sparsity_method,
-        depth_sparsity_multiplier, depth_sparsity_direction
+        table_current,
+        metric = depth_sparsity_metric,
+        outlier_method = depth_sparsity_method,
+        multiplier = depth_sparsity_multiplier,
+        direction = depth_sparsity_direction
       )
       stats_after <- .get_table_stats(table_current)
       filtering_steps$depth_sparsity <- .format_step_summary(

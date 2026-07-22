@@ -37,8 +37,10 @@ plot_qc_comparison(
 }
 \value{
 A list containing:
+\describe{
   \item{plots}{Named list of ggplot objects}
   \item{paths}{Named list of file paths (if plot_dir provided)}
+}
 }
 \description{
 Generates a comprehensive set of plots to compare original and filtered tables.
@@ -56,9 +58,8 @@ Plots generated:
 }
 }
 \examples{
-# Display plots
-# plot_qc_comparison(original_table, filtered_table)
-
-# Save plots to directory
-# plot_qc_comparison(original_table, filtered_table, plot_dir = "qc_plots", prefix = "my_analysis")
+data(example_feature_table)
+filtered <- filter_by_coverage(example_feature_table, min_reads = 1000)
+plots <- plot_qc_comparison(example_feature_table, filtered)
+names(plots)
 }

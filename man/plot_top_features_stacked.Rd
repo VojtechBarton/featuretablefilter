@@ -40,12 +40,14 @@ plot_top_features_stacked(
 }
 \value{
 Returns a list containing:
+\describe{
   \item{plot_path}{Path to saved plot (if plot_dir provided)}
   \item{orig_top_features}{Character vector of top N features in original table}
   \item{filt_top_features}{Character vector of top N features in filtered table}
   \item{orig_rels}{Named vector of relative abundances for original top features + Other}
   \item{filt_rels}{Named vector of relative abundances for filtered top features + Other}
   \item{plot}{The ggplot object}
+}
 }
 \description{
 Creates a visualization showing the relative abundance composition of the top N features
@@ -54,10 +56,7 @@ independently by summing abundances across all samples, converting to relative a
 and selecting the top N. Non-top-N features are grouped as "Other".
 }
 \examples{
-# Display plot
-# plot_top_features_stacked(original_table, filtered_table, top_n = 10)
-
-# Save plot to file
-# result <- plot_top_features_stacked(original_table, filtered_table,
-#                                     plot_dir = "plots", prefix = "my_analysis", top_n = 10)
+data(example_feature_table)
+filtered <- filter_by_coverage(example_feature_table, min_reads = 1000)
+plot_top_features_stacked(example_feature_table, filtered, top_n = 5)
 }

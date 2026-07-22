@@ -25,9 +25,7 @@ Transforms a feature table from absolute counts (reads) to relative abundances
 (proportions) by normalizing each sample to sum to 1 (or 100 if percent = TRUE).
 }
 \examples{
-# Convert to proportions
-# rel_table <- convert_to_relative(table)
-
-# Convert to percentages
-# rel_table <- convert_to_relative(table, percent = TRUE)
+data(example_feature_table)
+result <- convert_to_relative(example_feature_table)
+head(result[, 1:3])
 }
