@@ -416,7 +416,7 @@ run_filtering_pipeline <- function(input,
   # === Convert Output Back to Original Class ===
   if (verbose) cat(sprintf("\nConverting output back to %s format...\n", input_class))
   converted <- .convert_output_back_to_original_class(
-    table_current, input_class, original_object
+    table_current, input_class, original_object, original_table
   )
 
   if (verbose) cat("\n=== Pipeline Complete ===\n")

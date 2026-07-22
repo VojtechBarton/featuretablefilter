@@ -54,7 +54,7 @@
   filter_by_coverage(table, min_reads = cutoff)
 }
 
-#' Apply cross-talk (index hopping) filtering#'#' Wrapper around filter_cross_talk() with standardized interface.#'#' @param table Feature table (data.frame)#' @param method Method: "zero", "remove_feature", "flag", or "none"#' @param threshold Maximum relative abundance threshold#' @param min_abs_cutoff Minimum absolute count override#' @param return_details Return detailed leakage matrix?#' @param verbose Logical. Print progress messages?#'#' @return Filtered feature table
+#' Apply cross-talk (index hopping) filtering#'#' Wrapper around filter_cross_talk() with standardized interface.#'#' @param table Feature table (data.frame)#' @param method Method: "zero", "remove_feature", "flag", or "none"#' @param threshold Maximum relative abundance threshold#' @param min_abs_cutoff Minimum absolute count override#' @param return_details Return detailed leakage matrix?#' @param verbose Logical. Print progress messages?#'#' @return List with filtered table and optional detailed leakage info
 #' @noRd
 .apply_crosstalk_filter <- function(table, method, threshold, min_abs_cutoff,
                                      return_details, verbose = TRUE) {
@@ -72,6 +72,12 @@
   if (is.list(result) && !is.data.frame(result)) {
     result
   } else {
+    # When mode="zero", remove features that became all zeros
+    if (method == "zero") {
+      sample_cols <- as.matrix(result[, -1, drop = FALSE])
+      keep_features <- rowSums(sample_cols) > 0
+      result <- result[keep_features, , drop = FALSE]
+    }
     list(table = result, detailed_leakage = NULL)
   }
 }

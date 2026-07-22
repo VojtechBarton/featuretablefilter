@@ -82,7 +82,7 @@
 
 #' Convert filtered table back to original input class#'#' Converts the filtered data.frame back to phyloseq or TreeSummarizedExperiment#' if the original input was one of those classes.#'#' @param filtered_table Filtered feature table (data.frame)#' @param original_class Original input class#' @param original_object Original input object (phyloseq or TSE)#'#' @return A list with original_table and filtered_table in original class format
 #' @noRd
-.convert_output_back_to_original_class <- function(filtered_table, original_class, original_object) {
+.convert_output_back_to_original_class <- function(filtered_table, original_class, original_object, original_table = NULL) {
   original_table_out <- filtered_table
   filtered_table_out <- filtered_table
 
@@ -105,6 +105,13 @@
       rowTree = TreeSummarizedExperiment::rowTree(original_object),
       rowLinks = TreeSummarizedExperiment::rowLinks(original_object)
     )
+
+  } else if (original_class == "data.frame") {
+    # For data.frame inputs, use the original table passed in
+    if (!is.null(original_table)) {
+      original_table_out <- original_table
+    }
+    filtered_table_out <- filtered_table
   }
 
   list(
