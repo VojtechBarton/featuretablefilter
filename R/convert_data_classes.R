@@ -50,14 +50,19 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
   } else {
     # Need to transpose
     otu_mat <- t(otu_mat)
-    features <- rownames(otu_mat)
-    samples <- colnames(otu_mat)
   }
+
+  # Get features and samples after potential transpose
+  features <- rownames(otu_mat)
+  samples <- colnames(otu_mat)
 
   # Create feature ID column
   if (is.null(features)) {
     features <- paste0("Feature_", seq_len(nrow(otu_mat)))
   }
+
+  # Set rownames to NULL to prevent them from being added as a column
+  rownames(otu_mat) <- NULL
 
   result <- data.frame(
     feature_id = features,
@@ -146,9 +151,10 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
 
   # Detect feature column
   if (is.null(feature_col)) {
-    if ("feature_id" %in% colnames(table)) {
+    col_names <- colnames(table)
+    if ("feature_id" %in% col_names) {
       feature_col <- "feature_id"
-    } else if (ncol(table) > 1 && !grepl("^[0-9.e+-]+$", colnames(table)[1])) {
+    } else if (ncol(table) > 1 && !is.null(col_names) && length(col_names) > 0 && !grepl("^[0-9.e+-]+$", col_names[1])) {
       feature_col <- 1
     } else {
       stop("Could not detect feature ID column. Please specify feature_col.")
@@ -392,9 +398,10 @@ to_TSE <- function(table, rowData = NULL, colData = NULL, reducedDims = NULL,
 
   # Detect feature column
   if (is.null(feature_col)) {
-    if ("feature_id" %in% colnames(table)) {
+    col_names <- colnames(table)
+    if ("feature_id" %in% col_names) {
       feature_col <- "feature_id"
-    } else if (ncol(table) > 1 && !grepl("^[0-9.e+-]+$", colnames(table)[1])) {
+    } else if (ncol(table) > 1 && !is.null(col_names) && length(col_names) > 0 && !grepl("^[0-9.e+-]+$", col_names[1])) {
       feature_col <- 1
     } else {
       stop("Could not detect feature ID column. Please specify feature_col.")
