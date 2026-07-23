@@ -204,7 +204,7 @@ citation("featuretablefilter")
 
 ## License
 
-This package is licensed under the Artistic License 2.0.
+This package is licensed under the GNU GPL 3.0.
 
 ## Contributing
 
