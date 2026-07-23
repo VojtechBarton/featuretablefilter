@@ -19,7 +19,7 @@ on dominant species."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -40,7 +40,16 @@ on dominant species."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -50,7 +59,7 @@ on dominant species."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Calculate Hill Numbers (Effective Number of Species) for a range of q values</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/compute_qc_metrics.R" class="external-link"><code>R/compute_qc_metrics.R</code></a></small>
     <div class="hidden name"><code>calc_hill_numbers.Rd</code></div>
     </div>
 
@@ -84,14 +93,16 @@ q=1 (Shannon ENS), and q=2 (Simpson ENS).</p></dd>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">mat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">25</span>, <span class="fl">25</span>, <span class="fl">25</span>, <span class="fl">25</span>, <span class="fl">80</span>, <span class="fl">5</span>, <span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">mat</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"f1"</span>, <span class="st">"f2"</span>, <span class="st">"f3"</span>, <span class="st">"f4"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">calc_hill_numbers</span><span class="op">(</span><span class="va">mat</span>, q <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    [,1]     [,2]     [,3]     [,4]     [,5]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> f1    2 1.851835 1.731303 1.569395 1.481226</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> f2    2 1.745356 1.569193 1.384615 1.309307</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> f3    2 1.745356 1.569193 1.384615 1.309307</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> f4    2 1.745356 1.569193 1.384615 1.309307</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">calc_hill_numbers</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       0        1        2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 47 13.41835 8.353400</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 46 13.25376 8.255373</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 48 13.51724 8.453381</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 45 12.60234 7.726897</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 46 13.25671 8.232781</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 48 13.52147 8.462320</span>
 </code></pre></div>
     </div>
   </div>

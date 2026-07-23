@@ -18,7 +18,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -39,7 +39,16 @@
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -49,7 +58,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Convert absolute abundance table to relative abundance table</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/convert_to_relative.R" class="external-link"><code>R/convert_to_relative.R</code></a></small>
     <div class="hidden name"><code>convert_to_relative.Rd</code></div>
     </div>
 
@@ -64,33 +73,41 @@
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <p></p>
+
+
 <dl><dt id="arg-table">table<a class="anchor" aria-label="anchor" href="#arg-table"></a></dt>
 <dd><p>A feature table (data.frame or matrix) with features as rows and samples as columns.
-              First column should be feature IDs, remaining columns are sample counts.</p></dd>
+First column should be feature IDs, remaining columns are sample counts.</p></dd>
 
-  <dt id="arg-percent">percent<a class="anchor" aria-label="anchor" href="#arg-percent"></a></dt>
+
+<dt id="arg-percent">percent<a class="anchor" aria-label="anchor" href="#arg-percent"></a></dt>
 <dd><p>Logical. If TRUE, return percentages (sum to 100). If FALSE (default),
-                return proportions (sum to 1).</p></dd>
+return proportions (sum to 1).</p></dd>
 
-  <dt id="arg-zero-replace">zero_replace<a class="anchor" aria-label="anchor" href="#arg-zero-replace"></a></dt>
+
+<dt id="arg-zero-replace">zero_replace<a class="anchor" aria-label="anchor" href="#arg-zero-replace"></a></dt>
 <dd><p>Value to replace NA/NaN values that may arise from dividing 0/0.
-                     Default is 0.</p></dd>
+Default is 0.</p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
     <p>A data.frame with the same structure as input, but with relative abundances
-instead of absolute counts.</p>
+        instead of absolute counts.</p>
     </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Convert to proportions</span></span></span>
-<span class="r-in"><span><span class="co"># rel_table &lt;- convert_to_relative(table)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Convert to percentages</span></span></span>
-<span class="r-in"><span><span class="co"># rel_table &lt;- convert_to_relative(table, percent = TRUE)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">convert_to_relative</span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">result</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   #OTU ID  Sample_001   Sample_002</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 ASV_001 0.014077181 0.0123639892</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 ASV_002 0.006411054 0.0058631922</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 ASV_003 0.002645832 0.0024672534</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 ASV_004 0.001006321 0.0009286853</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 ASV_005 0.039076899 0.0386582577</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 ASV_006 0.139584582 0.1418532123</span>
 </code></pre></div>
     </div>
   </div>

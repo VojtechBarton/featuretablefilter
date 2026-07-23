@@ -18,7 +18,7 @@ retention curves, sparsity changes, and collapse rates."><!-- mathjax --><script
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -39,7 +39,16 @@ retention curves, sparsity changes, and collapse rates."><!-- mathjax --><script
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -49,7 +58,7 @@ retention curves, sparsity changes, and collapse rates."><!-- mathjax --><script
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Plot scree/saturation diagnostic results</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/compute_scree.R" class="external-link"><code>R/compute_scree.R</code></a></small>
     <div class="hidden name"><code>plot_scree.Rd</code></div>
     </div>
 
@@ -94,8 +103,13 @@ retention curves, sparsity changes, and collapse rates.</p>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># scree &lt;- compute_scree(my_table, type = "absolute_feature")</span></span></span>
-<span class="r-in"><span><span class="co"># plot_scree(scree)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">scree</span> <span class="op">&lt;-</span> <span class="fu"><a href="compute_scree.html">compute_scree</a></span><span class="op">(</span><span class="va">example_feature_table</span>, type <span class="op">=</span> <span class="st">"absolute_feature"</span>,</span></span>
+<span class="r-in"><span>                       n_steps <span class="op">=</span> <span class="fl">5</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">plot_scree</span><span class="op">(</span><span class="va">scree</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Removed 1 row containing missing values or values outside the scale range</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> (`geom_line()`).</span>
+<span class="r-plt img"><img src="plot_scree-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </div>

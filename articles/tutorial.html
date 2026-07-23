@@ -32,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -56,8 +56,18 @@
     </li>
   </ul>
 </li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -74,10 +84,12 @@
 Microbiome Feature Table Filtering</h1>
                         <h4 data-toc-skip class="author">Vojtech
 Barton</h4>
-            
+                  <a class="author_email" href="mailto:#"></a><a href="mailto:vojtech.barton@gmail.com" class="email">vojtech.barton@gmail.com</a>
+      
+                  
             <h4 data-toc-skip class="date">2026-07-23</h4>
       
-
+      <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/vignettes/tutorial.Rmd" class="external-link"><code>vignettes/tutorial.Rmd</code></a></small>
       <div class="hidden name"><code>tutorial.Rmd</code></div>
 
     </div>
@@ -126,24 +138,29 @@ samples on Illumina patterned flow cells</li>
 <strong>Rare features</strong>: May represent contamination or
 technical artifacts</li>
 </ul>
-<p>Proper filtering improves: - Statistical power by reducing noise -
-Computational efficiency - Biological interpretability - Reproducibility
-across studies</p>
+<p>Proper filtering improves statistical power, computational
+efficiency, biological interpretability, and reproducibility across
+studies.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+<h2 id="loading-the-package-and-example-data">Loading the Package and Example Data<a class="anchor" aria-label="anchor" href="#loading-the-package-and-example-data"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Install from GitHub</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"VojtechBarton/featuretablefilter"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/VojtechBarton/featuretablefilter" class="external-link">featuretablefilter</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Load the package</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">featuretablefilter</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Required dependencies (optional features)</span></span>
-<span><span class="co"># install.packages(c("phyloseq", "vegan", "igraph"))</span></span>
-<span><span class="co"># BiocManager::install(c("TreeSummarizedExperiment", "SingleCellExperiment"))</span></span></code></pre></div>
+<span><span class="co"># Load example feature table shipped with the package</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   #OTU ID Sample_001 Sample_002 Sample_003</span></span>
+<span><span class="co">#&gt; 1 ASV_001       1245        892       1567</span></span>
+<span><span class="co">#&gt; 2 ASV_002        567        423        689</span></span>
+<span><span class="co">#&gt; 3 ASV_003        234        178        289</span></span>
+<span><span class="co">#&gt; 4 ASV_004         89         67        112</span></span>
+<span><span class="co">#&gt; 5 ASV_005       3456       2789       4123</span></span>
+<span><span class="co">#&gt; 6 ASV_006      12345      10234      14567</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 50 21</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="loading-your-data">Loading Your Data<a class="anchor" aria-label="anchor" href="#loading-your-data"></a>
@@ -151,46 +168,37 @@ across studies</p>
 <div class="section level3">
 <h3 id="from-file-tsv-or-csv">From File (TSV or CSV)<a class="anchor" aria-label="anchor" href="#from-file-tsv-or-csv"></a>
 </h3>
+<p><code><a href="../reference/load_feature_table.html">load_feature_table()</a></code> auto-detects format (TSV vs CSV)
+and header presence:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Auto-detects format (TSV vs CSV) and header presence</span></span>
-<span><span class="va">table</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/load_feature_table.html">load_feature_table</a></span><span class="op">(</span><span class="st">"my_feature_table.tsv"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">table</span><span class="op">)</span></span>
-<span><span class="co">#   FeatureID Sample_1 Sample_2 Sample_3 ...</span></span>
-<span><span class="co"># 1     ASV_1      125       89      234</span></span>
-<span><span class="co"># 2     ASV_2       45       67       12</span></span>
-<span><span class="co"># ...</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">table</span><span class="op">)</span></span>
-<span><span class="co"># [1] 1247   48  # 1247 features, 47 samples (+ 1 feature ID column)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">file_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"example_feature_table.tsv"</span>,</span>
+<span>                         package <span class="op">=</span> <span class="st">"featuretablefilter"</span><span class="op">)</span></span>
+<span><span class="va">table</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/load_feature_table.html">load_feature_table</a></span><span class="op">(</span><span class="va">file_path</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">table</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   #OTU ID Sample_001 Sample_002 Sample_003</span></span>
+<span><span class="co">#&gt; 1 ASV_001       1245        892       1567</span></span>
+<span><span class="co">#&gt; 2 ASV_002        567        423        689</span></span>
+<span><span class="co">#&gt; 3 ASV_003        234        178        289</span></span>
+<span><span class="co">#&gt; 4 ASV_004         89         67        112</span></span>
+<span><span class="co">#&gt; 5 ASV_005       3456       2789       4123</span></span>
+<span><span class="co">#&gt; 6 ASV_006      12345      10234      14567</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="from-phyloseq-object">From phyloseq Object<a class="anchor" aria-label="anchor" href="#from-phyloseq-object"></a>
 </h3>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://dx.plos.org/10.1371/journal.pone.0061217" class="external-link">phyloseq</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Load your phyloseq object</span></span>
 <span><span class="va">ps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"my_phyloseq_object.rds"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Convert to feature table format</span></span>
-<span><span class="va">table</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/from_phyloseq.html">from_phyloseq</a></span><span class="op">(</span><span class="va">ps</span>, include_taxa <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Preserve the original for later conversion back</span></span>
-<span><span class="va">original_ps</span> <span class="op">&lt;-</span> <span class="va">ps</span></span></code></pre></div>
+<span><span class="va">table</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/from_phyloseq.html">from_phyloseq</a></span><span class="op">(</span><span class="va">ps</span>, include_taxa <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="from-treesummarizedexperiment">From TreeSummarizedExperiment<a class="anchor" aria-label="anchor" href="#from-treesummarizedexperiment"></a>
 </h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">TreeSummarizedExperiment</span><span class="op">)</span></span>
-<span></span>
 <span><span class="va">tse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"my_tse_object.rds"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Extract assay with rowData (taxonomy) if available</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/from_TSE.html">from_TSE</a></span><span class="op">(</span><span class="va">tse</span>, add_row_data <span class="op">=</span> <span class="cn">TRUE</span>, add_col_data <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">table</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">table</span></span>
-<span><span class="va">sample_metadata</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">sample_data</span></span></code></pre></div>
+<span><span class="va">table</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">table</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -272,34 +280,48 @@ sequencing errors.</li>
 <li>
 <strong>Use <code>mad</code> or <code>iqr</code> coverage
 methods</strong> (NOT Good’s/Chao’s): Statistical outlier detection is
-more appropriate because:
-<ul>
-<li>Good’s/Chao’s coverage assume random sampling, but DADA2’s denoising
-changes the error structure</li>
-<li>DADA2 produces variable sequencing depths naturally; the algorithm
-works across different depths</li>
-<li>MAD/IQR only remove true statistical outliers, preserving valid
-low-biomass samples</li>
-</ul>
-</li>
+more appropriate because DADA2’s denoising changes the error structure
+and produces variable sequencing depths naturally.</li>
 <li>
 <strong>Skip cross-talk filtering</strong>: DADA2 already removes
 chimeric sequences; additional cross-talk filtering may remove real rare
-variants</li>
+variants.</li>
 </ul>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Recommended for DADA2 data</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
-<span>  input <span class="op">=</span> <span class="st">"dada2_table.tsv"</span>,</span>
-<span>  cov_filter_method <span class="op">=</span> <span class="st">"mad"</span>,         <span class="co"># Statistical outlier detection (NOT good/chao)</span></span>
-<span>  cov_threshold <span class="op">=</span> <span class="fl">2</span>,                 <span class="co"># Remove true outliers only (2 MAD below median)</span></span>
-<span>  abun_filter_method <span class="op">=</span> <span class="st">"joint"</span>,      <span class="co"># Combined abundance-prevalence</span></span>
-<span>  abun_threshold <span class="op">=</span> <span class="fl">0.0001</span>,           <span class="co"># Very low abundance threshold</span></span>
-<span>  abun_prevalence_threshold <span class="op">=</span> <span class="fl">0.05</span>,  <span class="co"># Present in at least 5% of samples</span></span>
-<span>  abun_logic <span class="op">=</span> <span class="st">"OR"</span>,                 <span class="co"># Keep if meets either criterion</span></span>
-<span>  crosstalk_filter_method <span class="op">=</span> <span class="st">"none"</span>,  <span class="co"># Skip cross-talk for DADA2</span></span>
-<span>  singleton_filter_method <span class="op">=</span> <span class="st">"none"</span>   <span class="co"># Don't filter singletons (DADA2 handled errors)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  input <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"dada2_example"</span>,</span>
+<span>  cov_filter_method <span class="op">=</span> <span class="st">"mad"</span>,</span>
+<span>  cov_threshold <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  abun_filter_method <span class="op">=</span> <span class="st">"joint"</span>,</span>
+<span>  abun_threshold <span class="op">=</span> <span class="fl">0.0001</span>,</span>
+<span>  abun_prevalence_threshold <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  abun_logic <span class="op">=</span> <span class="st">"OR"</span>,</span>
+<span>  crosstalk_filter_method <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>  singleton_filter_method <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>  generate_report <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Evaluating 20 threshold values...</span></span>
+<span><span class="co">#&gt;   Completed 4/20 (threshold = 1.6316)</span></span>
+<span><span class="co">#&gt;   Completed 8/20 (threshold = 2.4737)</span></span>
+<span><span class="co">#&gt;   Completed 12/20 (threshold = 3.3158)</span></span>
+<span><span class="co">#&gt;   Completed 16/20 (threshold = 4.1579)</span></span>
+<span><span class="co">#&gt;   Completed 20/20 (threshold = 5.0000)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Scree analysis complete.</span></span>
+<span><span class="co">#&gt;   Elbow point: threshold = 1.2105, retention = 100.0%</span></span>
+<span><span class="co">#&gt;   Final retention: 100.0% at threshold = 5.0000</span></span>
+<span><span class="co">#&gt; Warning: Removed 4 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_hline()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="va">result</span><span class="op">$</span><span class="va">filtering_summary</span><span class="op">$</span><span class="va">coverage</span><span class="op">$</span><span class="va">n_samples_after</span></span>
+<span><span class="co">#&gt; NULL</span></span></code></pre></div>
 </div>
 <div class="section level5">
 <h5 id="for-otu-clustering-97-similarity">For OTU Clustering (97% similarity)<a class="anchor" aria-label="anchor" href="#for-otu-clustering-97-similarity"></a>
@@ -307,32 +329,74 @@ variants</li>
 <p>OTU tables are more robust to some artifacts but still benefit from
 filtering:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Recommended for OTU data</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
-<span>  input <span class="op">=</span> <span class="st">"otu_table.tsv"</span>,</span>
-<span>  cov_filter_method <span class="op">=</span> <span class="st">"mad"</span>,         <span class="co"># MAD-based outlier detection</span></span>
-<span>  cov_threshold <span class="op">=</span> <span class="fl">2</span>,                 <span class="co"># 2 MAD below median</span></span>
-<span>  abun_filter_method <span class="op">=</span> <span class="st">"absolute"</span>,   <span class="co"># Remove very rare OTUs</span></span>
-<span>  abun_threshold <span class="op">=</span> <span class="fl">5</span>,                <span class="co"># At least 5 total reads</span></span>
-<span>  singleton_filter_method <span class="op">=</span> <span class="st">"absolute"</span>,  <span class="co"># Filter high singleton ratios</span></span>
-<span>  singleton_max_ratio <span class="op">=</span> <span class="fl">0.15</span>         <span class="co"># Max 15% singletons</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  input <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"otu_example"</span>,</span>
+<span>  cov_filter_method <span class="op">=</span> <span class="st">"mad"</span>,</span>
+<span>  cov_threshold <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  abun_filter_method <span class="op">=</span> <span class="st">"absolute"</span>,</span>
+<span>  abun_threshold <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  singleton_filter_method <span class="op">=</span> <span class="st">"absolute"</span>,</span>
+<span>  singleton_max_ratio <span class="op">=</span> <span class="fl">0.15</span>,</span>
+<span>  generate_report <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Evaluating 20 threshold values...</span></span>
+<span><span class="co">#&gt;   Completed 4/20 (threshold = 1.6316)</span></span>
+<span><span class="co">#&gt;   Completed 8/20 (threshold = 2.4737)</span></span>
+<span><span class="co">#&gt;   Completed 12/20 (threshold = 3.3158)</span></span>
+<span><span class="co">#&gt;   Completed 16/20 (threshold = 4.1579)</span></span>
+<span><span class="co">#&gt;   Completed 20/20 (threshold = 5.0000)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Scree analysis complete.</span></span>
+<span><span class="co">#&gt;   Elbow point: threshold = 1.2105, retention = 100.0%</span></span>
+<span><span class="co">#&gt;   Final retention: 100.0% at threshold = 5.0000</span></span>
+<span><span class="co">#&gt; Warning: Removed 4 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_hline()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="va">result</span><span class="op">$</span><span class="va">filtering_summary</span><span class="op">$</span><span class="va">abundance</span><span class="op">$</span><span class="va">n_features_after</span></span>
+<span><span class="co">#&gt; NULL</span></span></code></pre></div>
 </div>
 <div class="section level5">
 <h5 id="for-16s-rrna-amplicon-data-general">For 16S rRNA Amplicon Data (General)<a class="anchor" aria-label="anchor" href="#for-16s-rrna-amplicon-data-general"></a>
 </h5>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># General recommendation for 16S amplicon data</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
-<span>  input <span class="op">=</span> <span class="st">"16s_table.tsv"</span>,</span>
-<span>  cov_filter_method <span class="op">=</span> <span class="st">"good"</span>,</span>
-<span>  cov_target_coverage <span class="op">=</span> <span class="fl">0.95</span>,</span>
-<span>  abun_filter_method <span class="op">=</span> <span class="st">"relative_cutoff"</span>,</span>
-<span>  abun_threshold <span class="op">=</span> <span class="fl">0.01</span>,             <span class="co"># 1% of min-coverage sample</span></span>
-<span>  min_coverage_for_relative <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  input <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"16s_example"</span>,</span>
+<span>  cov_filter_method <span class="op">=</span> <span class="st">"absolute"</span>,</span>
+<span>  cov_threshold <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  abun_filter_method <span class="op">=</span> <span class="st">"relative"</span>,</span>
+<span>  abun_threshold <span class="op">=</span> <span class="fl">0.001</span>,</span>
 <span>  generate_plots <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  generate_report <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  generate_report <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Evaluating 20 threshold values...</span></span>
+<span><span class="co">#&gt;   Completed 4/20 (threshold = 1.6316)</span></span>
+<span><span class="co">#&gt;   Completed 8/20 (threshold = 2.4737)</span></span>
+<span><span class="co">#&gt;   Completed 12/20 (threshold = 3.3158)</span></span>
+<span><span class="co">#&gt;   Completed 16/20 (threshold = 4.1579)</span></span>
+<span><span class="co">#&gt;   Completed 20/20 (threshold = 5.0000)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Scree analysis complete.</span></span>
+<span><span class="co">#&gt;   Elbow point: threshold = 1.2105, retention = 100.0%</span></span>
+<span><span class="co">#&gt;   Final retention: 100.0% at threshold = 5.0000</span></span>
+<span><span class="co">#&gt; Warning: Removed 4 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_hline()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="va">result</span><span class="op">$</span><span class="va">filtering_summary</span><span class="op">$</span><span class="va">coverage</span><span class="op">$</span><span class="va">n_samples_after</span></span>
+<span><span class="co">#&gt; NULL</span></span></code></pre></div>
 </div>
 <div class="section level5">
 <h5 id="for-metagenomic-count-data">For Metagenomic Count Data<a class="anchor" aria-label="anchor" href="#for-metagenomic-count-data"></a>
@@ -340,16 +404,38 @@ filtering:</p>
 <p>Metagenomic feature tables (gene families, pathways) have different
 characteristics:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># For metagenomic count data</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
-<span>  input <span class="op">=</span> <span class="st">"metagenome_counts.tsv"</span>,</span>
-<span>  cov_filter_method <span class="op">=</span> <span class="st">"iqr"</span>,         <span class="co"># IQR handles skewed distributions well</span></span>
+<span>  input <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"metagenome_example"</span>,</span>
+<span>  cov_filter_method <span class="op">=</span> <span class="st">"iqr"</span>,</span>
 <span>  cov_threshold <span class="op">=</span> <span class="fl">1.5</span>,</span>
 <span>  abun_filter_method <span class="op">=</span> <span class="st">"absolute"</span>,</span>
-<span>  abun_threshold <span class="op">=</span> <span class="fl">10</span>,               <span class="co"># Higher absolute threshold for genes</span></span>
-<span>  abun_min_samples <span class="op">=</span> <span class="fl">3</span>,              <span class="co"># Must appear in at least 3 samples</span></span>
-<span>  run_scree_analysis <span class="op">=</span> <span class="cn">TRUE</span>          <span class="co"># Help determine optimal cutoffs</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  abun_threshold <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  abun_min_samples <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  run_scree_analysis <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  generate_report <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Evaluating 20 threshold values...</span></span>
+<span><span class="co">#&gt;   Completed 4/20 (threshold = 1.6316)</span></span>
+<span><span class="co">#&gt;   Completed 8/20 (threshold = 2.4737)</span></span>
+<span><span class="co">#&gt;   Completed 12/20 (threshold = 3.3158)</span></span>
+<span><span class="co">#&gt;   Completed 16/20 (threshold = 4.1579)</span></span>
+<span><span class="co">#&gt;   Completed 20/20 (threshold = 5.0000)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Scree analysis complete.</span></span>
+<span><span class="co">#&gt;   Elbow point: threshold = 1.2105, retention = 100.0%</span></span>
+<span><span class="co">#&gt;   Final retention: 100.0% at threshold = 5.0000</span></span>
+<span><span class="co">#&gt; Warning: Removed 4 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_hline()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="va">result</span><span class="op">$</span><span class="va">filtering_summary</span><span class="op">$</span><span class="va">abundance</span><span class="op">$</span><span class="va">n_features_after</span></span>
+<span><span class="co">#&gt; NULL</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -406,98 +492,85 @@ sensitivity/specificity</td>
 <h3 id="basic-usage">Basic Usage<a class="anchor" aria-label="anchor" href="#basic-usage"></a>
 </h3>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
-<span>  <span class="co"># Input specification</span></span>
-<span>  input <span class="op">=</span> <span class="st">"my_feature_table.tsv"</span>,    <span class="co"># Or phyloseq/TSE object</span></span>
-<span></span>
-<span>  <span class="co"># Output settings</span></span>
-<span>  output_dir <span class="op">=</span> <span class="st">"results/"</span>,            <span class="co"># Where to save outputs</span></span>
-<span>  prefix <span class="op">=</span> <span class="st">"analysis1"</span>,               <span class="co"># Filename prefix</span></span>
-<span></span>
-<span>  <span class="co"># Coverage filtering</span></span>
-<span>  cov_filter_method <span class="op">=</span> <span class="st">"good"</span>,         <span class="co"># See table above for options</span></span>
-<span>  cov_target_coverage <span class="op">=</span> <span class="fl">0.95</span>,         <span class="co"># Target 95% ecological coverage</span></span>
-<span></span>
-<span>  <span class="co"># Abundance filtering</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
+<span>  input <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"analysis1"</span>,</span>
+<span>  cov_filter_method <span class="op">=</span> <span class="st">"good"</span>,</span>
+<span>  cov_target_coverage <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  abun_filter_method <span class="op">=</span> <span class="st">"joint"</span>,</span>
-<span>  abun_threshold <span class="op">=</span> <span class="fl">0.001</span>,             <span class="co"># 0.1% relative abundance</span></span>
-<span>  abun_prevalence_threshold <span class="op">=</span> <span class="fl">0.2</span>,    <span class="co"># Present in 20% of samples</span></span>
-<span>  abun_logic <span class="op">=</span> <span class="st">"OR"</span>,                  <span class="co"># Keep if meets EITHER criterion</span></span>
-<span></span>
-<span>  <span class="co"># Optional filters (default: none)</span></span>
+<span>  abun_threshold <span class="op">=</span> <span class="fl">0.001</span>,</span>
+<span>  abun_prevalence_threshold <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>  abun_logic <span class="op">=</span> <span class="st">"OR"</span>,</span>
 <span>  singleton_filter_method <span class="op">=</span> <span class="st">"none"</span>,</span>
 <span>  crosstalk_filter_method <span class="op">=</span> <span class="st">"none"</span>,</span>
-<span></span>
-<span>  <span class="co"># Diagnostic analyses (default: TRUE)</span></span>
 <span>  sparsity_elbow_detect <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  depth_sparsity_detect <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  run_scree_analysis <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span></span>
-<span>  <span class="co"># Apply diagnostic recommendations (default: FALSE - review first!)</span></span>
 <span>  apply_sparsity_elbow <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  apply_depth_sparsity_outliers <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span></span>
-<span>  <span class="co"># Output options</span></span>
 <span>  generate_plots <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  generate_report <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  generate_report <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Evaluating 20 threshold values...</span></span>
+<span><span class="co">#&gt;   Completed 4/20 (threshold = 1.6316)</span></span>
+<span><span class="co">#&gt;   Completed 8/20 (threshold = 2.4737)</span></span>
+<span><span class="co">#&gt;   Completed 12/20 (threshold = 3.3158)</span></span>
+<span><span class="co">#&gt;   Completed 16/20 (threshold = 4.1579)</span></span>
+<span><span class="co">#&gt;   Completed 20/20 (threshold = 5.0000)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Scree analysis complete.</span></span>
+<span><span class="co">#&gt;   Elbow point: threshold = 1.2105, retention = 100.0%</span></span>
+<span><span class="co">#&gt;   Final retention: 100.0% at threshold = 5.0000</span></span>
+<span><span class="co">#&gt; Warning: Removed 4 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_hline()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">filtered_table</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 31</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">filtered_table</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 21</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="working-with-phyloseq-objects">Working with phyloseq Objects<a class="anchor" aria-label="anchor" href="#working-with-phyloseq-objects"></a>
 </h3>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://dx.plos.org/10.1371/journal.pone.0061217" class="external-link">phyloseq</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Load your phyloseq object</span></span>
 <span><span class="va">ps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"my_data.rds"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Run pipeline (automatically converts and preserves class)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
-<span>  input <span class="op">=</span> <span class="va">ps</span>,                          <span class="co"># Pass phyloseq object directly</span></span>
+<span>  input <span class="op">=</span> <span class="va">ps</span>,</span>
 <span>  prefix <span class="op">=</span> <span class="st">"ps_filtered"</span>,</span>
 <span>  cov_filter_method <span class="op">=</span> <span class="st">"good"</span>,</span>
 <span>  abun_filter_method <span class="op">=</span> <span class="st">"joint"</span>,</span>
 <span>  generate_plots <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  generate_report <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  generate_report <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Result filtered_table is ALSO a phyloseq object!</span></span>
 <span><span class="va">filtered_ps</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">filtered_table</span></span>
-<span></span>
-<span><span class="co"># Verify class</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">filtered_ps</span><span class="op">)</span></span>
-<span><span class="co"># [1] "phyloseq"</span></span>
-<span></span>
-<span><span class="co"># Access components</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/phyloseq/man/otu_table-methods.html" class="external-link">otu_table</a></span><span class="op">(</span><span class="va">filtered_ps</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/phyloseq/man/tax_table-methods.html" class="external-link">tax_table</a></span><span class="op">(</span><span class="va">filtered_ps</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/phyloseq/man/phy_tree-methods.html" class="external-link">phy_tree</a></span><span class="op">(</span><span class="va">filtered_ps</span><span class="op">)</span>  <span class="co"># Preserved if present in original</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/phyloseq/man/phyloseq-deprecated.html" class="external-link">sam_data</a></span><span class="op">(</span><span class="va">filtered_ps</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">filtered_ps</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="working-with-treesummarizedexperiment">Working with TreeSummarizedExperiment<a class="anchor" aria-label="anchor" href="#working-with-treesummarizedexperiment"></a>
 </h3>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">TreeSummarizedExperiment</span><span class="op">)</span></span>
-<span></span>
 <span><span class="va">tse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"my_tse.rds"</span><span class="op">)</span></span>
-<span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
 <span>  input <span class="op">=</span> <span class="va">tse</span>,</span>
 <span>  prefix <span class="op">=</span> <span class="st">"tse_filtered"</span>,</span>
 <span>  cov_filter_method <span class="op">=</span> <span class="st">"mad"</span>,</span>
 <span>  abun_filter_method <span class="op">=</span> <span class="st">"absolute"</span>,</span>
-<span>  abun_threshold <span class="op">=</span> <span class="fl">10</span></span>
+<span>  abun_threshold <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  generate_report <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># filtered_table is also a TreeSummarizedExperiment</span></span>
 <span><span class="va">filtered_tse</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">filtered_table</span></span>
-<span></span>
-<span><span class="co"># Metadata preserved</span></span>
-<span><span class="fu">rowData</span><span class="op">(</span><span class="va">filtered_tse</span><span class="op">)</span></span>
-<span><span class="fu">colData</span><span class="op">(</span><span class="va">filtered_tse</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/TreeSummarizedExperiment/man/TreeSummarizedExperiment-accessor.html" class="external-link">rowTree</a></span><span class="op">(</span><span class="va">filtered_tse</span><span class="op">)</span>  <span class="co"># If present</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">filtered_tse</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -506,32 +579,42 @@ sensitivity/specificity</td>
 <div class="section level3">
 <h3 id="return-value-structure">Return Value Structure<a class="anchor" aria-label="anchor" href="#return-value-structure"></a>
 </h3>
-<p>The pipeline returns a list with these components:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
-<span><span class="co"># List of 9</span></span>
-<span><span class="co"># $ original_table       : 'phyloseq' num [1:1247, 1:47] ...</span></span>
-<span><span class="co"># $ filtered_table       : 'phyloseq' num [1:856, 1:42] ...</span></span>
-<span><span class="co"># $ qc_metrics           :List of 15</span></span>
-<span><span class="co">#   $ sparsity_original          : num 0.623</span></span>
-<span><span class="co">#   $ sparsity_filtered          : num 0.412</span></span>
-<span><span class="co">#   $ sparsity_drop_percent      : num 21.1</span></span>
-<span><span class="co">#   $ read_retention_percent     : num 94.5</span></span>
-<span><span class="co">#   $ feature_retention_percent  : num 68.6</span></span>
-<span><span class="co">#   $ sample_retention_percent   : num 89.4</span></span>
-<span><span class="co">#   ... (more metrics)</span></span>
-<span><span class="co"># $ presence_stats       :List of 10</span></span>
-<span><span class="co">#   $ mean_sample_richness       : num 234</span></span>
-<span><span class="co">#   $ mean_sample_richness_filt  : num 198</span></span>
-<span><span class="co">#   ... (more statistics)</span></span>
-<span><span class="co"># $ filtering_summary    :List of 8</span></span>
-<span><span class="co">#   $ coverage           :List of 5</span></span>
-<span><span class="co">#   $ abundance          :List of 7</span></span>
-<span><span class="co">#   ... (details of each step)</span></span>
-<span><span class="co"># $ sparsity_elbow_result:List of 7</span></span>
-<span><span class="co"># $ depth_sparsity_result:List of 8</span></span>
-<span><span class="co"># $ scree_result         :List of 6</span></span>
-<span><span class="co"># $ input_class          : chr "phyloseq"</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "original_table"        "filtered_table"        "qc_metrics"           </span></span>
+<span><span class="co">#&gt; [4] "presence_stats"        "filtering_summary"     "sparsity_elbow_result"</span></span>
+<span><span class="co">#&gt; [7] "depth_sparsity_result" "scree_result"          "input_class"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">qc_metrics</span><span class="op">)</span></span>
+<span><span class="co">#&gt; List of 26</span></span>
+<span><span class="co">#&gt;  $ sparsity_original            : num 0.078</span></span>
+<span><span class="co">#&gt;  $ sparsity_filtered            : num 0</span></span>
+<span><span class="co">#&gt;  $ sparsity_drop_percent        : num 7.8</span></span>
+<span><span class="co">#&gt;  $ read_retention_percent       : num 99.6</span></span>
+<span><span class="co">#&gt;  $ feature_retention_percent    : num 62</span></span>
+<span><span class="co">#&gt;  $ sample_retention_percent     : num 100</span></span>
+<span><span class="co">#&gt;  $ rank_abundance_correlation   : Named num 1</span></span>
+<span><span class="co">#&gt;   ..- attr(*, "names")= chr "rho"</span></span>
+<span><span class="co">#&gt;  $ rank_abundance_pvalue        : num 0</span></span>
+<span><span class="co">#&gt;  $ pearson_abundance_correlation: Named num 1</span></span>
+<span><span class="co">#&gt;   ..- attr(*, "names")= chr "cor"</span></span>
+<span><span class="co">#&gt;  $ pearson_abundance_pvalue     : num 0</span></span>
+<span><span class="co">#&gt;  $ top_n_overlap_count          : int 10</span></span>
+<span><span class="co">#&gt;  $ top_n_overlap_percent        : num 100</span></span>
+<span><span class="co">#&gt;  $ top_n_jaccard_similarity     : num 1</span></span>
+<span><span class="co">#&gt;  $ orig_top_features            : chr [1:10] "ASV_015" "ASV_006" "ASV_016" "ASV_041" ...</span></span>
+<span><span class="co">#&gt;  $ orig_top_rels                : num [1:10] 0.268 0.1434 0.0979 0.0748 0.0652 ...</span></span>
+<span><span class="co">#&gt;  $ filt_top_features            : chr [1:10] "ASV_015" "ASV_006" "ASV_016" "ASV_041" ...</span></span>
+<span><span class="co">#&gt;  $ filt_top_rels                : Named num [1:10] 0.269 0.144 0.0983 0.0751 0.0655 ...</span></span>
+<span><span class="co">#&gt;   ..- attr(*, "names")= chr [1:10] "15" "6" "16" "41" ...</span></span>
+<span><span class="co">#&gt;  $ procrustes_m2                : num 2.81e-16</span></span>
+<span><span class="co">#&gt;  $ procrustes_correlation       : num 1</span></span>
+<span><span class="co">#&gt;  $ procrustes_pvalue            : num 0.001</span></span>
+<span><span class="co">#&gt;  $ shannon_ens_original         : num 13.2</span></span>
+<span><span class="co">#&gt;  $ shannon_ens_filtered         : num 12.9</span></span>
+<span><span class="co">#&gt;  $ shannon_ens_retention_percent: num 97.6</span></span>
+<span><span class="co">#&gt;  $ simpson_ens_original         : num 8.2</span></span>
+<span><span class="co">#&gt;  $ simpson_ens_filtered         : num 8.13</span></span>
+<span><span class="co">#&gt;  $ simpson_ens_retention_percent: num 99.2</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="key-metrics-to-report">Key Metrics to Report<a class="anchor" aria-label="anchor" href="#key-metrics-to-report"></a>
@@ -540,110 +623,29 @@ sensitivity/specificity</td>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">qc</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">qc_metrics</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Initial dataset: %d features, %d samples\n"</span>,</span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Initial dataset: %d features, %d samples\\n"</span>,</span>
 <span>            <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">original_table</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">original_table</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"After filtering: %d features, %d samples\n"</span>,</span>
+<span><span class="co">#&gt; Initial dataset: 50 features, 20 samples\n</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"After filtering: %d features, %d samples\\n"</span>,</span>
 <span>            <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">filtered_table</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">filtered_table</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"\nRetention rates:\n"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"  Features: %.1f%% (%d removed)\n"</span>,</span>
+<span><span class="co">#&gt; After filtering: 31 features, 20 samples\n</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"\\nRetention rates:\\n"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; \nRetention rates:\n</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"  Features: %.1f%% (%d removed)\\n"</span>,</span>
 <span>            <span class="va">qc</span><span class="op">$</span><span class="va">feature_retention_percent</span>,</span>
 <span>            <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">original_table</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">filtered_table</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"  Samples: %.1f%% (%d removed)\n"</span>,</span>
+<span><span class="co">#&gt;   Features: 62.0% (19 removed)\n</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"  Samples: %.1f%% (%d removed)\\n"</span>,</span>
 <span>            <span class="va">qc</span><span class="op">$</span><span class="va">sample_retention_percent</span>,</span>
 <span>            <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">original_table</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">filtered_table</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"  Reads: %.1f%%\n"</span>, <span class="va">qc</span><span class="op">$</span><span class="va">read_retention_percent</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"\nSparsity: %.1f%% → %.1f%% (%.1f pp improvement)\n"</span>,</span>
+<span><span class="co">#&gt;   Samples: 100.0% (-1 removed)\n</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"  Reads: %.1f%%\\n"</span>, <span class="va">qc</span><span class="op">$</span><span class="va">read_retention_percent</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   Reads: 99.6%\n</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"\\nSparsity: %.1f%% -&gt; %.1f%% (%.1f pp improvement)\\n"</span>,</span>
 <span>            <span class="va">qc</span><span class="op">$</span><span class="va">sparsity_original</span> <span class="op">*</span> <span class="fl">100</span>,</span>
 <span>            <span class="va">qc</span><span class="op">$</span><span class="va">sparsity_filtered</span> <span class="op">*</span> <span class="fl">100</span>,</span>
-<span>            <span class="va">qc</span><span class="op">$</span><span class="va">sparsity_drop_percent</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="interpreting-generated-files">Interpreting Generated Files<a class="anchor" aria-label="anchor" href="#interpreting-generated-files"></a>
-</h3>
-<div class="section level4">
-<h4 id="text-report-prefix_report-txt">Text Report (<code>prefix_report.txt</code>)<a class="anchor" aria-label="anchor" href="#text-report-prefix_report-txt"></a>
-</h4>
-<p>The pipeline generates a detailed text report:</p>
-<pre><code>========================================
-FEATURE TABLE FILTERING PIPELINE REPORT
-========================================
-
-Input file: my_data.tsv
-Output directory: results/
-Prefix: analysis1
-Date: 2026-01-15 14:32:45
-
---- ORIGINAL TABLE ---
-Features: 1247
-Samples: 47
-Total reads: 2,456,789
-
---- COVERAGE FILTERING ---
-Method: good
-Target coverage: 0.95 (95%)
-Mean coverage before filtering: 0.9234 (92.34%)
-Mean coverage after filtering: 0.9567 (95.67%)
-Samples filtered: 5 / 47 (10.6%)
-
---- ABUNDANCE FILTERING ---
-Method: joint
-Abundance threshold: 0.001 (0.10%)
-Prevalence threshold: 0.20 (20% of samples)
-Logic: OR
-
-Feature retention breakdown:
-  Met abundance only: 124 features
-  Met prevalence only: 89 features
-  Met both criteria: 643 features
-  Met neither (removed): 391 features
-
---- QC METRICS ---
-Sparsity (original): 62.30%
-Sparsity (filtered): 41.20%
-Read retention: 94.50%
-Feature retention: 68.60%
-...</code></pre>
-</div>
-<div class="section level4">
-<h4 id="plots-generated">Plots Generated<a class="anchor" aria-label="anchor" href="#plots-generated"></a>
-</h4>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Coverage distribution</strong> - Log-scaled histogram
-showing sample depths</li>
-<li>
-<strong>Feature abundance distribution</strong> - Distribution of
-feature frequencies</li>
-<li>
-<strong>Sparsity comparison</strong> - Per-sample zero
-proportions</li>
-<li>
-<strong>Retention rates</strong> - Barplot of what was
-kept/removed</li>
-<li>
-<strong>Heatmaps</strong> - Top variable features
-(before/after)</li>
-<li>
-<strong>Top features stacked</strong> - Relative abundance of
-dominant features</li>
-<li>
-<strong>Presence frequency</strong> - Feature prevalence
-distributions</li>
-</ol>
-</div>
-<div class="section level4">
-<h4 id="scree-plot">Scree Plot<a class="anchor" aria-label="anchor" href="#scree-plot"></a>
-</h4>
-<p>Shows how feature retention changes with different thresholds:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># The elbow point indicates where additional filtering</span></span>
-<span><span class="co"># yields diminishing returns</span></span>
-<span><span class="va">scree</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">scree_result</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Elbow at threshold: %.4f\n"</span>, <span class="va">scree</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">elbow_point</span><span class="op">$</span><span class="va">threshold</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Features retained at elbow: %.1f%%\n"</span>,</span>
-<span>            <span class="va">scree</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">elbow_point</span><span class="op">$</span><span class="va">retention_at_elbow</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
+<span>            <span class="va">qc</span><span class="op">$</span><span class="va">sparsity_drop_percent</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; \nSparsity: 7.8% -&gt; 0.0% (7.8 pp improvement)\n</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="using-diagnostic-results">Using Diagnostic Results<a class="anchor" aria-label="anchor" href="#using-diagnostic-results"></a>
@@ -652,122 +654,110 @@ distributions</li>
 <h4 id="sparsity-elbow-detection">Sparsity Elbow Detection<a class="anchor" aria-label="anchor" href="#sparsity-elbow-detection"></a>
 </h4>
 <p>Identifies the sequencing depth where ASV discovery crashes:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">elbow</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">sparsity_elbow_result</span></span>
-<span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="va">elbow</span><span class="op">$</span><span class="va">recommendation</span><span class="op">)</span></span>
-<span><span class="co"># "Consider filtering out 8 samples (17.0%) below depth 1245 reads..."</span></span>
-<span></span>
-<span><span class="co"># Review before applying!</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="va">elbow</span><span class="op">$</span><span class="va">elbow_threshold</span> <span class="op">&gt;</span> <span class="fl">1000</span><span class="op">)</span> <span class="op">{</span>  <span class="co"># Only apply if reasonable</span></span>
-<span>  <span class="va">filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_by_coverage.html">filter_by_coverage</a></span><span class="op">(</span><span class="va">original</span>, min_reads <span class="op">=</span> <span class="va">elbow</span><span class="op">$</span><span class="va">elbow_threshold</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<span><span class="co">#&gt; Consider filtering out 13 samples (65.0%) below depth 87971 reads. These samples show sharp richness decline indicating undersampling.</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="depth-sparsity-outlier-analysis">Depth-Sparsity Outlier Analysis<a class="anchor" aria-label="anchor" href="#depth-sparsity-outlier-analysis"></a>
 </h4>
 <p>Finds samples that deviate from expected depth-sparsity
 relationship:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">outliers</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">depth_sparsity_result</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Detected %d outliers:\n"</span>, <span class="va">outliers</span><span class="op">$</span><span class="va">n_outliers</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">outliers</span><span class="op">$</span><span class="va">outliers</span><span class="op">$</span><span class="va">sample_name</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># View the plot for manual inspection</span></span>
-<span><span class="co"># Check plot_&lt;prefix&gt;_depth_sparsity_outliers.png</span></span>
-<span></span>
-<span><span class="co"># Only remove if you confirm they're technical artifacts</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Detected %d outliers\\n"</span>, <span class="va">outliers</span><span class="op">$</span><span class="va">n_outliers</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Detected 0 outliers\n</span></span></code></pre></div>
 </div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="step-by-step-manual-filtering">Step-by-Step Manual Filtering<a class="anchor" aria-label="anchor" href="#step-by-step-manual-filtering"></a>
 </h2>
-<p>Sometimes you want more control than the pipeline provides:</p>
+<p>Sometimes you want more control than the pipeline provides.</p>
 <div class="section level3">
 <h3 id="step-1-explore-your-data">Step 1: Explore Your Data<a class="anchor" aria-label="anchor" href="#step-1-explore-your-data"></a>
 </h3>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">table</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/load_feature_table.html">load_feature_table</a></span><span class="op">(</span><span class="st">"my_table.tsv"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Coverage per sample</span></span>
-<span><span class="va">coverages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">table</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Coverage per sample</span></span>
+<span><span class="va">coverages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">coverages</span><span class="op">)</span></span>
-<span><span class="co">#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.</span></span>
-<span><span class="co">#    523     890    1245    1389    1678    4567</span></span>
+<span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
+<span><span class="co">#&gt;   58389   66966   79812   78974   88592  102396</span></span>
 <span></span>
 <span><span class="co"># Histogram of coverages</span></span>
-<span><span class="fu"><a href="../reference/plot_coverage_histogram.html">plot_coverage_histogram</a></span><span class="op">(</span><span class="va">table</span>, threshold <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_coverage_histogram.html">plot_coverage_histogram</a></span><span class="op">(</span><span class="va">example_feature_table</span>, threshold <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Calculate sparsity</span></span>
-<span><span class="va">sparsities</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">table</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="fl">2</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">x</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">sparsities</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="fl">2</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">x</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">sparsities</span>, main <span class="op">=</span> <span class="st">"Per-Sample Sparsity"</span>, xlab <span class="op">=</span> <span class="st">"Proportion Zeros"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="tutorial_files/figure-html/explore-data-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 <div class="section level3">
 <h3 id="step-2-choose-coverage-cutoff">Step 2: Choose Coverage Cutoff<a class="anchor" aria-label="anchor" href="#step-2-choose-coverage-cutoff"></a>
 </h3>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Option A: MAD-based (statistical outlier detection)</span></span>
-<span><span class="va">mad_est</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimate_mad_cutoff.html">estimate_mad_cutoff</a></span><span class="op">(</span><span class="va">table</span>, multiplier <span class="op">=</span> <span class="fl">2</span>, floor <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"MAD recommendation: &gt;= %.0f reads\n"</span>, <span class="va">mad_est</span><span class="op">$</span><span class="va">cutoff</span><span class="op">)</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Option A: MAD-based</span></span>
+<span><span class="va">mad_est</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimate_mad_cutoff.html">estimate_mad_cutoff</a></span><span class="op">(</span><span class="va">example_feature_table</span>, multiplier <span class="op">=</span> <span class="fl">2</span>, floor <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"MAD recommendation: &gt;= %.0f reads\\n"</span>, <span class="va">mad_est</span><span class="op">$</span><span class="va">cutoff</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; MAD recommendation: &gt;= 47624 reads\n</span></span>
 <span></span>
-<span><span class="co"># Option B: Good's coverage (ecological completeness)</span></span>
-<span><span class="va">good_est</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimate_good_coverage.html">estimate_good_coverage</a></span><span class="op">(</span><span class="va">table</span>, target_coverage <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Good's coverage: mean=%.2f%%, min=%.2f%%\n"</span>,</span>
+<span><span class="co"># Option B: Good's coverage</span></span>
+<span><span class="va">good_est</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimate_good_coverage.html">estimate_good_coverage</a></span><span class="op">(</span><span class="va">example_feature_table</span>, target_coverage <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Good's coverage: mean=%.2f%%, min=%.2f%%\\n"</span>,</span>
 <span>            <span class="va">good_est</span><span class="op">$</span><span class="va">mean_coverage</span> <span class="op">*</span> <span class="fl">100</span>, <span class="va">good_est</span><span class="op">$</span><span class="va">min_coverage</span> <span class="op">*</span> <span class="fl">100</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Option C: Visual inspection from histogram</span></span>
-<span><span class="co"># Look for natural gap in coverage distribution</span></span></code></pre></div>
+<span><span class="co">#&gt; Good's coverage: mean=100.00%, min=100.00%\n</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="step-3-apply-coverage-filter">Step 3: Apply Coverage Filter<a class="anchor" aria-label="anchor" href="#step-3-apply-coverage-filter"></a>
 </h3>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_by_coverage.html">filter_by_coverage</a></span><span class="op">(</span><span class="va">table</span>, min_reads <span class="op">=</span> <span class="va">mad_est</span><span class="op">$</span><span class="va">cutoff</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Removed %d low-coverage samples\n"</span>,</span>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_by_coverage.html">filter_by_coverage</a></span><span class="op">(</span><span class="va">example_feature_table</span>, min_reads <span class="op">=</span> <span class="va">mad_est</span><span class="op">$</span><span class="va">cutoff</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Removed %d low-coverage samples\\n"</span>,</span>
 <span>            <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">filtered</span>, <span class="st">"n_filtered_out"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="step-4-choose-abundance-filter">Step 4: Choose Abundance Filter<a class="anchor" aria-label="anchor" href="#step-4-choose-abundance-filter"></a>
 </h3>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Scree analysis to find optimal threshold</span></span>
-<span><span class="va">scree</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_scree.html">compute_scree</a></span><span class="op">(</span><span class="va">filtered</span>, type <span class="op">=</span> <span class="st">"mad_multiplier"</span>, n_steps <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># View saturation curve</span></span>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">scree</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_scree.html">compute_scree</a></span><span class="op">(</span><span class="va">filtered</span>, type <span class="op">=</span> <span class="st">"absolute_feature"</span>, n_steps <span class="op">=</span> <span class="fl">10</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_scree.html">plot_scree</a></span><span class="op">(</span><span class="va">scree</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Check elbow point</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Recommended threshold: %.4f\n"</span>,</span>
-<span>            <span class="va">scree</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">elbow_point</span><span class="op">$</span><span class="va">threshold</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span></code></pre></div>
+<p><img src="tutorial_files/figure-html/choose-abundance-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 <div class="section level3">
 <h3 id="step-5-apply-abundance-filter">Step 5: Apply Abundance Filter<a class="anchor" aria-label="anchor" href="#step-5-apply-abundance-filter"></a>
 </h3>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">final</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_features_by_abundance.html">filter_features_by_abundance</a></span><span class="op">(</span></span>
 <span>  <span class="va">filtered</span>,</span>
-<span>  threshold <span class="op">=</span> <span class="fl">0.001</span>,      <span class="co"># 0.1% relative abundance</span></span>
+<span>  threshold <span class="op">=</span> <span class="fl">0.001</span>,</span>
 <span>  mode <span class="op">=</span> <span class="st">"relative"</span>,</span>
-<span>  min_samples <span class="op">=</span> <span class="fl">2</span>         <span class="co"># Must appear in at least 2 samples</span></span>
+<span>  min_samples <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Removed %d rare features\n"</span>,</span>
-<span>            <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">final</span>, <span class="st">"n_filtered_out"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Removed %d rare features\\n"</span>,</span>
+<span>            <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">final</span>, <span class="st">"n_filtered_out"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Removed 19 rare features\n</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="step-6-compute-qc-metrics">Step 6: Compute QC Metrics<a class="anchor" aria-label="anchor" href="#step-6-compute-qc-metrics"></a>
 </h3>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">qc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_filtering_qc.html">compute_filtering_qc</a></span><span class="op">(</span><span class="va">table</span>, <span class="va">final</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Key metrics</span></span>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">qc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_filtering_qc.html">compute_filtering_qc</a></span><span class="op">(</span><span class="va">example_feature_table</span>, <span class="va">final</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">qc</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sparsity_original"</span>, <span class="st">"sparsity_filtered"</span>,</span>
 <span>           <span class="st">"read_retention_percent"</span>, <span class="st">"feature_retention_percent"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Diversity retention (if using Hill numbers)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Shannon ENS retention: %.1f%%\n"</span>,</span>
-<span>            <span class="va">qc</span><span class="op">$</span><span class="va">shannon_ens_retention_percent</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; $sparsity_original</span></span>
+<span><span class="co">#&gt; [1] 0.078</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sparsity_filtered</span></span>
+<span><span class="co">#&gt; [1] 0.05322581</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $read_retention_percent</span></span>
+<span><span class="co">#&gt; [1] 99.46172</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $feature_retention_percent</span></span>
+<span><span class="co">#&gt; [1] 62</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -776,49 +766,114 @@ relationship:</p>
 <div class="section level3">
 <h3 id="workflow-1-quick-quality-control">Workflow 1: Quick Quality Control<a class="anchor" aria-label="anchor" href="#workflow-1-quick-quality-control"></a>
 </h3>
-<p>For routine quality control with minimal decisions:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
-<span>  input <span class="op">=</span> <span class="st">"data.tsv"</span>,</span>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
+<span>  input <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"quick_qc"</span>,</span>
 <span>  cov_filter_method <span class="op">=</span> <span class="st">"mad"</span>,</span>
 <span>  cov_threshold <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  abun_filter_method <span class="op">=</span> <span class="st">"absolute"</span>,</span>
 <span>  abun_threshold <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  generate_plots <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  generate_report <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  generate_report <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Evaluating 20 threshold values...</span></span>
+<span><span class="co">#&gt;   Completed 4/20 (threshold = 1.6316)</span></span>
+<span><span class="co">#&gt;   Completed 8/20 (threshold = 2.4737)</span></span>
+<span><span class="co">#&gt;   Completed 12/20 (threshold = 3.3158)</span></span>
+<span><span class="co">#&gt;   Completed 16/20 (threshold = 4.1579)</span></span>
+<span><span class="co">#&gt;   Completed 20/20 (threshold = 5.0000)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Scree analysis complete.</span></span>
+<span><span class="co">#&gt;   Elbow point: threshold = 1.2105, retention = 100.0%</span></span>
+<span><span class="co">#&gt;   Final retention: 100.0% at threshold = 5.0000</span></span>
+<span><span class="co">#&gt; Warning: Removed 4 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_hline()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="va">result</span><span class="op">$</span><span class="va">qc_metrics</span><span class="op">$</span><span class="va">feature_retention_percent</span></span>
+<span><span class="co">#&gt; [1] 86</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="workflow-2-conservative-diversity-analysis">Workflow 2: Conservative Diversity Analysis<a class="anchor" aria-label="anchor" href="#workflow-2-conservative-diversity-analysis"></a>
 </h3>
-<p>For studies where retaining rare taxa is important:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
-<span>  input <span class="op">=</span> <span class="st">"data.tsv"</span>,</span>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
+<span>  input <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"conservative"</span>,</span>
 <span>  cov_filter_method <span class="op">=</span> <span class="st">"good"</span>,</span>
 <span>  cov_target_coverage <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  abun_filter_method <span class="op">=</span> <span class="st">"joint"</span>,</span>
 <span>  abun_threshold <span class="op">=</span> <span class="fl">0.0001</span>,</span>
 <span>  abun_prevalence_threshold <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  abun_logic <span class="op">=</span> <span class="st">"OR"</span>,</span>
-<span>  generate_plots <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  generate_plots <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  generate_report <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Evaluating 20 threshold values...</span></span>
+<span><span class="co">#&gt;   Completed 4/20 (threshold = 1.6316)</span></span>
+<span><span class="co">#&gt;   Completed 8/20 (threshold = 2.4737)</span></span>
+<span><span class="co">#&gt;   Completed 12/20 (threshold = 3.3158)</span></span>
+<span><span class="co">#&gt;   Completed 16/20 (threshold = 4.1579)</span></span>
+<span><span class="co">#&gt;   Completed 20/20 (threshold = 5.0000)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Scree analysis complete.</span></span>
+<span><span class="co">#&gt;   Elbow point: threshold = 1.2105, retention = 100.0%</span></span>
+<span><span class="co">#&gt;   Final retention: 100.0% at threshold = 5.0000</span></span>
+<span><span class="co">#&gt; Warning: Removed 4 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_hline()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="va">result</span><span class="op">$</span><span class="va">qc_metrics</span><span class="op">$</span><span class="va">sample_retention_percent</span></span>
+<span><span class="co">#&gt; [1] 100</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="workflow-3-stringent-pathogen-detection">Workflow 3: Stringent Pathogen Detection<a class="anchor" aria-label="anchor" href="#workflow-3-stringent-pathogen-detection"></a>
 </h3>
-<p>For studies focusing on abundant, reliable signals:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
-<span>  input <span class="op">=</span> <span class="st">"data.tsv"</span>,</span>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
+<span>  input <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"stringent"</span>,</span>
 <span>  cov_filter_method <span class="op">=</span> <span class="st">"iqr"</span>,</span>
 <span>  cov_threshold <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  abun_filter_method <span class="op">=</span> <span class="st">"absolute"</span>,</span>
 <span>  abun_threshold <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  abun_min_samples <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  singleton_filter_method <span class="op">=</span> <span class="st">"absolute"</span>,</span>
-<span>  singleton_max_ratio <span class="op">=</span> <span class="fl">0.10</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  singleton_max_ratio <span class="op">=</span> <span class="fl">0.10</span>,</span>
+<span>  generate_report <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Evaluating 20 threshold values...</span></span>
+<span><span class="co">#&gt;   Completed 4/20 (threshold = 1.6316)</span></span>
+<span><span class="co">#&gt;   Completed 8/20 (threshold = 2.4737)</span></span>
+<span><span class="co">#&gt;   Completed 12/20 (threshold = 3.3158)</span></span>
+<span><span class="co">#&gt;   Completed 16/20 (threshold = 4.1579)</span></span>
+<span><span class="co">#&gt;   Completed 20/20 (threshold = 5.0000)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Scree analysis complete.</span></span>
+<span><span class="co">#&gt;   Elbow point: threshold = 1.2105, retention = 100.0%</span></span>
+<span><span class="co">#&gt;   Final retention: 100.0% at threshold = 5.0000</span></span>
+<span><span class="co">#&gt; Warning: Removed 4 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_hline()`).</span></span>
+<span><span class="co">#&gt; Warning: Removed 1 row containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_line()`).</span></span>
+<span><span class="va">result</span><span class="op">$</span><span class="va">qc_metrics</span><span class="op">$</span><span class="va">read_retention_percent</span></span>
+<span><span class="co">#&gt; [1] 99.7244</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -827,53 +882,54 @@ relationship:</p>
 <div class="section level3">
 <h3 id="all-samples-removed-by-coverage-filter">All Samples Removed by Coverage Filter<a class="anchor" aria-label="anchor" href="#all-samples-removed-by-coverage-filter"></a>
 </h3>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Check coverage distribution</span></span>
-<span><span class="va">coverages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">table</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">coverages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">coverages</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
+<span><span class="co">#&gt;   58389   66966   79812   78974   88592  102396</span></span>
 <span></span>
-<span><span class="co"># If all samples have low coverage, lower your threshold</span></span>
-<span><span class="co"># Or use Good's coverage which adapts to your data</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_by_coverage_estimator.html">filter_by_coverage_estimator</a></span><span class="op">(</span></span>
-<span>  <span class="va">table</span>,</span>
+<span>  <span class="va">example_feature_table</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"good"</span>,</span>
-<span>  target_coverage <span class="op">=</span> <span class="fl">0.90</span>  <span class="co"># Lower target</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  target_coverage <span class="op">=</span> <span class="fl">0.90</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">table</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 21</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="too-many-features-removed">Too Many Features Removed<a class="anchor" aria-label="anchor" href="#too-many-features-removed"></a>
 </h3>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Use joint filtering with OR logic instead of AND</span></span>
-<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_features_joint.html">filter_features_joint</a></span><span class="op">(</span></span>
-<span>  <span class="va">table</span>,</span>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_features_joint.html">filter_features_joint</a></span><span class="op">(</span></span>
+<span>  <span class="va">example_feature_table</span>,</span>
 <span>  abundance_threshold <span class="op">=</span> <span class="fl">0.001</span>,</span>
 <span>  prevalence_threshold <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  logic <span class="op">=</span> <span class="st">"OR"</span>  <span class="co"># Less stringent than AND</span></span>
+<span>  logic <span class="op">=</span> <span class="st">"OR"</span></span>
 <span><span class="op">)</span></span>
+<span><span class="va">result</span><span class="op">$</span><span class="va">n_features_after</span></span>
+<span><span class="co">#&gt; [1] 31</span></span>
 <span></span>
-<span><span class="co"># Or use lower absolute threshold</span></span>
 <span><span class="va">filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_features_by_abundance.html">filter_features_by_abundance</a></span><span class="op">(</span></span>
-<span>  <span class="va">table</span>,</span>
-<span>  threshold <span class="op">=</span> <span class="fl">2</span>,  <span class="co"># Instead of 5 or 10</span></span>
+<span>  <span class="va">example_feature_table</span>,</span>
+<span>  threshold <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  mode <span class="op">=</span> <span class="st">"absolute"</span>,</span>
 <span>  min_samples <span class="op">=</span> <span class="fl">2</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">filtered</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 45</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="high-sparsity-after-filtering">High Sparsity After Filtering<a class="anchor" aria-label="anchor" href="#high-sparsity-after-filtering"></a>
 </h3>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># This might indicate over-filtering</span></span>
-<span><span class="co"># Check if you're removing too many samples</span></span>
-<span><span class="va">qc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_filtering_qc.html">compute_filtering_qc</a></span><span class="op">(</span><span class="va">original</span>, <span class="va">filtered</span><span class="op">)</span></span>
-<span></span>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">qc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_filtering_qc.html">compute_filtering_qc</a></span><span class="op">(</span><span class="va">example_feature_table</span>, <span class="va">final</span><span class="op">)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">sample_retention_percent</span> <span class="op">&lt;</span> <span class="fl">70</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Consider relaxing coverage filter\n"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Consider relaxing coverage filter"</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Sample retention is acceptable"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span></span>
-<span><span class="co"># Or check for batch effects</span></span>
-<span><span class="co"># Some batches may have systematically lower coverage</span></span></code></pre></div>
+<span><span class="co">#&gt; Sample retention is acceptable</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -882,39 +938,100 @@ relationship:</p>
 <div class="section level3">
 <h3 id="dos">Do’s<a class="anchor" aria-label="anchor" href="#dos"></a>
 </h3>
-<p>✓ <strong>Always visualize</strong> your data before filtering
-(coverage histograms, sparsity plots)</p>
-<p>✓ <strong>Review diagnostic outputs</strong> (scree plots, elbow
-detection) before applying automatically</p>
-<p>✓ <strong>Document your filtering choices</strong> in methods
-sections</p>
-<p>✓ <strong>Report retention rates</strong> for features, samples, and
-reads</p>
-<p>✓ <strong>Use appropriate methods</strong> for your sequencing
-pipeline (see tables above)</p>
-<p>✓ <strong>Keep raw data</strong> separate from filtered data</p>
+<ul>
+<li>
+<strong>Always visualize</strong> your data before filtering
+(coverage histograms, sparsity plots)</li>
+<li>
+<strong>Review diagnostic outputs</strong> (scree plots, elbow
+detection) before applying automatically</li>
+<li>
+<strong>Document your filtering choices</strong> in methods
+sections</li>
+<li>
+<strong>Report retention rates</strong> for features, samples, and
+reads</li>
+<li>
+<strong>Use appropriate methods</strong> for your sequencing
+pipeline (see tables above)</li>
+<li>
+<strong>Keep raw data</strong> separate from filtered data</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="donts">Don’ts<a class="anchor" aria-label="anchor" href="#donts"></a>
 </h3>
-<p>✗ <strong>Don’t apply aggressive singleton filtering</strong> to
-DADA2/Deblur ASV data</p>
-<p>✗ <strong>Don’t filter without understanding</strong> why a method is
-recommended</p>
-<p>✗ <strong>Don’t use default parameters blindly</strong> - adjust
-based on your data characteristics</p>
-<p>✗ <strong>Don’t remove all rare features</strong> - some may be
-biologically relevant</p>
-<p>✗ <strong>Don’t ignore QC metrics</strong> - they tell you if
-filtering worked as intended</p>
+<ul>
+<li>
+<strong>Don’t apply aggressive singleton filtering</strong> to
+DADA2/Deblur ASV data</li>
+<li>
+<strong>Don’t filter without understanding</strong> why a method is
+recommended</li>
+<li>
+<strong>Don’t use default parameters blindly</strong> - adjust based
+on your data characteristics</li>
+<li>
+<strong>Don’t remove all rare features</strong> - some may be
+biologically relevant</li>
+<li>
+<strong>Don’t ignore QC metrics</strong> - they tell you if
+filtering worked as intended</li>
+</ul>
 </div>
 </div>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
 <p>For reproducibility, always record your session info:</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
+<span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
+<span><span class="co">#&gt; Running under: Ubuntu 24.04.4 LTS</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Matrix products: default</span></span>
+<span><span class="co">#&gt; BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
+<span><span class="co">#&gt; LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so;  LAPACK version 3.12.0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; locale:</span></span>
+<span><span class="co">#&gt;  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       </span></span>
+<span><span class="co">#&gt;  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   </span></span>
+<span><span class="co">#&gt;  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          </span></span>
+<span><span class="co">#&gt; [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; time zone: UTC</span></span>
+<span><span class="co">#&gt; tzcode source: system (glibc)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; attached base packages:</span></span>
+<span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; other attached packages:</span></span>
+<span><span class="co">#&gt; [1] featuretablefilter_0.99.0 BiocStyle_2.40.0         </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
+<span><span class="co">#&gt;  [1] tidyr_1.3.2         sass_0.4.10         generics_0.1.4     </span></span>
+<span><span class="co">#&gt;  [4] lattice_0.22-9      digest_0.6.39       magrittr_2.0.5     </span></span>
+<span><span class="co">#&gt;  [7] evaluate_1.0.5      grid_4.6.1          RColorBrewer_1.1-3 </span></span>
+<span><span class="co">#&gt; [10] bookdown_0.47       fastmap_1.2.0       Matrix_1.7-5       </span></span>
+<span><span class="co">#&gt; [13] jsonlite_2.0.0      BiocManager_1.30.27 mgcv_1.9-4         </span></span>
+<span><span class="co">#&gt; [16] purrr_1.2.2         scales_1.4.0        permute_0.9-10     </span></span>
+<span><span class="co">#&gt; [19] textshaping_1.0.5   jquerylib_0.1.4     cli_3.6.6          </span></span>
+<span><span class="co">#&gt; [22] rlang_1.3.0         splines_4.6.1       withr_3.0.3        </span></span>
+<span><span class="co">#&gt; [25] cachem_1.1.0        yaml_2.3.12         otel_0.2.0         </span></span>
+<span><span class="co">#&gt; [28] vegan_2.7-5         tools_4.6.1         parallel_4.6.1     </span></span>
+<span><span class="co">#&gt; [31] dplyr_1.2.1         ggplot2_4.0.3       BiocGenerics_0.58.1</span></span>
+<span><span class="co">#&gt; [34] vctrs_0.7.3         R6_2.6.1            stats4_4.6.1       </span></span>
+<span><span class="co">#&gt; [37] zoo_1.8-15          lifecycle_1.0.5     S4Vectors_0.50.1   </span></span>
+<span><span class="co">#&gt; [40] fs_2.1.0            htmlwidgets_1.6.4   MASS_7.3-65        </span></span>
+<span><span class="co">#&gt; [43] ragg_1.5.2          cluster_2.1.8.2     pkgconfig_2.0.3    </span></span>
+<span><span class="co">#&gt; [46] desc_1.4.3          pkgdown_2.2.1       pillar_1.11.1      </span></span>
+<span><span class="co">#&gt; [49] bslib_0.11.0        gtable_0.3.6        glue_1.8.1         </span></span>
+<span><span class="co">#&gt; [52] systemfonts_1.3.2   xfun_0.60           tibble_3.3.1       </span></span>
+<span><span class="co">#&gt; [55] tidyselect_1.2.1    knitr_1.51          farver_2.1.2       </span></span>
+<span><span class="co">#&gt; [58] patchwork_1.3.2     nlme_3.1-169        htmltools_0.5.9    </span></span>
+<span><span class="co">#&gt; [61] labeling_0.4.3      rmarkdown_2.31      pheatmap_1.0.13    </span></span>
+<span><span class="co">#&gt; [64] compiler_4.6.1      S7_0.2.2</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

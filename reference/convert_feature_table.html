@@ -18,7 +18,7 @@ Supports phyloseq, TreeSummarizedExperiment, SingleCellExperiment, and data.fram
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -39,7 +39,16 @@ Supports phyloseq, TreeSummarizedExperiment, SingleCellExperiment, and data.fram
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -49,7 +58,7 @@ Supports phyloseq, TreeSummarizedExperiment, SingleCellExperiment, and data.fram
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Generic conversion function for feature tables</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/convert_data_classes.R" class="external-link"><code>R/convert_data_classes.R</code></a></small>
     <div class="hidden name"><code>convert_feature_table.Rd</code></div>
     </div>
 
@@ -85,14 +94,30 @@ Supports phyloseq, TreeSummarizedExperiment, SingleCellExperiment, and data.fram
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Convert from phyloseq to data.frame</span></span></span>
-<span class="r-in"><span><span class="co"># df &lt;- convert_feature_table(phylo_obj, to = "data.frame")</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Convert from data.frame to phyloseq</span></span></span>
-<span class="r-in"><span><span class="co"># ps &lt;- convert_feature_table(df, to = "phyloseq")</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Convert from data.frame to TreeSummarizedExperiment</span></span></span>
-<span class="r-in"><span><span class="co"># tse &lt;- convert_feature_table(df, to = "TSE")</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">convert_feature_table</span><span class="op">(</span><span class="va">example_feature_table</span>, to <span class="op">=</span> <span class="st">"data.frame"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   #OTU ID Sample_001 Sample_002 Sample_003 Sample_004 Sample_005 Sample_006</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 ASV_001       1245        892       1567        734       1123       1456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 ASV_002        567        423        689        312        534        712</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 ASV_003        234        178        289        123        201        267</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 ASV_004         89         67        112         45         78         98</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 ASV_005       3456       2789       4123       2156       3234       3987</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 ASV_006      12345      10234      14567       8765      11234      13456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Sample_007 Sample_008 Sample_009 Sample_010 Sample_011 Sample_012 Sample_013</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        987       1234        876       1345       1098        765       1432</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        456        598        387        623        498        345        678</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3        156        223        134        245        189        112        256</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4         56         82         48         91         71         38         95</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5       2678       3456       2345       3678       3012       2234       3890</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       9876      12123       9234      12789      10987       8456      13890</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Sample_014 Sample_015 Sample_016 Sample_017 Sample_018 Sample_019 Sample_020</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        923       1156       1287        845       1376       1021       1198</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        412        545        601        378        645        467        523</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3        145        198        234        128        267        167        212</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4         52         73         87         42         99         61         79</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5       2567       3123       3567       2456       3789       2890       3345</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       9567      11567      12890       8976      13234      10456      11890</span>
 </code></pre></div>
     </div>
   </div>

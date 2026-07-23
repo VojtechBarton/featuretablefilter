@@ -6,11 +6,13 @@
 <url><loc>/CONTRIBUTING.html</loc></url>
 <url><loc>/LICENSE-text.html</loc></url>
 <url><loc>/SECURITY.html</loc></url>
+<url><loc>/SHINY_DASHBOARD_PLAN.html</loc></url>
 <url><loc>/articles/featuretablefilter.html</loc></url>
 <url><loc>/articles/index.html</loc></url>
 <url><loc>/articles/tutorial.html</loc></url>
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
+<url><loc>/news/index.html</loc></url>
 <url><loc>/reference/analyze_depth_sparsity.html</loc></url>
 <url><loc>/reference/analyze_feature_network.html</loc></url>
 <url><loc>/reference/calc_hill_numbers.html</loc></url>
@@ -28,6 +30,10 @@
 <url><loc>/reference/estimate_iqr_cutoff.html</loc></url>
 <url><loc>/reference/estimate_mad_cutoff.html</loc></url>
 <url><loc>/reference/estimate_mi_knn.html</loc></url>
+<url><loc>/reference/example_feature_table.html</loc></url>
+<url><loc>/reference/example_phyloseq.html</loc></url>
+<url><loc>/reference/example_treesummarizedexperiment.html</loc></url>
+<url><loc>/reference/featuretablefilter.html</loc></url>
 <url><loc>/reference/filter_by_coverage.html</loc></url>
 <url><loc>/reference/filter_by_coverage_estimator.html</loc></url>
 <url><loc>/reference/filter_by_network_connectivity.html</loc></url>
@@ -51,6 +57,7 @@
 <url><loc>/reference/plot_scree.html</loc></url>
 <url><loc>/reference/plot_sparsity_elbow.html</loc></url>
 <url><loc>/reference/plot_top_features_stacked.html</loc></url>
+<url><loc>/reference/runDashboard.html</loc></url>
 <url><loc>/reference/run_filtering_pipeline.html</loc></url>
 <url><loc>/reference/to_TSE.html</loc></url>
 <url><loc>/reference/to_phyloseq.html</loc></url>

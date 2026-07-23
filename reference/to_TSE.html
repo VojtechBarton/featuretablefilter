@@ -18,7 +18,7 @@ Optionally incorporates rowData (taxonomy), colData (sample metadata), and reduc
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -39,7 +39,16 @@ Optionally incorporates rowData (taxonomy), colData (sample metadata), and reduc
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -49,7 +58,7 @@ Optionally incorporates rowData (taxonomy), colData (sample metadata), and reduc
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Convert feature table data.frame to TreeSummarizedExperiment</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/convert_data_classes.R" class="external-link"><code>R/convert_data_classes.R</code></a></small>
     <div class="hidden name"><code>to_TSE.Rd</code></div>
     </div>
 
@@ -114,23 +123,26 @@ Optionally incorporates rowData (taxonomy), colData (sample metadata), and reduc
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Create simple TSE from feature table</span></span></span>
-<span class="r-in"><span><span class="co"># table &lt;- data.frame(feature_id = paste0("ASV_", 1:10), matrix(rpois(100, 5), 10, 10))</span></span></span>
-<span class="r-in"><span><span class="co"># tse &lt;- to_TSE(table)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># With rowData (taxonomy) and colData (sample metadata)</span></span></span>
-<span class="r-in"><span><span class="co"># rowData &lt;- data.frame(</span></span></span>
-<span class="r-in"><span><span class="co">#   Kingdom = rep("Bacteria", 10),</span></span></span>
-<span class="r-in"><span><span class="co">#   Phylum = sample(c("Firmicutes", "Bacteroidetes"), 10, replace = TRUE)</span></span></span>
-<span class="r-in"><span><span class="co"># )</span></span></span>
-<span class="r-in"><span><span class="co"># rownames(rowData) &lt;- paste0("ASV_", 1:10)</span></span></span>
-<span class="r-in"><span><span class="co">#</span></span></span>
-<span class="r-in"><span><span class="co"># colData &lt;- data.frame(</span></span></span>
-<span class="r-in"><span><span class="co">#   Condition = rep(c("Control", "Treatment"), 5)</span></span></span>
-<span class="r-in"><span><span class="co"># )</span></span></span>
-<span class="r-in"><span><span class="co"># rownames(colData) &lt;- colnames(table)[-1]</span></span></span>
-<span class="r-in"><span><span class="co">#</span></span></span>
-<span class="r-in"><span><span class="co"># tse &lt;- to_TSE(table, rowData = rowData, colData = colData)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"TreeSummarizedExperiment"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">tse</span> <span class="op">&lt;-</span> <span class="fu">to_TSE</span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">tse</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> class: TreeSummarizedExperiment </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim: 50 20 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> metadata(0):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> assays(1): counts</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rownames(50): ASV_001 ASV_002 ... ASV_049 ASV_050</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rowData names(0):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> colnames(20): Sample_001 Sample_002 ... Sample_019 Sample_020</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> colData names(0):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> reducedDimNames(0):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mainExpName: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> altExpNames(0):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rowLinks: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rowTree: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> colLinks: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> colTree: NULL</span>
 </code></pre></div>
     </div>
   </div>

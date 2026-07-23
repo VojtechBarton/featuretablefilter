@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -38,7 +38,16 @@
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -48,7 +57,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Filter samples by minimum coverage</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/filter_coverage.R" class="external-link"><code>R/filter_coverage.R</code></a></small>
     <div class="hidden name"><code>filter_by_coverage.Rd</code></div>
     </div>
 
@@ -62,12 +71,14 @@
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <p></p>
+
+
 <dl><dt id="arg-table">table<a class="anchor" aria-label="anchor" href="#arg-table"></a></dt>
 <dd><p>A feature table (data.frame or matrix) with features as rows and samples as columns.
-              First column should be feature IDs, remaining columns are sample counts.</p></dd>
+First column should be feature IDs, remaining columns are sample counts.</p></dd>
 
-  <dt id="arg-min-reads">min_reads<a class="anchor" aria-label="anchor" href="#arg-min-reads"></a></dt>
+
+<dt id="arg-min-reads">min_reads<a class="anchor" aria-label="anchor" href="#arg-min-reads"></a></dt>
 <dd><p>Minimum number of reads required to keep a sample.</p></dd>
 
 </dl></div>
@@ -78,7 +89,10 @@
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># filter_by_coverage(my_table, min_reads = 1000)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">filter_by_coverage</span><span class="op">(</span><span class="va">example_feature_table</span>, min_reads <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 21</span>
 </code></pre></div>
     </div>
   </div>

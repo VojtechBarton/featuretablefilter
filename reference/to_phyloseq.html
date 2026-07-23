@@ -19,7 +19,7 @@ if provided."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/lib
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -40,7 +40,16 @@ if provided."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/lib
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -50,7 +59,7 @@ if provided."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/lib
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Convert feature table data.frame to phyloseq object</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/convert_data_classes.R" class="external-link"><code>R/convert_data_classes.R</code></a></small>
     <div class="hidden name"><code>to_phyloseq.Rd</code></div>
     </div>
 
@@ -102,17 +111,217 @@ and taxonomic ranks as columns (Kingdom, Phylum, Class, Order, Family, Genus, Sp
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Create simple phyloseq from feature table</span></span></span>
-<span class="r-in"><span><span class="co"># table &lt;- data.frame(feature_id = paste0("ASV_", 1:10), matrix(rpois(100, 5), 10, 10))</span></span></span>
-<span class="r-in"><span><span class="co"># ps &lt;- to_phyloseq(table)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># With taxonomy</span></span></span>
-<span class="r-in"><span><span class="co"># tax &lt;- data.frame(</span></span></span>
-<span class="r-in"><span><span class="co">#   feature_id = paste0("ASV_", 1:10),</span></span></span>
-<span class="r-in"><span><span class="co">#   Kingdom = rep("Bacteria", 10),</span></span></span>
-<span class="r-in"><span><span class="co">#   Phylum = sample(c("Firmicutes", "Bacteroidetes"), 10, replace = TRUE)</span></span></span>
-<span class="r-in"><span><span class="co"># )</span></span></span>
-<span class="r-in"><span><span class="co"># ps &lt;- to_phyloseq(table, tax_table = tax)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"phyloseq"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">ps</span> <span class="op">&lt;-</span> <span class="fu">to_phyloseq</span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ps</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> OTU Table:          [50 taxa and 20 samples]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                      taxa are rows</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         Sample_001 Sample_002 Sample_003 Sample_004 Sample_005 Sample_006</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_001       1245        892       1567        734       1123       1456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_002        567        423        689        312        534        712</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_003        234        178        289        123        201        267</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_004         89         67        112         45         78         98</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_005       3456       2789       4123       2156       3234       3987</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_006      12345      10234      14567       8765      11234      13456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_007       5678       4567       6789       3890       5123       6234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_008       2345       1890       2789       1567       2123       2567</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_009        890        712       1023        567        789        934</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_010        456        367        534        278        398        478</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_011        123         98        145         76        108        132</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_012         45         34         52         27         39         48</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_013          5          3          7          2          4          6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_014          0          1          0          0          0          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_015      23456      19234      26789      16789      21234      24567</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_016       8765       7234       9876       6234       7890       8901</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_017       3456       2789       4012       2456       3123       3678</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_018       1234        987       1456        789       1089       1289</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_019        567        445        656        356        489        578</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_020        234        189        267        145        201        245</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_021         89         71        102         56         78         93</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_022         34         27         39         21         29         35</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_023         12          9         14          7         10         12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_024          3          2          4          1          2          3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_025          1          0          1          0          0          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_026       4567       3789       5234       2890       4012       4789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_027       2345       1923       2678       1456       2034       2456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_028       1123        912       1289        689        978       1178</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_029        567        462        649        349        494        594</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_030        289        235        331        177        251        301</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_031        145        118        166         89        126        151</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_032         73         59         83         45         63         76</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_033         37         30         42         23         32         38</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_034         18         15         21         11         16         19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_035          9          7         10          6          8         10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_036          4          3          5          3          4          5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_037          2          1          2          1          2          2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_038          1          0          1          0          1          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_039          0          0          0          0          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_040          0          0          1          0          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_041       6789       5534       7789       4234       5901       7123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_042       3456       2812       3967       2156       3001       3623</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_043       1789       1456       2051       1112       1551       1873</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_044        934        761       1071        580        808        978</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_045        478        389        548        296        412        498</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_046        245        200        281        152        211        255</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_047        126        103        144         78        108        131</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_048         65         53         74         40         56         67</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_049         33         27         38         21         29         34</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_050         17         14         19         11         15         17</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         Sample_007 Sample_008 Sample_009 Sample_010 Sample_011 Sample_012</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_001        987       1234        876       1345       1098        765</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_002        456        598        387        623        498        345</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_003        156        223        134        245        189        112</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_004         56         82         48         91         71         38</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_005       2678       3456       2345       3678       3012       2234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_006       9876      12123       9234      12789      10987       8456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_007       4456       5567       4123       5890       5012       3789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_008       1789       2234       1678       2456       2012       1456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_009        645        823        598        867        723        534</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_010        323        412        289        434        356        256</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_011         89        112         82        118         97         69</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_012         32         41         29         43         36         24</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_013          3          5          2          5          4          2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_014          0          0          0          0          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_015      18234      22345      17456      23456      20123      15678</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_016       6789       8123       6890       8567       7456       5890</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_017       2567       3234       2678       3456       2987       2234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_018        876       1123        923       1234       1056        789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_019        398        512        412        556        478        345</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_020        167        212        178        223        198        134</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_021         64         81         67         85         76         51</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_022         24         31         25         32         29         19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_023          8         11          9         11         10          6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_024          2          3          2          3          2          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_025          0          0          0          0          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_026       3345       4234       3456       4567       3987       3012</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_027       1678       2156       1789       2345       2012       1534</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_028        801       1034        856       1112        967        734</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_029        405        522        434        562        489        372</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_030        206        266        220        286        248        189</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_031        103        133        110        143        124         95</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_032         52         67         55         72         62         48</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_033         26         34         28         36         31         24</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_034         13         17         14         18         16         12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_035          7          9          7          9          8          6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_036          3          4          4          5          4          3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_037          1          2          1          2          2          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_038          0          1          0          1          1          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_039          0          0          0          0          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_040          0          0          0          0          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_041       4890       6234       5012       6678       5789       4456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_042       2489       3178       2551       3394       2945       2267</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_043       1284       1641       1318       1754       1521       1170</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_044        670        856        688        916        794        611</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_045        342        436        351        467        405        312</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_046        175        224        180        239        208        160</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_047         90        115         92        122        107         82</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_048         46         59         47         63         55         42</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_049         23         30         24         32         28         21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_050         12         15         12         16         14         11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         Sample_013 Sample_014 Sample_015 Sample_016 Sample_017 Sample_018</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_001       1432        923       1156       1287        845       1376</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_002        678        412        545        601        378        645</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_003        256        145        198        234        128        267</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_004         95         52         73         87         42         99</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_005       3890       2567       3123       3567       2456       3789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_006      13890       9567      11567      12890       8976      13234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_007       6345       4234       5234       5789       4012       6123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_008       2678       1789       2156       2345       1623       2567</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_009        945        612        756        845        578        912</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_010        489        301        378        423        267        467</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_011        138         84        105        121         73        129</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_012         49         30         37         44         26         47</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_013          6          3          4          5          2          6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_014          1          0          0          0          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_015      25678      17890      21890      23890      16890      24890</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_016       9234       6567       7678       8234       6234       9012</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_017       3789       2567       3012       3345       2456       3678</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_018       1345        912       1067       1189        845       1312</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_019        612        401        478        534        367        589</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_020        256        156        198        223        145        245</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_021         95         60         75         84         55         92</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_022         36         22         28         32         20         35</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_023         13          8         10         11          7         13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_024          4          2          2          3          1          3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_025          1          0          0          0          0          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_026       4890       3234       4123       4456       3123       4678</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_027       2567       1678       2123       2289       1589       2456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_028       1223        801       1012       1089        756       1178</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_029        619        405        512        549        384        594</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_030        315        206        260        279        195        301</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_031        158        103        130        140         98        151</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_032         80         52         65         70         49         76</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_033         40         26         33         35         25         38</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_034         20         13         16         18         12         19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_035         10          7          8          9          6         10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_036          5          3          4          4          3          5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_037          2          1          2          2          1          2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_038          1          0          1          1          0          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_039          0          0          0          0          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_040          0          0          0          0          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_041       7345       4890       6012       6456       4567       7012</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_042       3734       2489       3056       3289       2323       3567</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_043       1931       1284       1581       1701       1201       1845</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_044       1008        670        825        889        627        964</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_045        514        342        421        453        319        491</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_046        263        175        215        232        163        251</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_047        135         90        110        119         84        129</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_048         69         46         56         61         43         66</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_049         35         23         28         31         22         34</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_050         18         12         14         16         11         17</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         Sample_019 Sample_020</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_001       1021       1198</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_002        467        523</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_003        167        212</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_004         61         79</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_005       2890       3345</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_006      10456      11890</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_007       4678       5456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_008       1890       2234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_009        667        801</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_010        334        398</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_011         91        114</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_012         33         40</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_013          4          5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_014          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_015      19890      22890</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_016       7123       8012</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_017       2890       3234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_018        978       1145</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_019        434        512</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_020        178        212</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_021         68         80</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_022         26         30</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_023          9         11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_024          2          2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_025          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_026       3678       4234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_027       1890       2178</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_028        901       1045</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_029        455        527</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_030        231        268</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_031        116        134</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_032         58         67</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_033         29         34</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_034         15         17</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_035          7          8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_036          4          4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_037          2          2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_038          1          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_039          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_040          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_041       5345       6123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_042       2718       3112</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_043       1405       1610</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_044        734        841</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_045        374        428</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_046        192        219</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_047         99        112</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_048         51         57</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_049         26         29</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ASV_050         13         15</span>
 </code></pre></div>
     </div>
   </div>

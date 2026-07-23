@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="Feature Table Filtering for Microbiome Data">
-<meta property="og:description" content="Functions for filtering microbiome feature tables based on coverage, abundance, and network connectivity. Supports phyloseq and TreeSummarizedExperiment objects natively.">
+<meta property="og:description" content="Provides functions for filtering microbiome feature tables based on coverage, abundance, and network connectivity criteria. The package supports native handling of phyloseq and TreeSummarizedExperiment objects, providing comprehensive quality control metrics and visualizations for filtering decisions. It is intended for microbiome researchers who need reproducible, class-preserving filtering workflows with built-in diagnostics and interactive exploration.">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -57,8 +57,18 @@
     </li>
   </ul>
 </li>
+<li>
+  <a href="news/index.html">Changelog</a>
+</li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -73,470 +83,329 @@
 <div class="section level1">
 <div class="page-header"><h1 id="featuretablefilter">featuretablefilter<a class="anchor" aria-label="anchor" href="#featuretablefilter"></a>
 </h1></div>
-<p>An R package for filtering microbiome feature tables. Provides comprehensive tools for coverage-based filtering, abundance filtering, network-based filtering, QC metrics computation, and visualization. <strong>Native support for phyloseq and TreeSummarizedExperiment objects.</strong></p>
+<p><a href="https://bioconductor.org/packages/release/bioc/html/featuretablefilter.html" class="external-link"><img src="http://bioconductor.org/shields/years-in-bioc/featuretablefilter.svg" alt="Bioconductor-time"></a> <a href="https://bioconductor.org/packages/stats/bioc/featuretablefilter/" class="external-link"><img src="http://bioconductor.org/shields/downloads/release/featuretablefilter.svg" alt="Bioconductor Downloads"></a></p>
+<p>An R package for filtering microbiome feature tables based on coverage, abundance, and network connectivity criteria. Provides comprehensive quality control metrics and visualizations for filtering decisions. <strong>Native support for <code>phyloseq</code> and <code>TreeSummarizedExperiment</code> objects.</strong></p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
+<div class="section level3">
+<h3 id="from-bioconductor">From Bioconductor<a class="anchor" aria-label="anchor" href="#from-bioconductor"></a>
+</h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Install from source</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"."</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Or install from Bioconductor (when available)</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"BiocManager"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"BiocManager"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
 <span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"featuretablefilter"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="from-source-development">From Source (Development)<a class="anchor" aria-label="anchor" href="#from-source-development"></a>
+</h3>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Install devtools if needed</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"devtools"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Install from GitHub</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"VojtechBarton/featuretablefilter"</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+</h2>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/VojtechBarton/featuretablefilter" class="external-link">featuretablefilter</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Run a complete filtering pipeline</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
+<span>  input <span class="op">=</span> <span class="st">"path/to/feature_table.tsv"</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="st">"results"</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"filtered"</span>,</span>
+<span>  cov_filter_method <span class="op">=</span> <span class="st">"mad"</span>,       <span class="co"># MAD-based coverage filtering</span></span>
+<span>  cov_threshold <span class="op">=</span> <span class="fl">2</span>,               <span class="co"># 2 MAD below median</span></span>
+<span>  abun_filter_method <span class="op">=</span> <span class="st">"relative"</span>, <span class="co"># Relative abundance filtering</span></span>
+<span>  abun_threshold <span class="op">=</span> <span class="fl">0.001</span>           <span class="co"># 0.1% relative abundance</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Access results</span></span>
+<span><span class="va">filtered_table</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">filtered_table</span></span>
+<span><span class="va">qc_metrics</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">qc_metrics</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
 </h2>
 <div class="section level3">
-<h3 id="core-filtering-functions">Core Filtering Functions<a class="anchor" aria-label="anchor" href="#core-filtering-functions"></a>
+<h3 id="core-filtering">Core Filtering<a class="anchor" aria-label="anchor" href="#core-filtering"></a>
 </h3>
-<ul>
-<li>
-<strong><code><a href="reference/filter_by_coverage.html">filter_by_coverage()</a></code></strong> - Removes low-coverage samples using absolute thresholds</li>
-<li>
-<strong><code><a href="reference/filter_features_by_abundance.html">filter_features_by_abundance()</a></code></strong> - Filters features by absolute or relative abundance with <code>min_samples</code> support</li>
-<li>
-<strong><code><a href="reference/filter_by_relative_cutoff.html">filter_by_relative_cutoff()</a></code></strong> - Relative threshold filtering based on min-coverage sample</li>
-</ul>
+<div class="section level4">
+<h4 id="coverage-filtering-sample-level">Coverage Filtering (Sample-level)<a class="anchor" aria-label="anchor" href="#coverage-filtering-sample-level"></a>
+</h4>
+<p>Remove low-coverage samples that may introduce noise or bias. Available methods:</p>
+<table class="table">
+<colgroup>
+<col width="23%">
+<col width="38%">
+<col width="38%">
+</colgroup>
+<thead><tr>
+<th>Method</th>
+<th>Description</th>
+<th>When to Use</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>absolute</code></td>
+<td>Fixed minimum read count threshold</td>
+<td>When you have a known minimum depth requirement</td>
+</tr>
+<tr>
+<td><code>mad</code></td>
+<td>MAD-based threshold (median ± k × MAD)</td>
+<td>Default choice; robust to outliers</td>
+</tr>
+<tr>
+<td><code>iqr</code></td>
+<td>Tukey’s IQR method (Q1 - k × IQR)</td>
+<td>Alternative robust method; similar to MAD</td>
+</tr>
+<tr>
+<td><code>good</code></td>
+<td>Good’s coverage estimator</td>
+<td>When ecological completeness is priority</td>
+</tr>
+<tr>
+<td><code>chao</code></td>
+<td>Chao’s coverage estimator</td>
+<td>More conservative than Good’s</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Parameters:</strong> - <code>cov_threshold</code>: Fixed value for <code>absolute</code>, multiplier for <code>mad</code>/<code>iqr</code> (default ~1.5-2) - <code>cov_floor</code>: Minimum coverage floor when using MAD/IQR - <code>cov_target_coverage</code>: Target coverage (0-1) for Good’s/Chao’s methods</p>
+</div>
+<div class="section level4">
+<h4 id="singleton-ratio-filtering-sample-level">Singleton Ratio Filtering (Sample-level)<a class="anchor" aria-label="anchor" href="#singleton-ratio-filtering-sample-level"></a>
+</h4>
+<p>Detect and remove samples with excessive singletons/doubletons, which often indicate poor sequencing quality or PCR artifacts.</p>
+<p><strong>Parameters:</strong> - <code>singleton_max_ratio</code>: Maximum allowed ratio of (singletons + doubletons) / total reads (default 0.1 = 10%) - <code>singleton_count_type</code>: <code>"singleton"</code>, <code>"doubleton"</code>, or <code>"both"</code></p>
+</div>
+<div class="section level4">
+<h4 id="abundance-filtering-feature-level">Abundance Filtering (Feature-level)<a class="anchor" aria-label="anchor" href="#abundance-filtering-feature-level"></a>
+</h4>
+<p>Filter features based on their abundance across samples. Available methods:</p>
+<table class="table">
+<colgroup>
+<col width="23%">
+<col width="38%">
+<col width="38%">
+</colgroup>
+<thead><tr>
+<th>Method</th>
+<th>Description</th>
+<th>When to Use</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>absolute</code></td>
+<td>Minimum raw read count per feature</td>
+<td>When working with count data and have fixed cutoff</td>
+</tr>
+<tr>
+<td><code>relative</code></td>
+<td>Minimum relative abundance proportion</td>
+<td>For compositional comparisons across samples</td>
+</tr>
+<tr>
+<td><code>relative_cutoff</code></td>
+<td>Relative threshold based on min-coverage sample</td>
+<td>Adaptive; accounts for varying library sizes</td>
+</tr>
+<tr>
+<td><code>joint</code></td>
+<td>Combined abundance AND/OR prevalence criteria</td>
+<td>Stringent filtering; requires both abundance and presence</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Parameters:</strong> - <code>abun_threshold</code>: Minimum abundance (count or proportion) - <code>abun_min_samples</code>: Minimum samples where feature must exceed threshold - <code>abun_logic</code>: <code>"AND"</code> or <code>"OR"</code> for joint filtering - <code>abun_prevalence_threshold</code>: Proportion of samples for joint filtering</p>
+</div>
+<div class="section level4">
+<h4 id="cross-talk--index-hopping-filtering-feature-level">Cross-talk / Index-hopping Filtering (Feature-level)<a class="anchor" aria-label="anchor" href="#cross-talk--index-hopping-filtering-feature-level"></a>
+</h4>
+<p>Identify and correct cross-contamination artifacts from Illumina patterned flow cells.</p>
+<p><strong>Methods:</strong></p>
+<table class="table">
+<thead><tr>
+<th>Method</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>zero</code></td>
+<td>Set suspected leakage reads to zero (default)</td>
+</tr>
+<tr>
+<td><code>remove_feature</code></td>
+<td>Remove entire feature if any leakage detected</td>
+</tr>
+<tr>
+<td><code>flag</code></td>
+<td>Flag leakage but don’t modify data</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Parameters:</strong> - <code>crosstalk_threshold</code>: Maximum relative abundance for leakage detection (default 0.001 = 0.1% of max) - <code>crosstalk_min_abs_cutoff</code>: Optional absolute count override</p>
+</div>
 </div>
 <div class="section level3">
-<h3 id="coverage-estimation-functions">Coverage Estimation Functions<a class="anchor" aria-label="anchor" href="#coverage-estimation-functions"></a>
+<h3 id="advanced-filtering">Advanced Filtering<a class="anchor" aria-label="anchor" href="#advanced-filtering"></a>
 </h3>
-<ul>
-<li>
-<strong><code><a href="reference/estimate_mad_cutoff.html">estimate_mad_cutoff()</a></code></strong> - MAD-based threshold estimation (median ± multiplier × MAD)</li>
-<li>
-<strong><code><a href="reference/estimate_iqr_cutoff.html">estimate_iqr_cutoff()</a></code></strong> - IQR/Tukey-based threshold estimation</li>
-<li>
-<strong><code><a href="reference/estimate_good_coverage.html">estimate_good_coverage()</a></code></strong> - Good’s coverage estimator for ecological completeness</li>
-<li>
-<strong><code><a href="reference/estimate_chao_coverage.html">estimate_chao_coverage()</a></code></strong> - Chao’s coverage estimator (conservative completeness)</li>
-<li>
-<strong><code><a href="reference/filter_by_coverage_estimator.html">filter_by_coverage_estimator()</a></code></strong> - Filter samples by ecological coverage threshold</li>
-</ul>
+<div class="section level4">
+<h4 id="sparsity-elbow-detection">Sparsity Elbow Detection<a class="anchor" aria-label="anchor" href="#sparsity-elbow-detection"></a>
+</h4>
+<p>Detects the elbow point in richness-depth curves to recommend optimal coverage cutoffs. Can be used diagnostically or applied as a filter.</p>
+<p><strong>Methods:</strong> - <code>kneedle</code>: Kneedle algorithm for elbow detection - <code>max_derivative</code>: Maximum derivative method - <code>second_derivative</code>: Second derivative zero-crossing</p>
+</div>
+<div class="section level4">
+<h4 id="depth-sparsity-outlier-analysis">Depth-Sparsity Outlier Analysis<a class="anchor" aria-label="anchor" href="#depth-sparsity-outlier-analysis"></a>
+</h4>
+<p>Identifies samples that are outliers in the depth-sparsity relationship, which may indicate technical artifacts or biological anomalies.</p>
+<p><strong>Metrics:</strong> - <code>"sparsity"</code>: Proportion of zeros per sample - <code>"richness"</code>: Number of observed features per sample</p>
+<p><strong>Outlier Detection:</strong> - <code>mad</code>: MAD-based outlier detection - <code>iqr</code>: IQR-based outlier detection</p>
+</div>
+<div class="section level4">
+<h4 id="network-based-filtering">Network-based Filtering<a class="anchor" aria-label="anchor" href="#network-based-filtering"></a>
+</h4>
+<p>Uses mutual information networks to identify spurious features based on connectivity patterns.</p>
+</div>
+<div class="section level4">
+<h4 id="scree-analysis">Scree Analysis<a class="anchor" aria-label="anchor" href="#scree-analysis"></a>
+</h4>
+<p>Systematically evaluates filtering threshold effects across a range of values, helping to choose optimal parameters.</p>
+</div>
 </div>
 <div class="section level3">
-<h3 id="network-based-filtering-new">Network-Based Filtering (New!)<a class="anchor" aria-label="anchor" href="#network-based-filtering-new"></a>
-</h3>
-<p>Advanced filtering using information theory and graph theory to identify spurious features:</p>
-<ul>
-<li>
-<strong><code><a href="reference/compute_mutual_information.html">compute_mutual_information()</a></code></strong> - Computes pairwise mutual information using k-nearest neighbor (KSG) estimator</li>
-<li>
-<strong><code><a href="reference/analyze_feature_network.html">analyze_feature_network()</a></code></strong> - Calculates network centrality metrics (degree, strength, betweenness)</li>
-<li>
-<strong><code><a href="reference/filter_by_network_connectivity.html">filter_by_network_connectivity()</a></code></strong> - Removes features with no significant connections (likely artifacts)</li>
-<li>
-<strong><code><a href="reference/plot_feature_network.html">plot_feature_network()</a></code></strong> - Visualizes feature connectivity network</li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="sparsity-elbow-detection-new">Sparsity Elbow Detection (New!)<a class="anchor" aria-label="anchor" href="#sparsity-elbow-detection-new"></a>
-</h3>
-<p>Identifies critical sequencing depth where ASV discovery crashes:</p>
-<ul>
-<li>
-<strong><code><a href="reference/identify_sparsity_elbow.html">identify_sparsity_elbow()</a></code></strong> - Detects elbow point using kneedle, max_derivative, or second_derivative methods</li>
-<li>
-<strong><code><a href="reference/plot_sparsity_elbow.html">plot_sparsity_elbow()</a></code></strong> - Visualizes richness-depth relationship with elbow marker</li>
-<li>
-<strong><code><a href="reference/analyze_depth_sparsity.html">analyze_depth_sparsity()</a></code></strong> - Full depth-sparsity analysis with MAD/IQR outlier detection</li>
-<li>
-<strong><code><a href="reference/plot_depth_sparsity.html">plot_depth_sparsity()</a></code></strong> - Visualizes depth-sparsity relationship</li>
-<li>
-<strong><code><a href="reference/filter_depth_sparsity_outliers.html">filter_depth_sparsity_outliers()</a></code></strong> - Convenience function to remove outlier samples</li>
-<li>
-<strong><code><a href="reference/plot_reads_vs_asvs.html">plot_reads_vs_asvs()</a></code></strong> - Simple Total Reads vs Observed ASVs plot with MAD outlier flagging</li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="diversity-retention-metrics-new">Diversity Retention Metrics (New!)<a class="anchor" aria-label="anchor" href="#diversity-retention-metrics-new"></a>
-</h3>
-<p>Effective Number of Species (Hill numbers) to assess how filtering affects biological diversity:</p>
-<ul>
-<li>
-<strong><code><a href="reference/calc_shannon_ens.html">calc_shannon_ens()</a></code></strong> - Shannon diversity converted to effective species count (Hill q=1)</li>
-<li>
-<strong><code><a href="reference/calc_simpson_ens.html">calc_simpson_ens()</a></code></strong> - Simpson diversity as effective species count (Hill q=2)</li>
-<li>
-<strong><code><a href="reference/calc_hill_numbers.html">calc_hill_numbers()</a></code></strong> - Full diversity profile across multiple q values</li>
-<li>
-<strong><code><a href="reference/compute_filtering_qc.html">compute_filtering_qc()</a></code></strong> - Now includes ENS retention percentages alongside traditional metrics</li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="phyloseq--treesummarizedexperiment-support-new">Phyloseq &amp; TreeSummarizedExperiment Support (New!)<a class="anchor" aria-label="anchor" href="#phyloseq--treesummarizedexperiment-support-new"></a>
-</h3>
-<p>Native conversion functions for standard microbiome data classes:</p>
-<ul>
-<li>
-<strong><code><a href="reference/from_phyloseq.html">from_phyloseq()</a></code></strong> - Convert phyloseq object to data.frame</li>
-<li>
-<strong><code><a href="reference/to_phyloseq.html">to_phyloseq()</a></code></strong> - Create phyloseq from data.frame (with optional taxonomy, tree, sample data)</li>
-<li>
-<strong><code><a href="reference/from_TSE.html">from_TSE()</a></code></strong> - Convert TreeSummarizedExperiment/SingleCellExperiment to data.frame</li>
-<li>
-<strong><code><a href="reference/to_TSE.html">to_TSE()</a></code></strong> - Create TreeSummarizedExperiment from data.frame</li>
-<li>
-<strong><code><a href="reference/convert_feature_table.html">convert_feature_table()</a></code></strong> - Generic auto-detect conversion between any supported format</li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="qc--metrics">QC &amp; Metrics<a class="anchor" aria-label="anchor" href="#qc--metrics"></a>
+<h3 id="quality-control">Quality Control<a class="anchor" aria-label="anchor" href="#quality-control"></a>
 </h3>
 <ul>
-<li>
-<strong><code><a href="reference/compute_filtering_qc.html">compute_filtering_qc()</a></code></strong> - Comprehensive QC: sparsity, retention rates, rank-abundance stability, Procrustes analysis, <strong>and ENS diversity retention</strong>
-</li>
-<li>
-<strong><code><a href="reference/calculate_sparsity.html">calculate_sparsity()</a></code></strong> - Calculate sparsity metric</li>
-<li>
-<strong><code>calculate_cv()</code></strong> - Calculate coefficient of variation</li>
+<li>Comprehensive QC metrics including sparsity changes, retention rates, diversity retention</li>
+<li>Hill numbers (Effective Number of Species) for Shannon and Simpson diversity</li>
+<li>Procrustes analysis for compositional similarity</li>
+<li>Rank-abundance stability metrics (Jaccard similarity, Spearman correlation)</li>
 </ul>
 </div>
 <div class="section level3">
 <h3 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a>
 </h3>
 <ul>
-<li>
-<strong><code><a href="reference/plot_qc_comparison.html">plot_qc_comparison()</a></code></strong> - Comprehensive QC comparison plots (coverage, abundance, sparsity, retention, heatmaps, stacked bars)</li>
-<li>
-<strong><code><a href="reference/plot_presence_analysis.html">plot_presence_analysis()</a></code></strong> - Feature prevalence and sample richness histograms</li>
-<li>
-<strong><code><a href="reference/plot_coverage_histogram.html">plot_coverage_histogram()</a></code></strong> - Sample coverage histograms</li>
-<li>
-<strong><code><a href="reference/plot_top_features_stacked.html">plot_top_features_stacked()</a></code></strong> - Top N relative abundance stacked bars</li>
-<li>
-<strong><code><a href="reference/plot_scree.html">plot_scree()</a></code></strong> - Scree/saturation diagnostic plots for filtering thresholds</li>
-<li>
-<strong><code><a href="reference/plot_depth_sparsity.html">plot_depth_sparsity()</a></code></strong> - Depth-sparsity relationship with outliers</li>
-<li>
-<strong><code><a href="reference/plot_sparsity_elbow.html">plot_sparsity_elbow()</a></code></strong> - Richness-depth curve with elbow detection</li>
+<li>Coverage and abundance distribution plots</li>
+<li>Sparsity elbow detection visualization</li>
+<li>Depth-sparsity outlier plots</li>
+<li>Top features stacked barplots</li>
+<li>Heatmaps and presence frequency plots</li>
+<li>Complete QC comparison reports</li>
 </ul>
 </div>
 <div class="section level3">
-<h3 id="pipeline--utilities">Pipeline &amp; Utilities<a class="anchor" aria-label="anchor" href="#pipeline--utilities"></a>
+<h3 id="data-format-support">Data Format Support<a class="anchor" aria-label="anchor" href="#data-format-support"></a>
 </h3>
 <ul>
 <li>
-<strong><code><a href="reference/run_filtering_pipeline.html">run_filtering_pipeline()</a></code></strong> - Complete filtering workflow with configurable methods, file outputs, and reports</li>
+<strong>Input</strong>: <code>data.frame</code>, <code>phyloseq</code>, <code>TreeSummarizedExperiment</code>, TSV/CSV files</li>
 <li>
-<strong><code><a href="reference/load_feature_table.html">load_feature_table()</a></code></strong> - Auto-detects TSV/CSV format, header detection, feature column identification</li>
-<li>
-<strong><code><a href="reference/convert_to_relative.html">convert_to_relative()</a></code></strong> - Converts counts to relative abundances</li>
+<strong>Output</strong>: Same class as input (preserves metadata and tree structures)</li>
 </ul>
 </div>
 </div>
 <div class="section level2">
-<h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+<h2 id="example-data">Example Data<a class="anchor" aria-label="anchor" href="#example-data"></a>
 </h2>
-<div class="section level3">
-<h3 id="simple-filtering-pipeline">Simple Filtering Pipeline<a class="anchor" aria-label="anchor" href="#simple-filtering-pipeline"></a>
-</h3>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">featuretablefilter</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Run a complete filtering pipeline</span></span>
-<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
-<span>  input <span class="op">=</span> <span class="st">"example_feature_table.tsv"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="st">"results"</span>,</span>
-<span>  prefix <span class="op">=</span> <span class="st">"analysis1"</span>,</span>
-<span>  cov_filter_method <span class="op">=</span> <span class="st">"absolute"</span>,</span>
-<span>  cov_threshold <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>  abun_filter_method <span class="op">=</span> <span class="st">"absolute"</span>,</span>
-<span>  abun_threshold <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="working-with-phyloseq-objects">Working with phyloseq Objects<a class="anchor" aria-label="anchor" href="#working-with-phyloseq-objects"></a>
-</h3>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://dx.plos.org/10.1371/journal.pone.0061217" class="external-link">phyloseq</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">featuretablefilter</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Load your phyloseq object</span></span>
-<span><span class="va">ps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"my_phyloseq.rds"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Convert to data.frame for filtering (optionally include taxonomy)</span></span>
-<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/from_phyloseq.html">from_phyloseq</a></span><span class="op">(</span><span class="va">ps</span>, include_taxa <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Apply network-based filtering to remove spurious features</span></span>
-<span><span class="va">filtered_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/filter_by_network_connectivity.html">filter_by_network_connectivity</a></span><span class="op">(</span><span class="va">df</span>, similarity_type <span class="op">=</span> <span class="st">"mi"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Convert back to phyloseq (preserves tree if present)</span></span>
-<span><span class="va">ps_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/to_phyloseq.html">to_phyloseq</a></span><span class="op">(</span><span class="va">filtered_df</span>, phy_tree <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/phyloseq/man/phy_tree-methods.html" class="external-link">phy_tree</a></span><span class="op">(</span><span class="va">ps</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="working-with-treesummarizedexperiment">Working with TreeSummarizedExperiment<a class="anchor" aria-label="anchor" href="#working-with-treesummarizedexperiment"></a>
-</h3>
+<p>The package includes <code>example_feature_table</code>, a synthetic dataset (50 features × 20 samples) for testing and demonstration:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">TreeSummarizedExperiment</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">featuretablefilter</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Load TSE object</span></span>
-<span><span class="va">tse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"my_tse.rds"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Convert to data.frame with rowData and colData</span></span>
-<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/from_TSE.html">from_TSE</a></span><span class="op">(</span><span class="va">tse</span>, add_row_data <span class="op">=</span> <span class="cn">TRUE</span>, add_col_data <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">table</span></span>
-<span><span class="va">sample_meta</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">sample_data</span></span>
-<span></span>
-<span><span class="co"># Filter and convert back</span></span>
-<span><span class="va">filtered_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/filter_by_coverage.html">filter_by_coverage</a></span><span class="op">(</span><span class="va">df</span>, min_reads <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
-<span><span class="va">tse_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/to_TSE.html">to_TSE</a></span><span class="op">(</span><span class="va">filtered_df</span>, rowData <span class="op">=</span> <span class="fu">rowData</span><span class="op">(</span><span class="va">tse</span><span class="op">)</span>, colData <span class="op">=</span> <span class="fu">colData</span><span class="op">(</span><span class="va">tse</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="network-based-filtering">Network-Based Filtering<a class="anchor" aria-label="anchor" href="#network-based-filtering"></a>
-</h3>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Remove features with no network connections (likely artifacts)</span></span>
-<span><span class="va">cleaned</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/filter_by_network_connectivity.html">filter_by_network_connectivity</a></span><span class="op">(</span></span>
-<span>  <span class="va">my_table</span>,</span>
-<span>  similarity_type <span class="op">=</span> <span class="st">"mi"</span>,    <span class="co"># or "cor" for faster Pearson correlation</span></span>
-<span>  min_degree <span class="op">=</span> <span class="fl">1</span>,            <span class="co"># minimum connections required</span></span>
-<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Get detailed network analysis</span></span>
-<span><span class="va">mi_matrix</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute_mutual_information.html">compute_mutual_information</a></span><span class="op">(</span><span class="va">my_table</span><span class="op">)</span></span>
-<span><span class="va">network</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/analyze_feature_network.html">analyze_feature_network</a></span><span class="op">(</span><span class="va">mi_matrix</span>, method <span class="op">=</span> <span class="st">"mi"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># View disconnected features</span></span>
-<span><span class="va">disconnected</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">network</span><span class="op">$</span><span class="va">degree_centrality</span><span class="op">[</span><span class="va">network</span><span class="op">$</span><span class="va">degree_centrality</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Visualize the network</span></span>
-<span><span class="va">plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/plot_feature_network.html">plot_feature_network</a></span><span class="op">(</span><span class="va">network</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">my_table</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="sparsity-elbow-detection">Sparsity Elbow Detection<a class="anchor" aria-label="anchor" href="#sparsity-elbow-detection"></a>
-</h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Identify critical depth where ASV discovery crashes</span></span>
-<span><span class="va">elbow_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/identify_sparsity_elbow.html">identify_sparsity_elbow</a></span><span class="op">(</span></span>
-<span>  <span class="va">my_table</span>,</span>
-<span>  method <span class="op">=</span> <span class="st">"kneedle"</span>,        <span class="co"># or "max_derivative", "second_derivative"</span></span>
-<span>  smooth_window <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="va">elbow_result</span><span class="op">$</span><span class="va">recommendation</span><span class="op">)</span></span>
-<span><span class="co"># "Consider filtering out 12 samples (24.0%) below depth 850 reads..."</span></span>
-<span></span>
-<span><span class="co"># Visualize</span></span>
-<span><span class="fu"><a href="reference/plot_sparsity_elbow.html">plot_sparsity_elbow</a></span><span class="op">(</span><span class="va">elbow_result</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Or use simple reads-vs-ASVs plot</span></span>
-<span><span class="va">read_asv_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/plot_reads_vs_asvs.html">plot_reads_vs_asvs</a></span><span class="op">(</span><span class="va">my_table</span>, mad_multiplier <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">read_asv_result</span><span class="op">$</span><span class="va">plot</span><span class="op">)</span></span>
-<span><span class="va">outlier_samples</span> <span class="op">&lt;-</span> <span class="va">read_asv_result</span><span class="op">$</span><span class="va">outliers</span><span class="op">$</span><span class="va">sample_name</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="diversity-retention-analysis">Diversity Retention Analysis<a class="anchor" aria-label="anchor" href="#diversity-retention-analysis"></a>
-</h3>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Compare original and filtered tables</span></span>
-<span><span class="va">qc</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute_filtering_qc.html">compute_filtering_qc</a></span><span class="op">(</span><span class="va">original_table</span>, <span class="va">filtered_table</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Check how much biological diversity was retained</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Shannon ENS retention: %.1f%%\n"</span>, <span class="va">qc</span><span class="op">$</span><span class="va">shannon_ens_retention_percent</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Simpson ENS retention: %.1f%%\n"</span>, <span class="va">qc</span><span class="op">$</span><span class="va">simpson_ens_retention_percent</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Calculate Hill numbers directly</span></span>
-<span><span class="va">hill_profile</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calc_hill_numbers.html">calc_hill_numbers</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">table</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, q <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="individual-filtering-functions">Individual Filtering Functions<a class="anchor" aria-label="anchor" href="#individual-filtering-functions"></a>
-</h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Load feature table</span></span>
-<span><span class="va">table</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/load_feature_table.html">load_feature_table</a></span><span class="op">(</span><span class="st">"example_feature_table.tsv"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Filter by coverage (remove samples with &lt; 1000 reads)</span></span>
-<span><span class="va">filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/filter_by_coverage.html">filter_by_coverage</a></span><span class="op">(</span><span class="va">table</span>, min_reads <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Filter features by abundance (remove features with &lt; 5 total reads)</span></span>
-<span><span class="va">filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/filter_features_by_abundance.html">filter_features_by_abundance</a></span><span class="op">(</span></span>
-<span>  <span class="va">filtered</span>,</span>
-<span>  threshold <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  mode <span class="op">=</span> <span class="st">"absolute"</span>,</span>
-<span>  min_samples <span class="op">=</span> <span class="fl">1</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Compute QC metrics (includes diversity retention)</span></span>
-<span><span class="va">qc</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute_filtering_qc.html">compute_filtering_qc</a></span><span class="op">(</span><span class="va">original_table</span>, <span class="va">filtered_table</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Generate comparison plots</span></span>
-<span><span class="fu"><a href="reference/plot_qc_comparison.html">plot_qc_comparison</a></span><span class="op">(</span><span class="va">original_table</span>, <span class="va">filtered_table</span>, plot_dir <span class="op">=</span> <span class="st">"plots"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Presence frequency analysis</span></span>
-<span><span class="fu"><a href="reference/plot_presence_analysis.html">plot_presence_analysis</a></span><span class="op">(</span></span>
-<span>  <span class="va">original_table</span>,</span>
-<span>  table_filtered <span class="op">=</span> <span class="va">filtered_table</span>,</span>
-<span>  save_dir <span class="op">=</span> <span class="st">"plots"</span>,</span>
-<span>  prefix <span class="op">=</span> <span class="st">"presence"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Filter by ecological completeness (Good's coverage &gt;= 95%)</span></span>
-<span><span class="va">filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/filter_by_coverage_estimator.html">filter_by_coverage_estimator</a></span><span class="op">(</span></span>
-<span>  <span class="va">table</span>,</span>
-<span>  method <span class="op">=</span> <span class="st">"good"</span>,</span>
-<span>  target_coverage <span class="op">=</span> <span class="fl">0.95</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Mean coverage before: %.2f%%\n"</span>, <span class="va">filtered</span><span class="op">$</span><span class="va">mean_coverage_before</span> <span class="op">*</span> <span class="fl">100</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Mean coverage after: %.2f%%\n"</span>, <span class="va">filtered</span><span class="op">$</span><span class="va">mean_coverage_after</span> <span class="op">*</span> <span class="fl">100</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="filtering-methods">Filtering Methods<a class="anchor" aria-label="anchor" href="#filtering-methods"></a>
+<h2 id="reporting">Reporting<a class="anchor" aria-label="anchor" href="#reporting"></a>
 </h2>
-<div class="section level3">
-<h3 id="coverage-filtering-cov_filter_method">Coverage Filtering (<code>cov_filter_method</code>)<a class="anchor" aria-label="anchor" href="#coverage-filtering-cov_filter_method"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="38%">
-<col width="61%">
-</colgroup>
-<thead><tr>
-<th>Method</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>none</code></td>
-<td>No coverage filtering</td>
-</tr>
-<tr>
-<td><code>absolute</code></td>
-<td>Remove samples below fixed read count threshold</td>
-</tr>
-<tr>
-<td><code>mad</code></td>
-<td>Use MAD-based threshold (median ± multiplier × MAD)</td>
-</tr>
-<tr>
-<td><code>iqr</code></td>
-<td>Use IQR/Tukey-based threshold (fences)</td>
-</tr>
-<tr>
-<td><code>good</code></td>
-<td>Use Good’s coverage estimator (ecological completeness, default 95%)</td>
-</tr>
-<tr>
-<td><code>chao</code></td>
-<td>Use Chao’s coverage estimator (conservative, default 90%)</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level3">
-<h3 id="abundance-filtering-abun_filter_method">Abundance Filtering (<code>abun_filter_method</code>)<a class="anchor" aria-label="anchor" href="#abundance-filtering-abun_filter_method"></a>
-</h3>
-<table class="table">
-<thead><tr>
-<th>Method</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>none</code></td>
-<td>No abundance filtering</td>
-</tr>
-<tr>
-<td><code>absolute</code></td>
-<td>Remove features below fixed count threshold</td>
-</tr>
-<tr>
-<td><code>relative</code></td>
-<td>Remove features below relative abundance proportion</td>
-</tr>
-<tr>
-<td><code>relative_cutoff</code></td>
-<td>Relative threshold based on min-coverage sample</td>
-</tr>
-<tr>
-<td><code>joint</code></td>
-<td>Joint abundance-prevalence filtering with AND/OR logic</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="section level2">
-<h2 id="output-files-pipeline">Output Files (Pipeline)<a class="anchor" aria-label="anchor" href="#output-files-pipeline"></a>
-</h2>
-<p>When running <code><a href="reference/run_filtering_pipeline.html">run_filtering_pipeline()</a></code>, the following files are generated:</p>
+<p>Generate comprehensive reports in multiple formats:</p>
 <ul>
 <li>
-<code>&lt;prefix&gt;_table.tsv</code> - Filtered feature table</li>
+<strong>Text report</strong> - Plain text summary with all filtering steps and QC metrics</li>
 <li>
-<code>&lt;prefix&gt;_sample_coverage_distribution.png</code> - Coverage distribution histograms</li>
+<strong>Markdown report</strong> - Formatted report with tables, suitable for version control</li>
 <li>
-<code>&lt;prefix&gt;_feature_abundance_distribution.png</code> - Feature abundance histograms</li>
-<li>
-<code>&lt;prefix&gt;_sparsity_comparison.png</code> - Per-sample sparsity histograms</li>
-<li>
-<code>&lt;prefix&gt;_retention_rates.png</code> - Retention rate barplot</li>
-<li>
-<code>&lt;prefix&gt;_heatmap_original.png</code> - Top variable features heatmap (original)</li>
-<li>
-<code>&lt;prefix&gt;_heatmap_filtered.png</code> - Top variable features heatmap (filtered)</li>
-<li>
-<code>&lt;prefix&gt;_top_features_stacked.png</code> - Top features stacked barplot</li>
-<li>
-<code>&lt;prefix&gt;_presence_frequency_comparison.png</code> - Prevalence/richness comparison</li>
-<li>
-<code>&lt;prefix&gt;_report.txt</code> - Text summary report</li>
+<strong>PDF report</strong> - Professional publication-ready document (requires LaTeX)</li>
 </ul>
 </div>
 <div class="section level2">
-<h2 id="supported-data-classes">Supported Data Classes<a class="anchor" aria-label="anchor" href="#supported-data-classes"></a>
+<h2 id="interactive-dashboard">Interactive Dashboard<a class="anchor" aria-label="anchor" href="#interactive-dashboard"></a>
 </h2>
-<p>The package natively supports conversion between:</p>
-<table class="table">
-<colgroup>
-<col width="38%">
-<col width="61%">
-</colgroup>
-<thead><tr>
-<th>Format</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>data.frame</code></td>
-<td>Standard R data frame (feature ID in first column)</td>
-</tr>
-<tr>
-<td><code>phyloseq</code></td>
-<td>Legacy microbiome standard (OTU table, taxonomy, tree, sample data)</td>
-</tr>
-<tr>
-<td><code>TreeSummarizedExperiment</code></td>
-<td>Modern Bioconductor standard (assays, rowData, colData, reducedDims)</td>
-</tr>
-<tr>
-<td><code>SingleCellExperiment</code></td>
-<td>Single-cell variant of SummarizedExperiment</td>
-</tr>
-</tbody>
-</table>
+<p>Launch an interactive Shiny dashboard for exploring filtering parameters:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/runDashboard.html">runDashboard</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<p>Full documentation is available:</p>
+<ul>
+<li>
+<strong>Bioconductor</strong>: <a href="https://bioconductor.org/packages/featuretablefilter" class="external-link uri">https://bioconductor.org/packages/featuretablefilter</a>
+</li>
+<li>
+<strong>Reference manual</strong>: <code><a href="articles/featuretablefilter.html">vignette("featuretablefilter")</a></code>
+</li>
+<li>
+<strong>Tutorial</strong>: <code><a href="articles/tutorial.html">vignette("tutorial")</a></code>
+</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
+</h2>
+<p>To cite this package in publications:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"featuretablefilter"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
 </h2>
-<p>GPL-3</p>
+<p>This package is licensed under the Artistic License 2.0.</p>
+</div>
+<div class="section level2">
+<h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
+</h2>
+<p>Please read our <a href="CONTRIBUTING.html">Contributing Guide</a> before submitting pull requests.</p>
+</div>
+<div class="section level2">
+<h2 id="support">Support<a class="anchor" aria-label="anchor" href="#support"></a>
+</h2>
+<p>For questions and issues:</p>
+<ul>
+<li>
+<strong>Bioconductor Support Forum</strong>: <a href="https://support.bioconductor.org/" class="external-link uri">https://support.bioconductor.org/</a>
+</li>
+<li>
+<strong>GitHub Issues</strong>: <a href="https://github.com/VojtechBarton/featuretablefilter/issues" class="external-link uri">https://github.com/VojtechBarton/featuretablefilter/issues</a>
+</li>
+</ul>
+<hr>
+<p><em>Built for the microbiome research community.</em></p>
 </div>
 </div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-    <div class="license">
+    <div class="links">
+<h2 data-toc-skip>Links</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/VojtechBarton/featuretablefilter/issues" class="external-link">Report a bug</a></li>
+</ul>
+</div>
+
+<div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li><a href="https://www.r-project.org/Licenses/GPL-3" class="external-link">GPL-3</a></li>
+<li><a href="https://www.r-project.org/Licenses/Artistic-2.0" class="external-link">Artistic-2.0</a></li>
 </ul>
 </div>
 

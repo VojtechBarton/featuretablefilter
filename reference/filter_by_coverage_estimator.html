@@ -19,7 +19,7 @@ This approach removes samples that are likely undersampled ecologically."><!-- m
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -40,7 +40,16 @@ This approach removes samples that are likely undersampled ecologically."><!-- m
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -50,7 +59,7 @@ This approach removes samples that are likely undersampled ecologically."><!-- m
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Filter samples based on ecological coverage estimators</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/filter_by_coverage_estimator.R" class="external-link"><code>R/filter_by_coverage_estimator.R</code></a></small>
     <div class="hidden name"><code>filter_by_coverage_estimator.Rd</code></div>
     </div>
 
@@ -61,33 +70,45 @@ This approach removes samples that are likely undersampled ecologically.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">filter_by_coverage_estimator</span><span class="op">(</span><span class="va">table</span>, method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"good"</span>, <span class="st">"chao"</span><span class="op">)</span>,</span>
-<span>                              target_coverage <span class="op">=</span> <span class="cn">NULL</span>, min_reads <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">filter_by_coverage_estimator</span><span class="op">(</span></span>
+<span>  <span class="va">table</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"good"</span>, <span class="st">"chao"</span><span class="op">)</span>,</span>
+<span>  target_coverage <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  min_reads <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <p></p>
+
+
 <dl><dt id="arg-table">table<a class="anchor" aria-label="anchor" href="#arg-table"></a></dt>
 <dd><p>A feature table (data.frame or matrix) with features as rows and samples as columns.
-              First column should be feature IDs, remaining columns are sample counts.</p></dd>
+First column should be feature IDs, remaining columns are sample counts.</p></dd>
 
-  <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
+
+<dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
 <dd><p>Coverage estimation method: "good" for Good's coverage, "chao" for Chao's coverage.</p></dd>
 
-  <dt id="arg-target-coverage">target_coverage<a class="anchor" aria-label="anchor" href="#arg-target-coverage"></a></dt>
-<dd><p>Target coverage threshold (0-1). Samples below this will be filtered.
-                        Default is 0.95 for Good's, 0.90 for Chao's.</p></dd>
 
-  <dt id="arg-min-reads">min_reads<a class="anchor" aria-label="anchor" href="#arg-min-reads"></a></dt>
+<dt id="arg-target-coverage">target_coverage<a class="anchor" aria-label="anchor" href="#arg-target-coverage"></a></dt>
+<dd><p>Target coverage threshold (0-1). Samples below this will be filtered.
+Default is 0.95 for Good's, 0.90 for Chao's.</p></dd>
+
+
+<dt id="arg-min-reads">min_reads<a class="anchor" aria-label="anchor" href="#arg-min-reads"></a></dt>
 <dd><p>Optional minimum absolute read count cutoff applied in addition to coverage.
-                  Useful as a safety floor. Default is 0 (no additional cutoff).</p></dd>
+Useful as a safety floor. Default is 0 (no additional cutoff).</p></dd>
+
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Logical. If TRUE, prints progress messages. Default is TRUE.</p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A list containing:</p>
-<dl><dt>table</dt>
+    <p>A list containing:</p><dl><dt>table</dt>
 <dd><p>Filtered feature table</p></dd>
 
   <dt>coverage_before</dt>
@@ -117,15 +138,16 @@ This approach removes samples that are likely undersampled ecologically.</p>
   <dt>target_coverage</dt>
 <dd><p>Target coverage threshold used</p></dd>
 
+
 </dl></div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Filter using Good's coverage (keep samples with &gt;= 95% coverage)</span></span></span>
-<span class="r-in"><span><span class="co"># result &lt;- filter_by_coverage_estimator(table, method = "good", target_coverage = 0.95)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Filter using Chao's coverage (keep samples with &gt;= 90% coverage)</span></span></span>
-<span class="r-in"><span><span class="co"># result &lt;- filter_by_coverage_estimator(table, method = "chao", target_coverage = 0.90)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">filter_by_coverage_estimator</span><span class="op">(</span><span class="va">example_feature_table</span>, method <span class="op">=</span> <span class="st">"good"</span>,</span></span>
+<span class="r-in"><span>                                       verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">table</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 21</span>
 </code></pre></div>
     </div>
   </div>

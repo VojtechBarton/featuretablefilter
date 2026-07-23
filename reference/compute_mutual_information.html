@@ -19,7 +19,7 @@ High MI indicates strong co-occurrence or mutual exclusion patterns."><!-- mathj
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -40,7 +40,16 @@ High MI indicates strong co-occurrence or mutual exclusion patterns."><!-- mathj
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -50,7 +59,7 @@ High MI indicates strong co-occurrence or mutual exclusion patterns."><!-- mathj
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Calculate pairwise mutual information between features</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/filter_by_network.R" class="external-link"><code>R/filter_by_network.R</code></a></small>
     <div class="hidden name"><code>compute_mutual_information.Rd</code></div>
     </div>
 
@@ -91,7 +100,7 @@ Default is TRUE (recommended for small sample sizes).</p></dd>
 <dt id="arg-min-prevalence">min_prevalence<a class="anchor" aria-label="anchor" href="#arg-min-prevalence"></a></dt>
 <dd><p>Minimum proportion of samples where a feature must be present
 (non-zero) to be included in MI calculation. Default is 0.05
-(5<!-- % of samples). Features below this are excluded to reduce -->
+(5% of samples). Features below this are excluded to reduce
 computational burden and focus on meaningful signals.</p></dd>
 
 </dl></div>
@@ -108,13 +117,16 @@ which is more robust than histogram-based methods for sparse microbiome data.</p
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Create example feature table</span></span></span>
-<span class="r-in"><span><span class="co"># mat &lt;- matrix(rpois(100 * 20, lambda = 5), nrow = 100, ncol = 20)</span></span></span>
-<span class="r-in"><span><span class="co"># mi_matrix &lt;- compute_mutual_information(mat)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Use with prevalence filtering</span></span></span>
-<span class="r-in"><span><span class="co"># filtered_mat &lt;- table[table[, -1] &gt; 0][rowSums(table[, -1] &gt; 0) / ncol(table) &gt; 0.05, ]</span></span></span>
-<span class="r-in"><span><span class="co"># mi_matrix &lt;- compute_mutual_information(as.matrix(filtered_mat[, -1]))</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">abund</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">compute_mutual_information</span><span class="op">(</span><span class="va">abund</span>, k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            1         2          3         4         5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         NA 0.8126606 0.08963207 0.0000000 0.6295757</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 0.81266061        NA 0.73746559 0.0000000 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 0.08963207 0.7374656         NA 0.7477367 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 0.00000000 0.0000000 0.74773673        NA 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 0.62957574 0.0000000 0.00000000 0.0000000        NA</span>
 </code></pre></div>
     </div>
   </div>

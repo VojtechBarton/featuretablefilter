@@ -18,7 +18,7 @@ Works with both absolute counts and relative abundances."><!-- mathjax --><scrip
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -39,7 +39,16 @@ Works with both absolute counts and relative abundances."><!-- mathjax --><scrip
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -49,7 +58,7 @@ Works with both absolute counts and relative abundances."><!-- mathjax --><scrip
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Filter features based on abundance threshold</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/filter_features.R" class="external-link"><code>R/filter_features.R</code></a></small>
     <div class="hidden name"><code>filter_features_by_abundance.Rd</code></div>
     </div>
 
@@ -59,57 +68,53 @@ Works with both absolute counts and relative abundances.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">filter_features_by_abundance</span><span class="op">(</span><span class="va">table</span>, <span class="va">threshold</span>, mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"absolute"</span>, <span class="st">"relative"</span><span class="op">)</span>,</span>
-<span>                              remove_zeros <span class="op">=</span> <span class="cn">TRUE</span>, min_samples <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">filter_features_by_abundance</span><span class="op">(</span></span>
+<span>  <span class="va">table</span>,</span>
+<span>  <span class="va">threshold</span>,</span>
+<span>  mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"absolute"</span>, <span class="st">"relative"</span><span class="op">)</span>,</span>
+<span>  remove_zeros <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  min_samples <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <p></p>
+
+
 <dl><dt id="arg-table">table<a class="anchor" aria-label="anchor" href="#arg-table"></a></dt>
 <dd><p>A feature table (data.frame or matrix) with features as rows and samples as columns.
-              First column should be feature IDs, remaining columns are sample counts/abundances.</p></dd>
+First column should be feature IDs, remaining columns are sample counts/abundances.</p></dd>
 
-  <dt id="arg-threshold">threshold<a class="anchor" aria-label="anchor" href="#arg-threshold"></a></dt>
+
+<dt id="arg-threshold">threshold<a class="anchor" aria-label="anchor" href="#arg-threshold"></a></dt>
 <dd><p>Minimum abundance threshold. Features with values below this will be set to zero.</p></dd>
 
-  <dt id="arg-mode">mode<a class="anchor" aria-label="anchor" href="#arg-mode"></a></dt>
-<dd><p>Filtering mode: "absolute" for raw counts, "relative" for proportions/percentages.
-             Default is "absolute".</p></dd>
 
-  <dt id="arg-remove-zeros">remove_zeros<a class="anchor" aria-label="anchor" href="#arg-remove-zeros"></a></dt>
+<dt id="arg-mode">mode<a class="anchor" aria-label="anchor" href="#arg-mode"></a></dt>
+<dd><p>Filtering mode: "absolute" for raw counts, "relative" for proportions/percentages.
+Default is "absolute".</p></dd>
+
+
+<dt id="arg-remove-zeros">remove_zeros<a class="anchor" aria-label="anchor" href="#arg-remove-zeros"></a></dt>
 <dd><p>Logical. If TRUE (default), remove features that become all zeros after filtering.</p></dd>
 
-  <dt id="arg-min-samples">min_samples<a class="anchor" aria-label="anchor" href="#arg-min-samples"></a></dt>
+
+<dt id="arg-min-samples">min_samples<a class="anchor" aria-label="anchor" href="#arg-min-samples"></a></dt>
 <dd><p>Optional. Minimum number of samples where a feature must exceed the threshold
-                    to be kept. Default is 1 (feature must exceed threshold in at least one sample).</p></dd>
+to be kept. Default is 1 (feature must exceed threshold in at least one sample).</p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A filtered feature table (data.frame) with low-abundance features zeroed and/or removed.
-Attributes:</p>
-<dl><dt>n_filtered_out</dt>
-<dd><p>Number of features removed</p></dd>
-
-  <dt>threshold</dt>
-<dd><p>The threshold used</p></dd>
-
-  <dt>mode</dt>
-<dd><p>The mode used</p></dd>
-
-</dl></div>
+    <p>A filtered feature table (data.frame) with low-abundance features zeroed and/or removed.</p>
+    </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Filter features with absolute count &lt; 5</span></span></span>
-<span class="r-in"><span><span class="co"># filtered &lt;- filter_features_by_abundance(table, threshold = 5, mode = "absolute")</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Filter features with relative abundance &lt; 0.001 (0.1%)</span></span></span>
-<span class="r-in"><span><span class="co"># filtered &lt;- filter_features_by_abundance(table, threshold = 0.001, mode = "relative")</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Keep only features present in at least 3 samples</span></span></span>
-<span class="r-in"><span><span class="co"># filtered &lt;- filter_features_by_abundance(table, threshold = 1, min_samples = 3)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">filter_features_by_abundance</span><span class="op">(</span><span class="va">example_feature_table</span>, threshold <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 41</span>
 </code></pre></div>
     </div>
   </div>

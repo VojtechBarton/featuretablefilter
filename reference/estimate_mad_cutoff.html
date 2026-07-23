@@ -18,7 +18,7 @@ based on the median and MAD of sample coverages."><!-- mathjax --><script src="h
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -39,7 +39,16 @@ based on the median and MAD of sample coverages."><!-- mathjax --><script src="h
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -49,7 +58,7 @@ based on the median and MAD of sample coverages."><!-- mathjax --><script src="h
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Estimate minimum read cutoff using Median Absolute Deviation (MAD)</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/estimate_mad_cutoff.R" class="external-link"><code>R/estimate_mad_cutoff.R</code></a></small>
     <div class="hidden name"><code>estimate_mad_cutoff.Rd</code></div>
     </div>
 
@@ -64,23 +73,25 @@ based on the median and MAD of sample coverages.</p>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <p></p>
+
+
 <dl><dt id="arg-table">table<a class="anchor" aria-label="anchor" href="#arg-table"></a></dt>
 <dd><p>A feature table (data.frame or matrix) with features as rows and samples as columns.
-              First column should be feature IDs, remaining columns are sample counts.</p></dd>
+First column should be feature IDs, remaining columns are sample counts.</p></dd>
 
-  <dt id="arg-multiplier">multiplier<a class="anchor" aria-label="anchor" href="#arg-multiplier"></a></dt>
+
+<dt id="arg-multiplier">multiplier<a class="anchor" aria-label="anchor" href="#arg-multiplier"></a></dt>
 <dd><p>A numeric multiplier for the MAD. Samples with coverage below
-                   (median - multiplier * MAD) are considered outliers. Default is 3.</p></dd>
+(median - multiplier * MAD) are considered outliers. Default is 3.</p></dd>
 
-  <dt id="arg-floor">floor<a class="anchor" aria-label="anchor" href="#arg-floor"></a></dt>
+
+<dt id="arg-floor">floor<a class="anchor" aria-label="anchor" href="#arg-floor"></a></dt>
 <dd><p>Minimum possible cutoff value. The returned cutoff will not be lower than this.</p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A list containing:</p>
-<dl><dt>cutoff</dt>
+    <p>A list containing:</p><dl><dt>cutoff</dt>
 <dd><p>The estimated minimum read threshold</p></dd>
 
   <dt>median</dt>
@@ -95,11 +106,15 @@ based on the median and MAD of sample coverages.</p>
   <dt>n_filtered</dt>
 <dd><p>Number of samples that would be filtered at this cutoff</p></dd>
 
+
 </dl></div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># estimate_mad_cutoff(my_table, multiplier = 3)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">estimate_mad_cutoff</span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span><span class="op">$</span><span class="va">cutoff</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 31530.63</span>
 </code></pre></div>
     </div>
   </div>

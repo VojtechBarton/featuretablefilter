@@ -18,7 +18,7 @@ Handles common formats where the first column contains feature IDs."><!-- mathja
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -39,7 +39,16 @@ Handles common formats where the first column contains feature IDs."><!-- mathja
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -49,7 +58,7 @@ Handles common formats where the first column contains feature IDs."><!-- mathja
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Load a feature table from TSV or CSV file</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/load_feature_table.R" class="external-link"><code>R/load_feature_table.R</code></a></small>
     <div class="hidden name"><code>load_feature_table.Rd</code></div>
     </div>
 
@@ -59,47 +68,60 @@ Handles common formats where the first column contains feature IDs.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">load_feature_table</span><span class="op">(</span><span class="va">file</span>, header <span class="op">=</span> <span class="cn">NULL</span>, sep <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>                    feature_col <span class="op">=</span> <span class="fl">1</span>, feature_name_pattern <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">load_feature_table</span><span class="op">(</span></span>
+<span>  <span class="va">file</span>,</span>
+<span>  header <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sep <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  feature_col <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  feature_name_pattern <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <p></p>
+
+
 <dl><dt id="arg-file">file<a class="anchor" aria-label="anchor" href="#arg-file"></a></dt>
 <dd><p>Path to the input file (TSV or CSV).</p></dd>
 
-  <dt id="arg-header">header<a class="anchor" aria-label="anchor" href="#arg-header"></a></dt>
-<dd><p>Logical. Should the first row be treated as headers (sample names)?
-              If NULL, will be auto-detected.</p></dd>
 
-  <dt id="arg-sep">sep<a class="anchor" aria-label="anchor" href="#arg-sep"></a></dt>
+<dt id="arg-header">header<a class="anchor" aria-label="anchor" href="#arg-header"></a></dt>
+<dd><p>Logical. Should the first row be treated as headers (sample names)?
+If NULL, will be auto-detected.</p></dd>
+
+
+<dt id="arg-sep">sep<a class="anchor" aria-label="anchor" href="#arg-sep"></a></dt>
 <dd><p>File separator. If NULL, will be auto-detected (.tsv uses tab, .csv uses comma).</p></dd>
 
-  <dt id="arg-feature-col">feature_col<a class="anchor" aria-label="anchor" href="#arg-feature-col"></a></dt>
+
+<dt id="arg-feature-col">feature_col<a class="anchor" aria-label="anchor" href="#arg-feature-col"></a></dt>
 <dd><p>Name or index of the column containing feature IDs. Default is 1 (first column).</p></dd>
 
-  <dt id="arg-feature-name-pattern">feature_name_pattern<a class="anchor" aria-label="anchor" href="#arg-feature-name-pattern"></a></dt>
+
+<dt id="arg-feature-name-pattern">feature_name_pattern<a class="anchor" aria-label="anchor" href="#arg-feature-name-pattern"></a></dt>
 <dd><p>Optional regex pattern to identify the feature ID column by name.
-                             Common patterns: "OTU", "feature", "ASV", "taxon".</p></dd>
+Common patterns: "OTU", "feature", "ASV", "taxon".</p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
     <p>A data.frame with the feature table. Feature IDs are kept as a regular column
-(not row names) to preserve the standard OTU/feature table format.</p>
+        (not row names) to preserve the standard OTU/feature table format.</p>
     </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Load TSV file (auto-detects format)</span></span></span>
-<span class="r-in"><span><span class="co"># table &lt;- load_feature_table("feature-table.tsv")</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Load CSV file</span></span></span>
-<span class="r-in"><span><span class="co"># table &lt;- load_feature_table("feature-table.csv")</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Specify feature column by name</span></span></span>
-<span class="r-in"><span><span class="co"># table &lt;- load_feature_table("table.tsv", feature_col = "OTU_ID")</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"example_feature_table.tsv"</span>,</span></span>
+<span class="r-in"><span>                       package <span class="op">=</span> <span class="st">"featuretablefilter"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">table</span> <span class="op">&lt;-</span> <span class="fu">load_feature_table</span><span class="op">(</span><span class="va">file</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">table</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   #OTU ID Sample_001 Sample_002</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 ASV_001       1245        892</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 ASV_002        567        423</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 ASV_003        234        178</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 ASV_004         89         67</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 ASV_005       3456       2789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 ASV_006      12345      10234</span>
 </code></pre></div>
     </div>
   </div>

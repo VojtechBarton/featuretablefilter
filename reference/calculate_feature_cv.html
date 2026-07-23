@@ -18,7 +18,7 @@ across samples. This is a useful metric for identifying highly variable features
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -39,7 +39,16 @@ across samples. This is a useful metric for identifying highly variable features
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -49,7 +58,7 @@ across samples. This is a useful metric for identifying highly variable features
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Calculate coefficient of variation (CV) for features</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/calculate_cv.R" class="external-link"><code>R/calculate_cv.R</code></a></small>
     <div class="hidden name"><code>calculate_feature_cv.Rd</code></div>
     </div>
 
@@ -59,28 +68,38 @@ across samples. This is a useful metric for identifying highly variable features
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calculate_feature_cv</span><span class="op">(</span><span class="va">table</span>, plot <span class="op">=</span> <span class="cn">FALSE</span>, plot_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"histogram"</span>, <span class="st">"boxplot"</span><span class="op">)</span>,</span>
-<span>                      log_transform <span class="op">=</span> <span class="cn">FALSE</span>, main <span class="op">=</span> <span class="st">"Feature Coefficient of Variation"</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calculate_feature_cv</span><span class="op">(</span></span>
+<span>  <span class="va">table</span>,</span>
+<span>  plot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  plot_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"histogram"</span>, <span class="st">"boxplot"</span><span class="op">)</span>,</span>
+<span>  log_transform <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  main <span class="op">=</span> <span class="st">"Feature Coefficient of Variation"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <p></p>
+
+
 <dl><dt id="arg-table">table<a class="anchor" aria-label="anchor" href="#arg-table"></a></dt>
 <dd><p>A feature table (data.frame or matrix) with features as rows and samples as columns.
-              First column should be feature IDs, remaining columns are sample counts/abundances.</p></dd>
+First column should be feature IDs, remaining columns are sample counts/abundances.</p></dd>
 
-  <dt id="arg-plot">plot<a class="anchor" aria-label="anchor" href="#arg-plot"></a></dt>
+
+<dt id="arg-plot">plot<a class="anchor" aria-label="anchor" href="#arg-plot"></a></dt>
 <dd><p>Logical. If TRUE, creates a histogram of CV distribution. Default is FALSE.</p></dd>
 
-  <dt id="arg-plot-type">plot_type<a class="anchor" aria-label="anchor" href="#arg-plot-type"></a></dt>
+
+<dt id="arg-plot-type">plot_type<a class="anchor" aria-label="anchor" href="#arg-plot-type"></a></dt>
 <dd><p>Type of plot: "histogram" (default) or "boxplot".</p></dd>
 
-  <dt id="arg-log-transform">log_transform<a class="anchor" aria-label="anchor" href="#arg-log-transform"></a></dt>
-<dd><p>Logical. If TRUE, applies log10 transformation to CV values for plotting.
-                      Useful when CV values span several orders of magnitude. Default is FALSE.</p></dd>
 
-  <dt id="arg-main">main<a class="anchor" aria-label="anchor" href="#arg-main"></a></dt>
+<dt id="arg-log-transform">log_transform<a class="anchor" aria-label="anchor" href="#arg-log-transform"></a></dt>
+<dd><p>Logical. If TRUE, applies log10 transformation to CV values for plotting.
+Useful when CV values span several orders of magnitude. Default is FALSE.</p></dd>
+
+
+<dt id="arg-main">main<a class="anchor" aria-label="anchor" href="#arg-main"></a></dt>
 <dd><p>Plot title (only used if plot = TRUE).</p></dd>
 
 </dl></div>
@@ -92,15 +111,16 @@ across samples. This is a useful metric for identifying highly variable features
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Calculate CV for all features</span></span></span>
-<span class="r-in"><span><span class="co"># cv_results &lt;- calculate_feature_cv(table)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Calculate and plot distribution</span></span></span>
-<span class="r-in"><span><span class="co"># cv_results &lt;- calculate_feature_cv(table, plot = TRUE)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Find most variable features</span></span></span>
-<span class="r-in"><span><span class="co"># cv_results &lt;- calculate_feature_cv(table)</span></span></span>
-<span class="r-in"><span><span class="co"># top_variable &lt;- cv_results[order(-cv_results$cv), ][1:10, ]</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">calculate_feature_cv</span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   feature_id     mean         sd        cv</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1    ASV_001  1128.00  242.54983 0.2150264</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2    ASV_002   519.65  119.76041 0.2304636</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3    ASV_003   197.90   53.71945 0.2714474</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4    ASV_004    73.15   21.43847 0.2930754</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5    ASV_005  3138.75  607.96614 0.1936969</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6    ASV_006 11326.80 1833.25502 0.1618511</span>
 </code></pre></div>
     </div>
   </div>

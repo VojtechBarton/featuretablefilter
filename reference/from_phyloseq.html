@@ -18,7 +18,7 @@ data.frame format used by this package (feature IDs in first column, samples as 
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -39,7 +39,16 @@ data.frame format used by this package (feature IDs in first column, samples as 
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -49,7 +58,7 @@ data.frame format used by this package (feature IDs in first column, samples as 
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Convert from phyloseq object to feature table data.frame</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/convert_data_classes.R" class="external-link"><code>R/convert_data_classes.R</code></a></small>
     <div class="hidden name"><code>from_phyloseq.Rd</code></div>
     </div>
 
@@ -89,13 +98,19 @@ information as additional columns after the feature ID.</p></dd>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># if (requireNamespace("phyloseq", quietly = TRUE)) {</span></span></span>
-<span class="r-in"><span><span class="co">#   ps &lt;- phyloseq::phyloseq(</span></span></span>
-<span class="r-in"><span><span class="co">#     phyloseq::otu_table(matrix(rpois(100, 5), 10, 10), taxa_are_rows = TRUE),</span></span></span>
-<span class="r-in"><span><span class="co">#     phyloseq::tax_table(matrix(sample(c("A","B","C"), 100, replace=TRUE), 10, 10))</span></span></span>
-<span class="r-in"><span><span class="co">#   )</span></span></span>
-<span class="r-in"><span><span class="co">#   df &lt;- from_phyloseq(ps)</span></span></span>
-<span class="r-in"><span><span class="co"># }</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"phyloseq"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">example_phyloseq</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"example_phyloseq_object.rds"</span>,</span></span>
+<span class="r-in"><span>    package <span class="op">=</span> <span class="st">"featuretablefilter"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">from_phyloseq</span><span class="op">(</span><span class="va">example_phyloseq</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">df</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   feature_id Sample_001 Sample_002</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1    ASV_084          4         52</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2    ASV_062          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3    ASV_051          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4    ASV_026          3        122</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5    ASV_039          0          7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6    ASV_066          0         19</span>
 </code></pre></div>
     </div>
   </div>

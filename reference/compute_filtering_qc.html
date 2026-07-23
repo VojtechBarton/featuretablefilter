@@ -19,7 +19,7 @@ and diversity retention (Effective Number of Species / Hill numbers)."><!-- math
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -40,7 +40,16 @@ and diversity retention (Effective Number of Species / Hill numbers)."><!-- math
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -50,7 +59,7 @@ and diversity retention (Effective Number of Species / Hill numbers)."><!-- math
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Compute quality control metrics comparing original and filtered tables</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/compute_qc_metrics.R" class="external-link"><code>R/compute_qc_metrics.R</code></a></small>
     <div class="hidden name"><code>compute_filtering_qc.Rd</code></div>
     </div>
 
@@ -66,21 +75,23 @@ and diversity retention (Effective Number of Species / Hill numbers).</p>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <p></p>
+
+
 <dl><dt id="arg-original-table">original_table<a class="anchor" aria-label="anchor" href="#arg-original-table"></a></dt>
 <dd><p>Original feature table (data.frame) before filtering.</p></dd>
 
-  <dt id="arg-filtered-table">filtered_table<a class="anchor" aria-label="anchor" href="#arg-filtered-table"></a></dt>
+
+<dt id="arg-filtered-table">filtered_table<a class="anchor" aria-label="anchor" href="#arg-filtered-table"></a></dt>
 <dd><p>Filtered feature table (data.frame) after filtering.</p></dd>
 
-  <dt id="arg-top-n">top_n<a class="anchor" aria-label="anchor" href="#arg-top-n"></a></dt>
-<dd><p>Number of top taxa to consider for Rank-Abundance Stability. Default is 10.</p></dd>
+
+<dt id="arg-top-n">top_n<a class="anchor" aria-label="anchor" href="#arg-top-n"></a></dt>
+<dd><p>Number of taxa to consider for Rank-Abundance Stability. Default is 10.</p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A list containing:</p>
-<dl><dt>sparsity_original</dt>
+    <p>A list containing:</p><dl><dt>sparsity_original</dt>
 <dd><p>Sparsity of original table</p></dd>
 
   <dt>sparsity_filtered</dt>
@@ -99,10 +110,31 @@ and diversity retention (Effective Number of Species / Hill numbers).</p>
 <dd><p>Percentage of samples retained</p></dd>
 
   <dt>rank_abundance_correlation</dt>
-<dd><p>Spearman correlation of top N taxa abundances</p></dd>
+<dd><p>Spearman correlation of ranks for features in both top N lists</p></dd>
 
   <dt>rank_abundance_pvalue</dt>
 <dd><p>P-value for rank-abundance correlation</p></dd>
+
+  <dt>top_n_overlap_count</dt>
+<dd><p>Number of features appearing in both top N lists</p></dd>
+
+  <dt>top_n_overlap_percent</dt>
+<dd><p>Percentage of top N features that overlap</p></dd>
+
+  <dt>top_n_jaccard_similarity</dt>
+<dd><p>Jaccard similarity index of top N feature sets</p></dd>
+
+  <dt>orig_top_features</dt>
+<dd><p>Character vector of top N features in original table</p></dd>
+
+  <dt>orig_top_rels</dt>
+<dd><p>Relative abundances of top N features in original table</p></dd>
+
+  <dt>filt_top_features</dt>
+<dd><p>Character vector of top N features in filtered table</p></dd>
+
+  <dt>filt_top_rels</dt>
+<dd><p>Relative abundances of top N features in filtered table</p></dd>
 
   <dt>procrustes_m2</dt>
 <dd><p>Procrustes M^2 statistic (Bray-Curtis based)</p></dd>
@@ -128,17 +160,25 @@ and diversity retention (Effective Number of Species / Hill numbers).</p>
   <dt>simpson_ens_retention_percent</dt>
 <dd><p>Percentage of Simpson ENS retained</p></dd>
 
+
 </dl></div>
+    <div id="details">
+    <h2>Details</h2>
+    <p>For Rank-Abundance Stability, top N features are independently identified in each table by:
+(1) summing feature abundances across all samples, (2) converting to relative abundances,
+(3) selecting top N, then (4) comparing overlap and rank correlation of common features.</p>
+<p>For Effective Number of Species (ENS), computes Hill numbers (Shannon and Simpson diversity
+converted to effective species count) per sample and reports how much diversity is retained
+after filtering. This reveals whether filtering preserves biological diversity or flattens it.</p>
+    </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Compare original and filtered tables</span></span></span>
-<span class="r-in"><span><span class="co"># qc &lt;- compute_filtering_qc(original_table, filtered_table)</span></span></span>
-<span class="r-in"><span><span class="co"># print(qc)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Access diversity retention metrics</span></span></span>
-<span class="r-in"><span><span class="co"># qc$shannon_ens_retention_percent  # How much Shannon diversity (q=1) was retained</span></span></span>
-<span class="r-in"><span><span class="co"># qc$simpson_ens_retention_percent  # How much Simpson diversity (q=2) was retained</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="filter_by_coverage.html">filter_by_coverage</a></span><span class="op">(</span><span class="va">example_feature_table</span>, min_reads <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">qc</span> <span class="op">&lt;-</span> <span class="fu">compute_filtering_qc</span><span class="op">(</span><span class="va">example_feature_table</span>, <span class="va">filtered</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">qc</span><span class="op">$</span><span class="va">feature_retention_percent</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 100</span>
 </code></pre></div>
     </div>
   </div>

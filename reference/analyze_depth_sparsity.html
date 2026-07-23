@@ -19,7 +19,7 @@ depth-sparsity curve, which may indicate poor quality or technical artifacts."><
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -40,7 +40,16 @@ depth-sparsity curve, which may indicate poor quality or technical artifacts."><
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -50,7 +59,7 @@ depth-sparsity curve, which may indicate poor quality or technical artifacts."><
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Compute depth-sparsity relationship and identify outlier samples</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/compute_depth_sparsity.R" class="external-link"><code>R/compute_depth_sparsity.R</code></a></small>
     <div class="hidden name"><code>analyze_depth_sparsity.Rd</code></div>
     </div>
 
@@ -113,8 +122,7 @@ Default is "high_sparsity" since high sparsity at low depth is concerning.</p></
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A list containing:</p>
-<dl><dt>sample_metrics</dt>
+    <p>A list containing:</p><dl><dt>sample_metrics</dt>
 <dd><p>data.frame with sample_name, depth, sparsity, richness, residual</p></dd>
 
   <dt>outliers</dt>
@@ -132,6 +140,7 @@ Default is "high_sparsity" since high sparsity at low depth is concerning.</p></
   <dt>recommendation</dt>
 <dd><p>Character string with filtering advice</p></dd>
 
+
 </dl></div>
     <div id="details">
     <h2>Details</h2>
@@ -144,14 +153,16 @@ Default is "high_sparsity" since high sparsity at low depth is concerning.</p></
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Identify high-sparsity outliers using MAD method</span></span></span>
-<span class="r-in"><span><span class="co"># result &lt;- analyze_depth_sparsity(my_table, metric = "sparsity", method = "mad")</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Check for outliers in richness vs depth relationship</span></span></span>
-<span class="r-in"><span><span class="co"># result &lt;- analyze_depth_sparsity(my_table, metric = "richness", method = "iqr")</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Get both types of outliers</span></span></span>
-<span class="r-in"><span><span class="co"># result &lt;- analyze_depth_sparsity(my_table, outlier_method = "both", direction = "both")</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">analyze_depth_sparsity</span><span class="op">(</span><span class="va">example_feature_table</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">sample_metrics</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            sample_name  depth richness sparsity    residual log_depth value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample_001  Sample_001  88441       47     0.06 -0.12256503  4.946659  0.06</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample_002  Sample_002  72145       46     0.08 -0.06420723  4.858212  0.08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample_003  Sample_003 102396       48     0.04 -0.36863494  5.010287  0.04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample_004  Sample_004  59815       45     0.10 -0.04991771  4.776817  0.10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample_005  Sample_005  79246       46     0.08  0.05141663  4.898983  0.08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample_006  Sample_006  93997       48     0.04 -0.47404379  4.973119  0.04</span>
 </code></pre></div>
     </div>
   </div>

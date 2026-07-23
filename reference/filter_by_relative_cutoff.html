@@ -19,7 +19,7 @@ This ensures consistent filtering across all samples."><!-- mathjax --><script s
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -40,7 +40,16 @@ This ensures consistent filtering across all samples."><!-- mathjax --><script s
       <a href="../articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -50,7 +59,7 @@ This ensures consistent filtering across all samples."><!-- mathjax --><script s
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Filter features using relative abundance cutoff applied as absolute threshold</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/VojtechBarton/featuretablefilter/blob/master/R/filter_relative_cutoff.R" class="external-link"><code>R/filter_relative_cutoff.R</code></a></small>
     <div class="hidden name"><code>filter_by_relative_cutoff.Rd</code></div>
     </div>
 
@@ -61,34 +70,41 @@ This ensures consistent filtering across all samples.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">filter_by_relative_cutoff</span><span class="op">(</span><span class="va">table</span>, <span class="va">min_coverage</span>, <span class="va">relative_threshold</span>,</span>
-<span>                           remove_features <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">filter_by_relative_cutoff</span><span class="op">(</span></span>
+<span>  <span class="va">table</span>,</span>
+<span>  <span class="va">min_coverage</span>,</span>
+<span>  <span class="va">relative_threshold</span>,</span>
+<span>  remove_features <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <p></p>
+
+
 <dl><dt id="arg-table">table<a class="anchor" aria-label="anchor" href="#arg-table"></a></dt>
 <dd><p>A feature table (data.frame or matrix) with features as rows and samples as columns.
-              First column should be feature IDs, remaining columns are sample counts.</p></dd>
+First column should be feature IDs, remaining columns are sample counts.</p></dd>
 
-  <dt id="arg-min-coverage">min_coverage<a class="anchor" aria-label="anchor" href="#arg-min-coverage"></a></dt>
+
+<dt id="arg-min-coverage">min_coverage<a class="anchor" aria-label="anchor" href="#arg-min-coverage"></a></dt>
 <dd><p>Minimum total reads required per sample. Samples below this are removed first.</p></dd>
 
-  <dt id="arg-relative-threshold">relative_threshold<a class="anchor" aria-label="anchor" href="#arg-relative-threshold"></a></dt>
-<dd><p>Relative abundance threshold as a proportion (e.g., 0.01 for 1<!-- %). -->
-                           This is converted to an absolute threshold based on the
-                           minimum coverage sample.</p></dd>
 
-  <dt id="arg-remove-features">remove_features<a class="anchor" aria-label="anchor" href="#arg-remove-features"></a></dt>
+<dt id="arg-relative-threshold">relative_threshold<a class="anchor" aria-label="anchor" href="#arg-relative-threshold"></a></dt>
+<dd><p>Relative abundance threshold as a proportion (e.g., 0.01 for 1%).
+This is converted to an absolute threshold based on the
+minimum coverage sample.</p></dd>
+
+
+<dt id="arg-remove-features">remove_features<a class="anchor" aria-label="anchor" href="#arg-remove-features"></a></dt>
 <dd><p>Logical. If TRUE, remove features that fall below the threshold
-                        in all samples. Default is TRUE.</p></dd>
+in all samples. Default is TRUE.</p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A list containing:</p>
-<dl><dt>table</dt>
+    <p>A list containing:</p><dl><dt>table</dt>
 <dd><p>The filtered feature table</p></dd>
 
   <dt>absolute_threshold</dt>
@@ -103,13 +119,19 @@ This ensures consistent filtering across all samples.</p>
   <dt>n_features_removed</dt>
 <dd><p>Number of features removed (if remove_features = TRUE)</p></dd>
 
+
 </dl></div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Filter: min 1000 reads/sample, then 1% relative threshold</span></span></span>
-<span class="r-in"><span><span class="co"># result &lt;- filter_by_relative_cutoff(table, min_coverage = 1000, relative_threshold = 0.01)</span></span></span>
-<span class="r-in"><span><span class="co"># filtered_table &lt;- result$table</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">filter_by_relative_cutoff</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">example_feature_table</span>,</span></span>
+<span class="r-in"><span>  min_coverage <span class="op">=</span> <span class="fl">1000</span>,</span></span>
+<span class="r-in"><span>  relative_threshold <span class="op">=</span> <span class="fl">0.01</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">table</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 35</span>
 </code></pre></div>
     </div>
   </div>

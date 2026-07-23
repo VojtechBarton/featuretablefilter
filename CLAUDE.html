@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">featuretablefilter</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
       </span>
     </div>
 
@@ -38,7 +38,16 @@
       <a href="articles/tutorial.html">featuretablefilter Tutorial: Complete Guide to Microbiome Feature Table Filtering</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+<li>
+  <a href="news/index.html">Changelog</a>
+</li>
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/VojtechBarton/featuretablefilter/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -55,189 +64,138 @@
 <p>This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.</p>
 <div class="section level2">
 <h2 id="package-overview">Package Overview<a class="anchor" aria-label="anchor" href="#package-overview"></a></h2>
-<p><strong>featuretablefilter</strong> - An R package for filtering microbiome feature tables based on coverage, abundance, and network connectivity criteria. Supports <code>data.frame</code>, <code>phyloseq</code>, and <code>TreeSummarizedExperiment</code> objects natively.</p>
+<p><strong>featuretablefilter</strong> is an R package for filtering microbiome feature tables by coverage, abundance, and network connectivity. It supports <code>data.frame</code>, <code>matrix</code>, <code>phyloseq</code>, and <code>TreeSummarizedExperiment</code> inputs and returns the same class as the input.</p>
+<p>The package is organized as a standard R package with roxygen2 documentation, testthat v3 tests, Bioconductor metadata, and a new Shiny dashboard in <code>inst/shiny-dashboard/</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="development-commands">Development Commands<a class="anchor" aria-label="anchor" href="#development-commands"></a></h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Run all tests</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"testthat::test_dir('tests/testthat')"</span></span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Run a specific test file</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Run a single test file</span></span>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"testthat::test_file('tests/testthat/test-compute_qc_metrics.R')"</span></span>
 <span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co"># Run a specific test by name</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co"># Run tests matching a name filter</span></span>
 <span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"testthat::test_file('tests/testthat/test-compute_qc_metrics.R', filter = 'sparsity')"</span></span>
 <span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co"># Build and install package locally</span></span>
-<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL .</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co"># Load package in development mode</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::load_all('.')"</span></span>
 <span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a></span>
-<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co"># Check package</span></span>
-<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="ex">R</span> CMD check .</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co"># Generate roxygen2 documentation</span></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"roxygen2::roxygenise()"</span></span>
 <span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co"># Document functions with roxygen2</span></span>
-<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"roxygen2::roxygenise()"</span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co"># Build and install locally</span></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL .</span>
 <span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a></span>
-<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co"># Build package tarball</span></span>
-<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="ex">R</span> CMD build .</span></code></pre></div>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co"># Build source tarball</span></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="ex">R</span> CMD build .</span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="co"># Run R package check (closest thing to linting for R packages)</span></span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="ex">R</span> CMD check .</span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a><span class="co"># Run the Shiny dashboard locally</span></span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"featuretablefilter::runDashboard()"</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="architecture">Architecture<a class="anchor" aria-label="anchor" href="#architecture"></a></h2>
-<p>The package follows a modular structure with distinct functional categories:</p>
+<h2 id="high-level-architecture">High-Level Architecture<a class="anchor" aria-label="anchor" href="#high-level-architecture"></a></h2>
 <div class="section level3">
-<h3 id="core-filtering-functions">Core Filtering Functions<a class="anchor" aria-label="anchor" href="#core-filtering-functions"></a></h3>
-<ul><li>
-<strong><code>filter_coverage.R</code></strong> (<code>filter_by_coverage</code>) - Removes low-coverage samples using absolute thresholds</li>
-<li>
-<strong><code>filter_features.R</code></strong> (<code>filter_features_by_abundance</code>) - Filters features by absolute or relative abundance with <code>min_samples</code> support</li>
-<li>
-<strong><code>filter_relative_cutoff.R</code></strong> (<code>filter_by_relative_cutoff</code>) - Relative cutoff filtering based on min-coverage sample</li>
-</ul></div>
+<h3 id="data-model">Data Model<a class="anchor" aria-label="anchor" href="#data-model"></a></h3>
+<p>All functions assume a feature table in <strong>wide format</strong>: the first column contains feature IDs (e.g., ASVs, OTUs), and remaining columns contain per-sample counts. Functions generally preserve this structure rather than converting the first column to row names.</p>
+</div>
 <div class="section level3">
-<h3 id="coverage-estimation-functions">Coverage Estimation Functions<a class="anchor" aria-label="anchor" href="#coverage-estimation-functions"></a></h3>
-<ul><li>
-<strong><code>estimate_mad_cutoff.R</code></strong> (<code>estimate_mad_cutoff</code>) - MAD-based threshold estimation (median ± multiplier × MAD)</li>
-<li>
-<strong><code>estimate_iqr_cutoff.R</code></strong> (<code>estimate_iqr_cutoff</code>) - IQR/Tukey-based threshold estimation</li>
-<li>
-<strong><code>estimate_coverage_metrics.R</code></strong> (<code>estimate_good_coverage</code>, <code>estimate_chao_coverage</code>) - Ecological completeness estimators</li>
-<li>
-<strong><code>filter_by_coverage_estimator.R</code></strong> (<code>filter_by_coverage_estimator</code>) - Filter samples by Good’s or Chao’s coverage threshold</li>
-</ul></div>
-<div class="section level3">
-<h3 id="singleton-ratio--cross-talk-filtering">Singleton Ratio &amp; Cross-Talk Filtering<a class="anchor" aria-label="anchor" href="#singleton-ratio--cross-talk-filtering"></a></h3>
-<ul><li>
-<strong><code>filter_by_singleton_ratio.R</code></strong> (<code>filter_by_singleton_ratio</code>) - PCR artifact detection via singleton/doubleton ratios</li>
-<li>
-<strong><code>filter_cross_talk.R</code></strong> (<code>filter_cross_talk</code>, <code>filter_index_hopping</code>) - Index hopping/cross-contamination filtering</li>
-</ul></div>
-<div class="section level3">
-<h3 id="network-based-filtering">Network-Based Filtering<a class="anchor" aria-label="anchor" href="#network-based-filtering"></a></h3>
-<ul><li>
-<strong><code>filter_by_network.R</code></strong> - Information theory and graph theory based filtering
-<ul><li>
-<code><a href="reference/compute_mutual_information.html">compute_mutual_information()</a></code> - Pairwise MI using k-nearest neighbor (KSG) estimator</li>
-<li>
-<code><a href="reference/analyze_feature_network.html">analyze_feature_network()</a></code> - Network centrality metrics (degree, strength, betweenness)</li>
-<li>
-<code><a href="reference/filter_by_network_connectivity.html">filter_by_network_connectivity()</a></code> - Remove disconnected features (likely artifacts)</li>
-<li>
-<code><a href="reference/plot_feature_network.html">plot_feature_network()</a></code> - Visualize feature connectivity network</li>
-</ul></li>
-</ul></div>
-<div class="section level3">
-<h3 id="sparsity--outlier-detection">Sparsity &amp; Outlier Detection<a class="anchor" aria-label="anchor" href="#sparsity--outlier-detection"></a></h3>
-<ul><li>
-<strong><code>identify_sparsity_elbow.R</code></strong> (<code>identify_sparsity_elbow</code>) - Detect elbow point in richness-depth curve</li>
-<li>
-<strong><code>compute_depth_sparsity.R</code></strong> (<code>analyze_depth_sparsity</code>, <code>filter_depth_sparsity_outliers</code>) - Depth-sparsity outlier analysis</li>
-<li>
-<strong><code>plot_reads_vs_asvs.R</code></strong> - Total reads vs observed ASVs plot with outlier flagging</li>
-</ul></div>
-<div class="section level3">
-<h3 id="joint-filtering">Joint Filtering<a class="anchor" aria-label="anchor" href="#joint-filtering"></a></h3>
-<ul><li>
-<strong><code>filter_features_joint.R</code></strong> (<code>filter_features_joint</code>) - Joint abundance-prevalence filtering with AND/OR logic</li>
-</ul></div>
-<div class="section level3">
-<h3 id="diversity-metrics">Diversity Metrics<a class="anchor" aria-label="anchor" href="#diversity-metrics"></a></h3>
-<ul><li>
-<strong><code>calculate_cv.R</code></strong> (<code>calculate_feature_cv</code>) - Coefficient of variation per feature</li>
-<li>
-<strong><code>calculate_sparsity.R</code></strong> (<code>calculate_sparsity</code>) - Calculate sparsity metric</li>
-</ul></div>
-<div class="section level3">
-<h3 id="qc--metrics">QC &amp; Metrics<a class="anchor" aria-label="anchor" href="#qc--metrics"></a></h3>
-<ul><li>
-<strong><code>compute_qc_metrics.R</code></strong> (<code>compute_filtering_qc</code>) - Comprehensive QC including:
-<ul><li>Sparsity changes (original vs filtered)</li>
-<li>Retention rates (reads, features, samples)</li>
-<li>Rank-abundance stability (top N overlap, Jaccard similarity, Spearman correlation)</li>
-<li>Procrustes analysis for compositional similarity (via vegan)</li>
-<li>Hill numbers / Effective Species Count diversity retention</li>
-</ul></li>
-</ul></div>
-<div class="section level3">
-<h3 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a></h3>
-<ul><li>
-<strong><code>plot_qc_comparison.R</code></strong> (<code>plot_qc_comparison</code>) - Generates 7 comparison plots:
-<ol style="list-style-type: decimal"><li>Sample coverage distribution (log10, faceted)</li>
-<li>Feature abundance distribution (log10, faceted)</li>
-<li>Per-sample sparsity histogram</li>
-<li>Retention rates barplot</li>
-<li>Top features stacked barplot</li>
-<li>Heatmaps (original and filtered)</li>
-<li>Presence frequency comparison</li>
-</ol></li>
-<li>
-<strong><code>plot_presence_analysis.R</code></strong> (<code>plot_presence_analysis</code>) - Feature prevalence and sample richness histograms (with optional comparison mode)</li>
-<li>
-<strong><code>plot_coverage_histogram.R</code></strong> (<code>plot_coverage_histogram</code>) - Sample coverage histograms with threshold line</li>
-<li>
-<strong><code>plot_top_features_stacked.R</code></strong> (<code>plot_top_features_stacked</code>) - Top N relative abundance stacked bars</li>
-<li>
-<strong><code>plot_scree.R</code></strong> (<code>plot_scree</code>) - Scree/saturation diagnostic plots</li>
-<li>
-<strong><code>plot_depth_sparsity.R</code></strong> (<code>plot_depth_sparsity</code>) - Depth-sparsity relationship with outliers</li>
-<li>
-<strong><code>plot_sparsity_elbow.R</code></strong> (<code>plot_sparsity_elbow</code>) - Richness-depth curve with elbow marker</li>
-</ul></div>
-<div class="section level3">
-<h3 id="pipeline--utilities">Pipeline &amp; Utilities<a class="anchor" aria-label="anchor" href="#pipeline--utilities"></a></h3>
-<ul><li>
-<strong><code>run_filtering_pipeline.R</code></strong> (<code>run_filtering_pipeline</code>) - Complete filtering workflow with:
-<ul><li>Accepts <code>data.frame</code>, <code>matrix</code>, <code>phyloseq</code>, or <code>TreeSummarizedExperiment</code> as input</li>
-<li>Returns same class as input (preserving metadata)</li>
-<li>Configurable methods per step (coverage, abundance)</li>
-<li>File outputs (filtered table, plots, text report)</li>
+<h3 id="filtering-layers">Filtering Layers<a class="anchor" aria-label="anchor" href="#filtering-layers"></a></h3>
+<p>Filtering is organized into independent, composable layers:</p>
+<ol style="list-style-type: decimal"><li>
+<strong>Sample-level filtering</strong> – remove low-coverage or low-quality samples.
+<ul><li>Absolute thresholds, MAD/IQR estimators, Good’s/Chao’s ecological coverage.</li>
+<li>Singleton-ratio filtering for PCR artifacts.</li>
+<li>Cross-talk / index-hopping correction.</li>
+<li>Depth-sparsity and sparsity-elbow outlier detection.</li>
 </ul></li>
 <li>
-<strong><code>load_feature_table.R</code></strong> (<code>load_feature_table</code>) - Auto-detects TSV/CSV format, header detection, feature column identification</li>
-<li>
-<strong><code>convert_to_relative.R</code></strong> (<code>convert_to_relative</code>) - Converts counts to relative abundances</li>
-</ul></div>
-<div class="section level3">
-<h3 id="data-class-conversion">Data Class Conversion<a class="anchor" aria-label="anchor" href="#data-class-conversion"></a></h3>
-<ul><li>
-<strong><code>convert_data_classes.R</code></strong> - Native support for phyloseq and TreeSummarizedExperiment:
-<ul><li>
-<code><a href="reference/from_phyloseq.html">from_phyloseq()</a></code> - Convert phyloseq object to data.frame</li>
-<li>
-<code><a href="reference/to_phyloseq.html">to_phyloseq()</a></code> - Create phyloseq from data.frame (with optional taxonomy, tree, sample data)</li>
-<li>
-<code><a href="reference/from_TSE.html">from_TSE()</a></code> - Convert TreeSummarizedExperiment/SingleCellExperiment to data.frame</li>
-<li>
-<code><a href="reference/to_TSE.html">to_TSE()</a></code> - Create TreeSummarizedExperiment from data.frame</li>
-<li>
-<code><a href="reference/convert_feature_table.html">convert_feature_table()</a></code> - Generic auto-detect conversion between any supported format</li>
+<strong>Feature-level filtering</strong> – remove rare or spurious features.
+<ul><li>Absolute or relative abundance thresholds.</li>
+<li>Relative cutoff tied to the minimum-coverage sample.</li>
+<li>Joint abundance-prevalence filtering with AND/OR logic.</li>
+<li>Network connectivity filtering based on mutual information.</li>
 </ul></li>
-</ul></div>
+<li>
+<strong>QC and visualization</strong> – compare tables before and after filtering.
+<ul><li>Retention rates, sparsity changes, diversity retention, rank-abundance stability.</li>
+<li>Procrustes analysis via <code>vegan</code>.</li>
+<li>Plotting functions for coverage, abundance, sparsity, scree, and QC comparison.</li>
+</ul></li>
+</ol></div>
 <div class="section level3">
-<h3 id="scree-analysis">Scree Analysis<a class="anchor" aria-label="anchor" href="#scree-analysis"></a></h3>
+<h3 id="pipeline-internals">Pipeline Internals<a class="anchor" aria-label="anchor" href="#pipeline-internals"></a></h3>
+<p><code><a href="reference/run_filtering_pipeline.html">run_filtering_pipeline()</a></code> is the main entry point. It delegates to internal pipeline modules in <code>R/</code>:</p>
 <ul><li>
-<strong><code>compute_scree.R</code></strong> (<code>compute_scree</code>) - Scree/saturation analysis for filtering threshold selection</li>
-</ul></div>
+<code>pipeline_steps.R</code> – wrappers such as <code>.apply_coverage_filter()</code>, <code>.apply_abundance_filter()</code>, <code>.apply_crosstalk_filter()</code>, <code>.apply_sparsity_elbow_filter()</code>, <code>.apply_depth_sparsity_filter()</code>. These standardize arguments and call the public filtering functions.</li>
+<li>
+<code>pipeline_io.R</code> – loading and saving inputs/outputs, preserving class.</li>
+<li>
+<code>pipeline_analysis.R</code> – orchestrates QC metrics, presence stats, scree, and depth-sparsity analysis.</li>
+<li>
+<code>pipeline_reporting.R</code> – generates text, Markdown, and PDF reports.</li>
+</ul><p>The pipeline returns a list with <code>original_table</code>, <code>filtered_table</code>, <code>qc_metrics</code>, <code>presence_stats</code>, <code>filtering_summary</code>, and optional analysis results.</p>
+</div>
+<div class="section level3">
+<h3 id="class-conversion">Class Conversion<a class="anchor" aria-label="anchor" href="#class-conversion"></a></h3>
+<p><code>convert_data_classes.R</code> handles conversions to/from <code>phyloseq</code> and <code>TreeSummarizedExperiment</code>. The pipeline uses <code><a href="reference/convert_feature_table.html">convert_feature_table()</a></code> to coerce inputs to <code>data.frame</code> for processing, then converts back to the original class on output, preserving metadata and tree structures when possible.</p>
+</div>
 <div class="section level3">
 <h3 id="key-design-patterns">Key Design Patterns<a class="anchor" aria-label="anchor" href="#key-design-patterns"></a></h3>
-<ol style="list-style-type: decimal"><li><p><strong>Feature Table Format</strong>: First column contains feature IDs, remaining columns are sample counts. Functions preserve this structure (don’t convert to row names).</p></li>
-<li>
-<p><strong>Method Dispatch</strong>: Pipeline uses <code><a href="https://rdrr.io/r/base/match.arg.html" class="external-link">match.arg()</a></code> for method selection:</p>
-<ul><li>Coverage: “none”, “absolute”, “mad”, “iqr”, “good”, “chao”</li>
-<li>Abundance: “none”, “absolute”, “relative”, “relative_cutoff”, “joint”</li>
-</ul></li>
-<li><p><strong>Return Values</strong>: Most functions return modified data.frames with attributes (e.g., <code>n_filtered_out</code>, <code>threshold</code>, <code>mode</code>).</p></li>
-<li><p><strong>Optional Dependencies</strong>: Uses <code><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace()</a></code> for optional packages (vegan, pheatmap, ComplexHeatmap, phyloseq, TreeSummarizedExperiment) with graceful degradation.</p></li>
-<li><p><strong>QC Metrics Structure</strong>: <code><a href="reference/compute_filtering_qc.html">compute_filtering_qc()</a></code> returns comprehensive list including sparsity changes, retention percentages, top N feature comparisons with overlap statistics, rank correlations, and Procrustes analysis.</p></li>
-</ol></div>
-</div>
-<div class="section level2">
-<h2 id="testing-structure">Testing Structure<a class="anchor" aria-label="anchor" href="#testing-structure"></a></h2>
-<p>Tests use testthat v3 with focused test files: - <code>test-load_feature_table.R</code> - File loading and auto-detection - <code>test-filter_coverage.R</code> - Sample coverage filtering - <code>test-filter_features.R</code> - Feature abundance filtering - <code>test-compute_qc_metrics.R</code> - QC metric calculations - <code>test-helpers.R</code> - Utility function tests - <code>test-estimate_coverage_metrics.R</code> - Coverage estimator tests - <code>test-filter_by_singleton_ratio.R</code> - Singleton ratio filtering - <code>test-filter_cross_talk.R</code> - Cross-talk filtering - <code>test-filter_features_joint.R</code> - Joint filtering - <code>test-compute_depth_sparsity.R</code> - Depth-sparsity analysis - <code>test-identify_sparsity_elbow.R</code> - Elbow detection - <code>test-compute_scree.R</code> - Scree analysis - <code>test-filter_by_network.R</code> - Network-based filtering - <code>test-convert_data_classes.R</code> - Class conversion functions</p>
-<p>Test data is minimal synthetic data.frames created inline.</p>
-</div>
-<div class="section level2">
-<h2 id="example-data">Example Data<a class="anchor" aria-label="anchor" href="#example-data"></a></h2>
 <ul><li>
-<code>example_feature_table.tsv</code> - Synthetic dataset (50 features × 20 samples) for documentation and testing</li>
+<strong>Method dispatch</strong> via <code><a href="https://rdrr.io/r/base/match.arg.html" class="external-link">match.arg()</a></code>. Common method sets:
+<ul><li>Coverage: <code>"none"</code>, <code>"absolute"</code>, <code>"mad"</code>, <code>"iqr"</code>, <code>"good"</code>, <code>"chao"</code>
+</li>
+<li>Abundance: <code>"none"</code>, <code>"absolute"</code>, <code>"relative"</code>, <code>"relative_cutoff"</code>, <code>"joint"</code>
+</li>
+<li>Cross-talk: <code>"none"</code>, <code>"zero"</code>, <code>"remove_feature"</code>, <code>"flag"</code>
+</li>
+</ul></li>
+<li>
+<strong>Return values</strong>: most functions return a modified <code>data.frame</code> with attributes such as <code>n_filtered_out</code>, <code>threshold</code>, and <code>mode</code>.</li>
+<li>
+<strong>Optional dependencies</strong>: use <code><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace()</a></code> for <code>vegan</code>, <code>pheatmap</code>, <code>ComplexHeatmap</code>, <code>phyloseq</code>, <code>TreeSummarizedExperiment</code>, <code>shiny</code>, and <code>DT</code> with graceful degradation.</li>
+<li>
+<strong>Reports</strong>: the pipeline can write a text report, a Markdown report, and a PDF report (PDF requires LaTeX).</li>
+</ul></div>
+</div>
+<div class="section level2">
+<h2 id="shiny-dashboard">Shiny Dashboard<a class="anchor" aria-label="anchor" href="#shiny-dashboard"></a></h2>
+<p>An interactive dashboard is shipped under <code>inst/shiny-dashboard/</code> and launched with <code><a href="reference/runDashboard.html">runDashboard()</a></code>.</p>
+<ul><li>
+<code>app.R</code> – entry point.</li>
+<li>
+<code>ui.R</code> and <code>server.R</code> – sidebar parameters and reactive filtering/visualization.</li>
+<li>
+<code>www/style.css</code> – custom styling.</li>
+</ul><p>The dashboard supports file upload, real-time parameter exploration, retention-rate previews, dynamic plots, and export of the filtered table, QC report, plots, and reproducible R code. Optional Suggested dependencies: <code>shiny</code>, <code>DT</code>.</p>
+</div>
+<div class="section level2">
+<h2 id="testing">Testing<a class="anchor" aria-label="anchor" href="#testing"></a></h2>
+<p>Tests live in <code>tests/testthat/</code> and use testthat edition 3. The <code>helper.R</code> file loads <code>testthat</code> and the installed package. Synthetic <code>data.frame</code> fixtures are created inline.</p>
+<p>There are focused test files for coverage, feature, network, joint, depth-sparsity, scree, elbow, cross-talk, singleton-ratio, QC metrics, class conversion, and file loading.</p>
+</div>
+<div class="section level2">
+<h2 id="branch-workflow">Branch Workflow<a class="anchor" aria-label="anchor" href="#branch-workflow"></a></h2>
+<p>Per <code>CONTRIBUTING.md</code>, this project uses a <strong>develop branch workflow</strong>:</p>
+<ul><li>
+<code>master</code> is protected and production-ready.</li>
+<li>
+<code>develop</code> is the integration branch; PRs target <code>develop</code>.</li>
+<li>Feature/fix/docs branches branch from <code>develop</code> using prefixes like <code>feature/</code>, <code>fix/</code>, <code>docs/</code>.</li>
+</ul><p>Commits follow conventional commits (<code>feat:</code>, <code>fix:</code>, <code>docs:</code>, <code>test:</code>, <code>refactor:</code>, <code>chore:</code>).</p>
+</div>
+<div class="section level2">
+<h2 id="style-guidelines">Style Guidelines<a class="anchor" aria-label="anchor" href="#style-guidelines"></a></h2>
+<ul><li>4-space indentation, spaces around operators, opening brace on the same line.</li>
+<li>
+<code>snake_case</code> for functions and variables.</li>
+<li>80-character line limit (100 for comments).</li>
+<li>All exported functions must have roxygen2 docs with <code>@param</code>, <code>@return</code>, and <code>@examples</code>.</li>
+<li>Use <code>\dontrun{}</code> for examples requiring external data or long runtime.</li>
 </ul></div>
 </div>
 
