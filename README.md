@@ -98,6 +98,7 @@ Filter features based on their abundance across samples. Available methods:
 Identify and correct cross-contamination artifacts from Illumina patterned flow cells.
 
 **Methods:**
+
 | Method | Description |
 |--------|-------------|
 | `zero` | Set suspected leakage reads to zero (default) |
