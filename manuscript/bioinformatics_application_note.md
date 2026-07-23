@@ -2,9 +2,6 @@
 
 **Vojtech Barton**
 
-Affiliation: *Department of [Field], [Institution], [City, Country]*
-
-Corresponding author: Vojtech Barton, vojtech.barton@gmail.com
 
 ---
 
