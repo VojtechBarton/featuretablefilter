@@ -210,12 +210,21 @@ server <- function(input, output, session) {
         # Cross-talk filtering
         if (input$crosstalk_method != "none") {
           incProgress(0.2, detail = "Cross-talk filtering...")
-          table <- filter_cross_talk(
+          crosstalk_result <- filter_cross_talk(
             table,
             max_rel_threshold = input$crosstalk_threshold,
             min_abs_cutoff = input$crosstalk_min_abs,
             mode = input$crosstalk_method
           )
+          # filter_cross_talk returns a data.frame directly
+          table <- crosstalk_result
+
+          # Remove features that became all zeros after cross-talk filtering
+          if (input$crosstalk_method == "zero") {
+            sample_cols <- as.matrix(table[, -1, drop = FALSE])
+            keep_features <- rowSums(sample_cols) > 0
+            table <- table[keep_features, , drop = FALSE]
+          }
         }
 
         # Abundance filtering
@@ -227,20 +236,23 @@ server <- function(input, output, session) {
               table,
               threshold = input$abun_threshold,
               mode = "absolute",
-              min_samples = input$abun_min_samples
+              min_samples = input$abun_min_samples,
+              remove_zeros = TRUE
             )
           } else if (input$abun_method == "relative") {
             table <- filter_features_by_abundance(
               table,
               threshold = input$abun_threshold,
               mode = "relative",
-              min_samples = input$abun_min_samples
+              min_samples = input$abun_min_samples,
+              remove_zeros = TRUE
             )
           } else if (input$abun_method == "relative_cutoff") {
             result <- filter_by_relative_cutoff(
               table,
               min_coverage = input$min_coverage_for_relative,
-              relative_threshold = input$abun_threshold
+              relative_threshold = input$abun_threshold,
+              remove_features = TRUE
             )
             table <- result$table
           } else if (input$abun_method == "joint") {
@@ -249,7 +261,8 @@ server <- function(input, output, session) {
               abundance_threshold = input$abun_threshold,
               prevalence_threshold = input$abun_prevalence,
               mode = "relative",
-              logic = input$abun_logic
+              logic = input$abun_logic,
+              remove_zeros = TRUE
             )
             table <- result$table
           }
@@ -484,13 +497,53 @@ server <- function(input, output, session) {
 
     # Apply cross-talk filtering
     if (input$crosstalk_method != "none") {
-      table <- filter_cross_talk(
+      crosstalk_result <- filter_cross_talk(
         table, max_rel_threshold = input$crosstalk_threshold,
         min_abs_cutoff = input$crosstalk_min_abs, mode = input$crosstalk_method
       )
+      table <- crosstalk_result
+
+      # Remove features that became all zeros after cross-talk filtering
+      if (input$crosstalk_method == "zero") {
+        sample_cols <- as.matrix(table[, -1, drop = FALSE])
+        keep_features <- rowSums(sample_cols) > 0
+        table <- table[keep_features, , drop = FALSE]
+      }
     }
 
     return(table)
+  }
+
+  # Helper to apply abundance filtering (for scree analysis)
+  apply_abundance_filter_step <- function(table) {
+    if (input$abun_method == "absolute") {
+      filter_features_by_abundance(
+        table, threshold = input$abun_threshold,
+        mode = "absolute", min_samples = input$abun_min_samples,
+        remove_zeros = TRUE
+      )
+    } else if (input$abun_method == "relative") {
+      filter_features_by_abundance(
+        table, threshold = input$abun_threshold,
+        mode = "relative", min_samples = input$abun_min_samples,
+        remove_zeros = TRUE
+      )
+    } else if (input$abun_method == "relative_cutoff") {
+      filter_by_relative_cutoff(
+        table, min_coverage = input$min_coverage_for_relative,
+        relative_threshold = input$abun_threshold,
+        remove_features = TRUE
+      )$table
+    } else if (input$abun_method == "joint") {
+      filter_features_joint(
+        table, abundance_threshold = input$abun_threshold,
+        prevalence_threshold = input$abun_prevalence,
+        mode = "relative", logic = input$abun_logic,
+        remove_zeros = TRUE
+      )$table
+    } else {
+      table
+    }
   }
 
   # Reactive scree data based on selected step and threshold
@@ -527,14 +580,26 @@ server <- function(input, output, session) {
   observeEvent(input$scree_step, {
     step <- input$scree_step
     available_types <- switch(step,
-      "coverage" = c("mad_multiplier", "iqr_multiplier", "good_coverage", "chao_coverage"),
-      "singleton" = c("singleton_ratio"),
-      "crosstalk" = c("cross_talk"),
-      "abundance" = c("absolute_feature", "relative_feature"),
-      c("mad_multiplier")
+      "coverage" = list(
+        "MAD Multiplier" = "mad_multiplier",
+        "IQR Multiplier" = "iqr_multiplier",
+        "Good's Coverage" = "good_coverage",
+        "Chao's Coverage" = "chao_coverage"
+      ),
+      "singleton" = list(
+        "Singleton Ratio" = "singleton_ratio"
+      ),
+      "crosstalk" = list(
+        "Cross-talk" = "cross_talk"
+      ),
+      "abundance" = list(
+        "Absolute Feature" = "absolute_feature",
+        "Relative Feature" = "relative_feature"
+      ),
+      list("MAD Multiplier" = "mad_multiplier")
     )
     updateSelectInput(session, "scree_type", choices = available_types,
-                      selected = available_types[1])
+                      selected = names(available_types)[1])
   })
 
   # Smart default for scree step
