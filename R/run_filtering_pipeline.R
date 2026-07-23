@@ -326,6 +326,17 @@ run_filtering_pipeline <- function(input,
     )
   }
 
+  # === Step 8b: Remove any remaining all-zero features ===
+  stats_before <- .get_table_stats(table_current)
+  sample_cols <- as.matrix(table_current[, -1, drop = FALSE])
+  keep_features <- rowSums(sample_cols) > 0
+  n_removed <- sum(!keep_features)
+  if (n_removed > 0) {
+    if (verbose) cat(sprintf("Removing %d features with all zeros...\n", n_removed))
+    table_current <- table_current[keep_features, , drop = FALSE]
+  }
+  stats_after <- .get_table_stats(table_current)
+
   # === Step 9: Save Filtered Table ===
   if (verbose) cat("\n=== Step 9: Saving Outputs ===\n")
   if (!is.null(input_file_path)) {

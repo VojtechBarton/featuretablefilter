@@ -168,11 +168,11 @@
   switch(method,
     "absolute" = filter_features_by_abundance(
       table, threshold = threshold, mode = "absolute",
-      min_samples = min_samples, remove_zeros = !remove_features
+      min_samples = min_samples, remove_zeros = remove_features
     ),
     "relative" = filter_features_by_abundance(
       table, threshold = threshold, mode = "relative",
-      min_samples = min_samples, remove_zeros = !remove_features
+      min_samples = min_samples, remove_zeros = remove_features
     ),
     "relative_cutoff" = filter_by_relative_cutoff(
       table, min_coverage = min_coverage_for_relative,
@@ -182,7 +182,7 @@
       table, abundance_threshold = threshold,
       prevalence_threshold = prevalence_threshold,
       mode = if (threshold > 1) "absolute" else "relative",
-      logic = logic, remove_zeros = !remove_features
+      logic = logic, remove_zeros = remove_features
     )$table,
     stop("Unknown abundance method: ", method)
   )
