@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install R packages from CRAN
 RUN Rscript -e "install.packages('remotes', repos = 'https://cloud.r-project.org')"
 
-RUN Rscript -e "remotes::install_cran(c('devtools', 'roxygen2', 'testthat', 'knitr', 'rmarkdown', 'ggplot2', 'tidyr', 'dplyr', 'purrr', 'scales', 'patchwork', 'pheatmap', 'vegan', 'igraph', 'zoo', 'covr'), upgrade = 'never', Ncpus = 4)"
+RUN Rscript -e "remotes::install_cran(c('devtools', 'roxygen2', 'testthat', 'knitr', 'rmarkdown', 'ggplot2', 'tidyr', 'dplyr', 'purrr', 'scales', 'patchwork', 'pheatmap', 'vegan', 'igraph', 'zoo', 'covr', 'shiny', 'DT'), upgrade = 'never', Ncpus = 4)"
 
 # Install Bioconductor packages using BiocManager
 # R 4.4.x corresponds to Bioconductor 3.19; specify version to avoid conflicts
