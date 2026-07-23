@@ -255,19 +255,41 @@ plot_qc_comparison <- function(original_table, filtered_table,
       filt_title <- paste0("Top ", heatmap_top, " Most Variable Features (Filtered)")
 
       # Calculate appropriate fontsize based on number of features
-      row_fontsize <- max(3, min(8, floor(60 / nrow(heatmap_data_orig_scaled))))
+      n_features <- nrow(heatmap_data_orig_scaled)
+      n_samples <- ncol(heatmap_data_orig_scaled)
+
+      # Adjust font sizes based on data size
+      if (n_features <= 20) {
+        row_fontsize <- 10
+      } else if (n_features <= 50) {
+        row_fontsize <- 7
+      } else if (n_features <= 100) {
+        row_fontsize <- 5
+      } else {
+        row_fontsize <- 3
+      }
+
+      # Column name fontsize
+      if (n_samples <= 20) {
+        col_fontsize <- 10
+      } else if (n_samples <= 50) {
+        col_fontsize <- 7
+      } else {
+        col_fontsize <- 5
+      }
 
       # Original heatmap
       if (!is.null(plot_dir)) {
         pheatmap::pheatmap(
           heatmap_data_orig_scaled,
-          main = paste(orig_title, "\n(Rows = Features, Columns = Samples)"),
+          main = orig_title,
           color = colorRampPalette(c("blue", "white", "red"))(100),
           cluster_rows = FALSE,
           cluster_cols = FALSE,
           show_rownames = TRUE,
-          show_colnames = FALSE,
+          show_colnames = TRUE,
           fontsize_row = row_fontsize,
+          fontsize_col = col_fontsize,
           border_color = NA,
           legend = TRUE,
           filename = file.path(plot_dir, paste0(prefix, "_heatmap_original.png")),
@@ -281,13 +303,14 @@ plot_qc_comparison <- function(original_table, filtered_table,
       if (!is.null(plot_dir)) {
         pheatmap::pheatmap(
           heatmap_data_filt_scaled,
-          main = paste(filt_title, "\n(Rows = Features, Columns = Samples)"),
+          main = filt_title,
           color = colorRampPalette(c("blue", "white", "red"))(100),
           cluster_rows = FALSE,
           cluster_cols = FALSE,
           show_rownames = TRUE,
-          show_colnames = FALSE,
+          show_colnames = TRUE,
           fontsize_row = row_fontsize,
+          fontsize_col = col_fontsize,
           border_color = NA,
           legend = TRUE,
           filename = file.path(plot_dir, paste0(prefix, "_heatmap_filtered.png")),
@@ -310,28 +333,41 @@ plot_qc_comparison <- function(original_table, filtered_table,
       # Fallback: try ComplexHeatmap
       if (requireNamespace("ComplexHeatmap", quietly = TRUE) && requireNamespace("grid", quietly = TRUE)) {
         if (!is.null(plot_dir)) {
+          # Calculate font sizes based on data size
+          n_features <- nrow(heatmap_data_orig_scaled)
+          n_samples <- ncol(heatmap_data_orig_scaled)
+
+          if (n_features <= 20) {
+            row_fontsize <- 10
+          } else if (n_features <= 50) {
+            row_fontsize <- 7
+          } else if (n_features <= 100) {
+            row_fontsize <- 5
+          } else {
+            row_fontsize <- 3
+          }
+
+          if (n_samples <= 20) {
+            col_fontsize <- 10
+          } else if (n_samples <= 50) {
+            col_fontsize <- 7
+          } else {
+            col_fontsize <- 5
+          }
+
           # Original heatmap
-          ComplexHeatmap::Heatmap(
-            heatmap_data_orig_scaled,
-            name = paste0(prefix, "_orig"),
-            col = colorRampPalette(c("blue", "white", "red"))(100),
-            column_title = "Original Table",
-            show_row_names = TRUE,
-            show_column_names = FALSE,
-            row_names_gp = grid::gpar(fontsize = 6),
-            column_names_gp = grid::gpar(fontsize = 8)
-          )
           png(file.path(plot_dir, paste0(prefix, "_heatmap_original.png")),
               width = width * dpi, height = height * dpi, res = dpi)
           ComplexHeatmap::draw(ComplexHeatmap::Heatmap(
             heatmap_data_orig_scaled,
-            name = paste0(prefix, "_orig"),
+            name = "Z-score",
             col = colorRampPalette(c("blue", "white", "red"))(100),
-            column_title = paste("Top", heatmap_top, "Variable Features\nOriginal Table"),
+            column_title = paste("Top", heatmap_top, "Variable Features - Original Table"),
             show_row_names = TRUE,
-            show_column_names = FALSE,
-            row_names_gp = grid::gpar(fontsize = 6),
-            column_names_gp = grid::gpar(fontsize = 8)
+            show_column_names = TRUE,
+            row_names_gp = grid::gpar(fontsize = row_fontsize),
+            column_names_gp = grid::gpar(fontsize = col_fontsize),
+            column_names_side = "bottom"
           ))
           dev.off()
 
@@ -340,13 +376,14 @@ plot_qc_comparison <- function(original_table, filtered_table,
               width = width * dpi, height = height * dpi, res = dpi)
           ComplexHeatmap::draw(ComplexHeatmap::Heatmap(
             heatmap_data_filt_scaled,
-            name = paste0(prefix, "_filt"),
+            name = "Z-score",
             col = colorRampPalette(c("blue", "white", "red"))(100),
-            column_title = paste("Top", heatmap_top, "Variable Features\nFiltered Table"),
+            column_title = paste("Top", heatmap_top, "Variable Features - Filtered Table"),
             show_row_names = TRUE,
-            show_column_names = FALSE,
-            row_names_gp = grid::gpar(fontsize = 6),
-            column_names_gp = grid::gpar(fontsize = 8)
+            show_column_names = TRUE,
+            row_names_gp = grid::gpar(fontsize = row_fontsize),
+            column_names_gp = grid::gpar(fontsize = col_fontsize),
+            column_names_side = "bottom"
           ))
           dev.off()
         }
@@ -506,20 +543,48 @@ create_heatmap_ggplot <- function(mat, row_names, col_names, main_title) {
 
   # Calculate number of sample ticks to show (more for smaller datasets)
   n_samples <- length(col_names)
+  n_features <- length(row_names)
+
+  # Determine tick intervals based on data size
   if (n_samples <= 10) {
     sample_tick_interval <- 1
-  } else if (n_samples <= 50) {
-    sample_tick_interval <- max(1, floor(n_samples / 8))
-  } else {
+  } else if (n_samples <= 30) {
     sample_tick_interval <- max(1, floor(n_samples / 10))
+  } else if (n_samples <= 100) {
+    sample_tick_interval <- max(1, floor(n_samples / 15))
+  } else {
+    sample_tick_interval <- max(1, floor(n_samples / 20))
   }
 
+  # Determine row label interval based on number of features
+  if (n_features <= 20) {
+    row_tick_interval <- 1
+    row_fontsize <- 8
+  } else if (n_features <= 50) {
+    row_tick_interval <- max(1, floor(n_features / 20))
+    row_fontsize <- 7
+  } else if (n_features <= 100) {
+    row_tick_interval <- max(1, floor(n_features / 30))
+    row_fontsize <- 6
+  } else {
+    row_tick_interval <- max(1, floor(n_features / 40))
+    row_fontsize <- 5
+  }
+
+  # Create sample tick positions and labels
+  sample_ticks <- seq(1, n_samples, by = sample_tick_interval)
+  sample_labels <- col_names[sample_ticks]
+
+  # Create feature tick positions and labels
+  feature_ticks <- seq(1, n_features, by = row_tick_interval)
+  feature_labels <- row_names[feature_ticks]
+
   # Factor levels to maintain order
-  mat_long$feature <- factor(mat_long$feature, levels = rev(unique(mat_long$feature)))
+  mat_long$feature <- factor(mat_long$feature, levels = rev(row_names))
 
   # Create ggplot heatmap
   p <- ggplot2::ggplot(mat_long, ggplot2::aes(x = sample_idx, y = feature, fill = value)) +
-    ggplot2::geom_tile(color = "gray90", linewidth = 0.2) +
+    ggplot2::geom_tile(color = NA) +
     ggplot2::scale_fill_gradient2(
       low = "blue",
       mid = "white",
@@ -535,18 +600,25 @@ create_heatmap_ggplot <- function(mat, row_names, col_names, main_title) {
       y = "Features"
     ) +
     ggplot2::scale_x_continuous(
-      breaks = seq(1, n_samples, by = sample_tick_interval),
-      labels = col_names[seq(1, n_samples, by = sample_tick_interval)]
+      breaks = sample_ticks,
+      labels = sample_labels,
+      expand = c(0, 0)
     ) +
-    ggplot2::theme_minimal(base_size = 10) +
+    ggplot2::scale_y_discrete(
+      breaks = feature_ticks,
+      labels = feature_labels
+    ) +
+    ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(
-      plot.title = ggplot2::element_text(hjust = 0.5, face = "bold", size = 12),
-      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8),
-      axis.text.y = ggplot2::element_text(size = 8, family = "monospace"),
+      plot.title = ggplot2::element_text(hjust = 0.5, face = "bold", size = 14),
+      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5, size = 9),
+      axis.text.y = ggplot2::element_text(size = row_fontsize, family = "sans"),
       panel.grid = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(fill = "gray95", color = "gray70"),
       legend.position = "right",
       legend.box = "vertical",
-      aspect.ratio = 0.6
+      aspect.ratio = 0.7,
+      plot.margin = ggplot2::margin(20, 20, 20, 60)
     )
 
   return(p)
