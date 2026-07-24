@@ -192,7 +192,7 @@ Full documentation is available:
 
 - **Bioconductor**: https://bioconductor.org/packages/featuretablefilter
 - **Reference manual**: `vignette("featuretablefilter")`
-- **Tutorial**: `vignette("tutorial")`
+- **Tutorial**: See [Tutorial.md](Tutorial.md) for a comprehensive guide with basic and advanced examples
 
 ## Citation
 
