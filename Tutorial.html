@@ -277,23 +277,45 @@
 <span><span class="co"># Step 6: Advanced Filtering Methods</span></span>
 <span><span class="co"># ============================================================================</span></span>
 <span></span>
-<span><span class="co"># Sparsity elbow detection</span></span>
+<span><span class="co"># Sparsity elbow detection (diagnostic analysis)</span></span>
+<span><span class="va">elbow_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/identify_sparsity_elbow.html">identify_sparsity_elbow</a></span><span class="op">(</span></span>
+<span>  table <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"kneedle"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Print filtering recommendation</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">elbow_result</span><span class="op">$</span><span class="va">recommendation</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># To apply elbow-based filtering in a pipeline:</span></span>
 <span><span class="va">result_elbow</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/run_filtering_pipeline.html">run_filtering_pipeline</a></span><span class="op">(</span></span>
 <span>  input <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
-<span>  cov_filter_method <span class="op">=</span> <span class="st">"elbow"</span>,</span>
-<span>  elbow_method <span class="op">=</span> <span class="st">"kneedle"</span>,</span>
+<span>  cov_filter_method <span class="op">=</span> <span class="st">"mad"</span>,           <span class="co"># Use valid coverage method</span></span>
+<span>  sparsity_elbow_detect <span class="op">=</span> <span class="cn">TRUE</span>,        <span class="co"># Enable elbow detection</span></span>
+<span>  apply_sparsity_elbow <span class="op">=</span> <span class="cn">FALSE</span>,        <span class="co"># Set TRUE to apply elbow filtering</span></span>
+<span>  sparsity_elbow_method <span class="op">=</span> <span class="st">"kneedle"</span>,   <span class="co"># Elbow detection algorithm</span></span>
 <span>  abun_filter_method <span class="op">=</span> <span class="st">"none"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Depth-sparsity outlier analysis</span></span>
-<span><span class="va">result_ds_outliers</span> <span class="op">&lt;-</span> <span class="fu">run_depth_sparsity_analysis</span><span class="op">(</span></span>
-<span>  input <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
+<span><span class="va">ds_analysis</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/analyze_depth_sparsity.html">analyze_depth_sparsity</a></span><span class="op">(</span></span>
+<span>  table <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"sparsity"</span>,</span>
-<span>  method <span class="op">=</span> <span class="st">"mad"</span></span>
+<span>  outlier_method <span class="op">=</span> <span class="st">"mad"</span>,</span>
+<span>  multiplier <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  direction <span class="op">=</span> <span class="st">"high_sparsity"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># View detected outliers</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_ds_outliers</span><span class="op">$</span><span class="va">outliers</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ds_analysis</span><span class="op">$</span><span class="va">outliers</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Filter out depth-sparsity outliers</span></span>
+<span><span class="va">result_ds_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/filter_depth_sparsity_outliers.html">filter_depth_sparsity_outliers</a></span><span class="op">(</span></span>
+<span>  table <span class="op">=</span> <span class="va">example_feature_table</span>,</span>
+<span>  metric <span class="op">=</span> <span class="st">"sparsity"</span>,</span>
+<span>  outlier_method <span class="op">=</span> <span class="st">"mad"</span>,</span>
+<span>  multiplier <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  direction <span class="op">=</span> <span class="st">"high_sparsity"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># ============================================================================</span></span>
 <span><span class="co"># Step 7: Complete Pipeline with All Filters</span></span>
@@ -319,10 +341,10 @@
 <span>  <span class="co"># Cross-talk correction</span></span>
 <span>  crosstalk_filter_method <span class="op">=</span> <span class="st">"zero"</span>,</span>
 <span>  crosstalk_threshold <span class="op">=</span> <span class="fl">0.001</span>,</span>
-<span>  </span>
-<span>  <span class="co"># Generate reports</span></span>
-<span>  generate_text_report <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  generate_markdown_report <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span></span>
+<span>  <span class="co"># Output options</span></span>
+<span>  generate_plots <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  generate_report <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># ============================================================================</span></span>
@@ -334,40 +356,73 @@
 <span></span>
 <span><span class="co"># Samples retained</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\n=== Sample Retention ===\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Original samples:"</span>, <span class="va">qc</span><span class="op">$</span><span class="va">original</span><span class="op">$</span><span class="va">n_samples</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Filtered samples:"</span>, <span class="va">qc</span><span class="op">$</span><span class="va">filtered</span><span class="op">$</span><span class="va">n_samples</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Retention rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">sample_retention_rate</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Original table:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">result_full</span><span class="op">$</span><span class="va">original_table</span><span class="op">)</span>, <span class="st">"features x"</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">result_full</span><span class="op">$</span><span class="va">original_table</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span>, <span class="st">"samples\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Filtered table:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">result_full</span><span class="op">$</span><span class="va">filtered_table</span><span class="op">)</span>, <span class="st">"features x"</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">result_full</span><span class="op">$</span><span class="va">filtered_table</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span>, <span class="st">"samples\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Sample retention:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">sample_retention_percent</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Features retained</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\n=== Feature Retention ===\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Original features:"</span>, <span class="va">qc</span><span class="op">$</span><span class="va">original</span><span class="op">$</span><span class="va">n_features</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Filtered features:"</span>, <span class="va">qc</span><span class="op">$</span><span class="va">filtered</span><span class="op">$</span><span class="va">n_features</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Retention rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">feature_retention_rate</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Feature retention:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">feature_retention_percent</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Read retention:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">read_retention_percent</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Sparsity changes</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\n=== Sparsity Changes ===\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Original sparsity:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">original</span><span class="op">$</span><span class="va">sparsity</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Filtered sparsity:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">filtered</span><span class="op">$</span><span class="va">sparsity</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Original sparsity:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">sparsity_original</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Filtered sparsity:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">sparsity_filtered</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Sparsity drop:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">sparsity_drop_percent</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"percentage points\n"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Diversity comparison</span></span>
+<span><span class="co"># Diversity comparison (Effective Number of Species / Hill numbers)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\n=== Diversity Metrics ===\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">diversity_comparison</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Shannon ENS - Original:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">shannon_ens_original</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Shannon ENS - Filtered:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">shannon_ens_filtered</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Shannon ENS retention:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">shannon_ens_retention_percent</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Simpson ENS - Original:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">simpson_ens_original</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Simpson ENS - Filtered:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">simpson_ens_filtered</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Simpson ENS retention:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">simpson_ens_retention_percent</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Rank-abundance stability</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\n=== Rank-Abundance Stability ===\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Top 10 overlap:"</span>, <span class="va">qc</span><span class="op">$</span><span class="va">top_n_overlap_count</span>, <span class="st">"features\n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Rank-abundance correlation:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">qc</span><span class="op">$</span><span class="va">rank_abundance_correlation</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># ============================================================================</span></span>
 <span><span class="co"># Step 9: Visualization</span></span>
 <span><span class="co"># ============================================================================</span></span>
 <span></span>
-<span><span class="co"># Note: Visualization functions require optional packages (pheatmap, ComplexHeatmap)</span></span>
-<span><span class="co"># Install with: install.packages(c("pheatmap", "ComplexHeatmap"))</span></span>
+<span><span class="co"># Note: Visualization functions require ggplot2 (included via Imports)</span></span>
 <span></span>
-<span><span class="co"># Coverage distribution plot</span></span>
-<span><span class="fu">plot_coverage_distribution</span><span class="op">(</span><span class="va">example_feature_table</span><span class="op">)</span></span>
+<span><span class="co"># Coverage histogram with threshold line</span></span>
+<span><span class="co"># Wrap in print() to display in RStudio</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="reference/plot_coverage_histogram.html">plot_coverage_histogram</a></span><span class="op">(</span><span class="va">result_full</span><span class="op">$</span><span class="va">original_table</span><span class="op">)</span><span class="op">$</span><span class="va">plot</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Before/after comparison</span></span>
-<span><span class="fu"><a href="reference/plot_qc_comparison.html">plot_qc_comparison</a></span><span class="op">(</span><span class="va">qc</span><span class="op">)</span></span>
+<span><span class="co"># Before/after comparison plot (returns list of plots)</span></span>
+<span><span class="va">qc_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/plot_qc_comparison.html">plot_qc_comparison</a></span><span class="op">(</span></span>
+<span>  original_table <span class="op">=</span> <span class="va">result_full</span><span class="op">$</span><span class="va">original_table</span>,</span>
+<span>  filtered_table <span class="op">=</span> <span class="va">result_full</span><span class="op">$</span><span class="va">filtered_table</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co"># Print individual plots from the list</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">qc_plots</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">coverage_distribution</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">qc_plots</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">sparsity_histogram</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">qc_plots</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">retention_rates</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Top features stacked barplot</span></span>
-<span><span class="fu"><a href="reference/plot_top_features_stacked.html">plot_top_features_stacked</a></span><span class="op">(</span><span class="va">example_feature_table</span>, top_n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co"># Top features stacked barplot (requires both tables)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="reference/plot_top_features_stacked.html">plot_top_features_stacked</a></span><span class="op">(</span></span>
+<span>  original_table <span class="op">=</span> <span class="va">result_full</span><span class="op">$</span><span class="va">original_table</span>,</span>
+<span>  filtered_table <span class="op">=</span> <span class="va">result_full</span><span class="op">$</span><span class="va">filtered_table</span>,</span>
+<span>  top_n <span class="op">=</span> <span class="fl">10</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Optional: Sparsity elbow plot (if elbow detection was run)</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">result_full</span><span class="op">$</span><span class="va">sparsity_elbow_result</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="reference/plot_sparsity_elbow.html">plot_sparsity_elbow</a></span><span class="op">(</span><span class="va">result_full</span><span class="op">$</span><span class="va">sparsity_elbow_result</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Optional: Scree plot (if scree analysis was run)</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">result_full</span><span class="op">$</span><span class="va">scree_result</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="reference/plot_scree.html">plot_scree</a></span><span class="op">(</span><span class="va">result_full</span><span class="op">$</span><span class="va">scree_result</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span></span>
 <span><span class="co"># ============================================================================</span></span>
 <span><span class="co"># Step 10: Export Results</span></span>
