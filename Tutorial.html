@@ -553,24 +553,27 @@ ASV003       78         0          156        ...
 <ol style="list-style-type: decimal"><li>
 <p><strong>Scree Analysis</strong>: Systematically evaluate threshold effects</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">scree_result</span> <span class="op">&lt;-</span> <span class="fu">run_scree_analysis</span><span class="op">(</span><span class="va">example_feature_table</span>, </span>
-<span>                                   cov_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">5000</span><span class="op">)</span>,</span>
-<span>                                   abun_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.0001</span>, <span class="fl">0.01</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">scree_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute_scree.html">compute_scree</a></span><span class="op">(</span><span class="va">example_feature_table</span>,</span>
+<span>                              type <span class="op">=</span> <span class="st">"mad_multiplier"</span>,</span>
+<span>                              n_steps <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/plot_scree.html">plot_scree</a></span><span class="op">(</span><span class="va">scree_result</span><span class="op">)</span></span></code></pre></div>
 </li>
 <li>
-<p><strong>Network-based Filtering</strong>: Use mutual information networks</p>
+<p><strong>Network-based Filtering</strong>: Remove features with low network connectivity</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">network_result</span> <span class="op">&lt;-</span> <span class="fu">apply_network_filtering</span><span class="op">(</span><span class="va">filtered_table</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">network_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/filter_by_network_connectivity.html">filter_by_network_connectivity</a></span><span class="op">(</span><span class="va">result_abs_abun</span><span class="op">$</span><span class="va">filtered_table</span>,</span>
+<span>                                                 similarity_type <span class="op">=</span> <span class="st">"mi"</span><span class="op">)</span></span></code></pre></div>
 </li>
 <li>
 <p><strong>Interactive Dashboard</strong>: Launch the Shiny dashboard for visual parameter exploration</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/runDashboard.html">runDashboard</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">featuretablefilter</span><span class="fu">::</span><span class="fu"><a href="reference/runDashboard.html">runDashboard</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </li>
 <li>
-<p><strong>Advanced Reporting</strong>: Generate publication-ready PDF reports</p>
+<p><strong>Sparsity Elbow Analysis</strong>: Identify critical sequencing depth thresholds</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">generate_pdf_report</span><span class="op">(</span><span class="va">result_full</span>, output_file <span class="op">=</span> <span class="st">"filtering_report.pdf"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">elbow_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/identify_sparsity_elbow.html">identify_sparsity_elbow</a></span><span class="op">(</span><span class="va">example_feature_table</span>, method <span class="op">=</span> <span class="st">"kneedle"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/plot_sparsity_elbow.html">plot_sparsity_elbow</a></span><span class="op">(</span><span class="va">elbow_result</span><span class="op">)</span></span></code></pre></div>
 </li>
 </ol><hr></div>
 <div class="section level2">
