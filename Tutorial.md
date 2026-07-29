@@ -525,24 +525,27 @@ After completing this tutorial, explore:
 
 1. **Scree Analysis**: Systematically evaluate threshold effects
    ```r
-   scree_result <- run_scree_analysis(example_feature_table, 
-                                      cov_range = c(500, 5000),
-                                      abun_range = c(0.0001, 0.01))
+   scree_result <- compute_scree(example_feature_table,
+                                 type = "mad_multiplier",
+                                 n_steps = 20)
+   plot_scree(scree_result)
    ```
 
-2. **Network-based Filtering**: Use mutual information networks
+2. **Network-based Filtering**: Remove features with low network connectivity
    ```r
-   network_result <- apply_network_filtering(filtered_table)
+   network_result <- filter_by_network_connectivity(result_abs_abun$filtered_table,
+                                                    similarity_type = "mi")
    ```
 
 3. **Interactive Dashboard**: Launch the Shiny dashboard for visual parameter exploration
    ```r
-   runDashboard()
+   featuretablefilter::runDashboard()
    ```
 
-4. **Advanced Reporting**: Generate publication-ready PDF reports
+4. **Sparsity Elbow Analysis**: Identify critical sequencing depth thresholds
    ```r
-   generate_pdf_report(result_full, output_file = "filtering_report.pdf")
+   elbow_result <- identify_sparsity_elbow(example_feature_table, method = "kneedle")
+   plot_sparsity_elbow(elbow_result)
    ```
 
 ---
