@@ -239,23 +239,45 @@ result_crosstalk <- run_filtering_pipeline(
 # Step 6: Advanced Filtering Methods
 # ============================================================================
 
-# Sparsity elbow detection
+# Sparsity elbow detection (diagnostic analysis)
+elbow_result <- identify_sparsity_elbow(
+  table = example_feature_table,
+  method = "kneedle"
+)
+
+# Print filtering recommendation
+print(elbow_result$recommendation)
+
+# To apply elbow-based filtering in a pipeline:
 result_elbow <- run_filtering_pipeline(
   input = example_feature_table,
-  cov_filter_method = "elbow",
-  elbow_method = "kneedle",
+  cov_filter_method = "mad",           # Use valid coverage method
+  sparsity_elbow_detect = TRUE,        # Enable elbow detection
+  apply_sparsity_elbow = FALSE,        # Set TRUE to apply elbow filtering
+  sparsity_elbow_method = "kneedle",   # Elbow detection algorithm
   abun_filter_method = "none"
 )
 
 # Depth-sparsity outlier analysis
-result_ds_outliers <- run_depth_sparsity_analysis(
-  input = example_feature_table,
+ds_analysis <- analyze_depth_sparsity(
+  table = example_feature_table,
   metric = "sparsity",
-  method = "mad"
+  outlier_method = "mad",
+  multiplier = 3,
+  direction = "high_sparsity"
 )
 
 # View detected outliers
-print(result_ds_outliers$outliers)
+print(ds_analysis$outliers)
+
+# Filter out depth-sparsity outliers
+result_ds_filtered <- filter_depth_sparsity_outliers(
+  table = example_feature_table,
+  metric = "sparsity",
+  outlier_method = "mad",
+  multiplier = 3,
+  direction = "high_sparsity"
+)
 
 # ============================================================================
 # Step 7: Complete Pipeline with All Filters
@@ -281,10 +303,10 @@ result_full <- run_filtering_pipeline(
   # Cross-talk correction
   crosstalk_filter_method = "zero",
   crosstalk_threshold = 0.001,
-  
-  # Generate reports
-  generate_text_report = TRUE,
-  generate_markdown_report = TRUE
+
+  # Output options
+  generate_plots = TRUE,
+  generate_report = TRUE
 )
 
 # ============================================================================
@@ -296,40 +318,73 @@ qc <- result_full$qc_metrics
 
 # Samples retained
 cat("\n=== Sample Retention ===\n")
-cat("Original samples:", qc$original$n_samples, "\n")
-cat("Filtered samples:", qc$filtered$n_samples, "\n")
-cat("Retention rate:", round(qc$sample_retention_rate * 100, 1), "%\n")
+cat("Original table:", nrow(result_full$original_table), "features x",
+    ncol(result_full$original_table) - 1, "samples\n")
+cat("Filtered table:", nrow(result_full$filtered_table), "features x",
+    ncol(result_full$filtered_table) - 1, "samples\n")
+cat("Sample retention:", round(qc$sample_retention_percent, 1), "%\n")
 
 # Features retained
 cat("\n=== Feature Retention ===\n")
-cat("Original features:", qc$original$n_features, "\n")
-cat("Filtered features:", qc$filtered$n_features, "\n")
-cat("Retention rate:", round(qc$feature_retention_rate * 100, 1), "%\n")
+cat("Feature retention:", round(qc$feature_retention_percent, 1), "%\n")
+cat("Read retention:", round(qc$read_retention_percent, 1), "%\n")
 
 # Sparsity changes
 cat("\n=== Sparsity Changes ===\n")
-cat("Original sparsity:", round(qc$original$sparsity * 100, 1), "%\n")
-cat("Filtered sparsity:", round(qc$filtered$sparsity * 100, 1), "%\n")
+cat("Original sparsity:", round(qc$sparsity_original * 100, 1), "%\n")
+cat("Filtered sparsity:", round(qc$sparsity_filtered * 100, 1), "%\n")
+cat("Sparsity drop:", round(qc$sparsity_drop_percent, 1), "percentage points\n")
 
-# Diversity comparison
+# Diversity comparison (Effective Number of Species / Hill numbers)
 cat("\n=== Diversity Metrics ===\n")
-print(qc$diversity_comparison)
+cat("Shannon ENS - Original:", round(qc$shannon_ens_original, 2), "\n")
+cat("Shannon ENS - Filtered:", round(qc$shannon_ens_filtered, 2), "\n")
+cat("Shannon ENS retention:", round(qc$shannon_ens_retention_percent, 1), "%\n")
+cat("Simpson ENS - Original:", round(qc$simpson_ens_original, 2), "\n")
+cat("Simpson ENS - Filtered:", round(qc$simpson_ens_filtered, 2), "\n")
+cat("Simpson ENS retention:", round(qc$simpson_ens_retention_percent, 1), "%\n")
+
+# Rank-abundance stability
+cat("\n=== Rank-Abundance Stability ===\n")
+cat("Top 10 overlap:", qc$top_n_overlap_count, "features\n")
+cat("Rank-abundance correlation:", round(qc$rank_abundance_correlation, 3), "\n")
 
 # ============================================================================
 # Step 9: Visualization
 # ============================================================================
 
-# Note: Visualization functions require optional packages (pheatmap, ComplexHeatmap)
-# Install with: install.packages(c("pheatmap", "ComplexHeatmap"))
+# Note: Visualization functions require ggplot2 (included via Imports)
 
-# Coverage distribution plot
-plot_coverage_distribution(example_feature_table)
+# Coverage histogram with threshold line
+# Wrap in print() to display in RStudio
+print(plot_coverage_histogram(result_full$original_table)$plot)
 
-# Before/after comparison
-plot_qc_comparison(qc)
+# Before/after comparison plot (returns list of plots)
+qc_plots <- plot_qc_comparison(
+  original_table = result_full$original_table,
+  filtered_table = result_full$filtered_table
+)
+# Print individual plots from the list
+print(qc_plots$plots$coverage_distribution)
+print(qc_plots$plots$sparsity_histogram)
+print(qc_plots$plots$retention_rates)
 
-# Top features stacked barplot
-plot_top_features_stacked(example_feature_table, top_n = 10)
+# Top features stacked barplot (requires both tables)
+print(plot_top_features_stacked(
+  original_table = result_full$original_table,
+  filtered_table = result_full$filtered_table,
+  top_n = 10
+))
+
+# Optional: Sparsity elbow plot (if elbow detection was run)
+if (!is.null(result_full$sparsity_elbow_result)) {
+  print(plot_sparsity_elbow(result_full$sparsity_elbow_result))
+}
+
+# Optional: Scree plot (if scree analysis was run)
+if (!is.null(result_full$scree_result)) {
+  print(plot_scree(result_full$scree_result))
+}
 
 # ============================================================================
 # Step 10: Export Results
