@@ -4,7 +4,6 @@
 <url><loc>/CLAUDE.html</loc></url>
 <url><loc>/CODE_OF_CONDUCT.html</loc></url>
 <url><loc>/CONTRIBUTING.html</loc></url>
-<url><loc>/LICENSE-text.html</loc></url>
 <url><loc>/SECURITY.html</loc></url>
 <url><loc>/SHINY_DASHBOARD_PLAN.html</loc></url>
 <url><loc>/Tutorial.html</loc></url>
@@ -12,6 +11,7 @@
 <url><loc>/articles/index.html</loc></url>
 <url><loc>/articles/tutorial.html</loc></url>
 <url><loc>/authors.html</loc></url>
+<url><loc>/featuretablefilter.html</loc></url>
 <url><loc>/index.html</loc></url>
 <url><loc>/news/index.html</loc></url>
 <url><loc>/reference/analyze_depth_sparsity.html</loc></url>
@@ -32,8 +32,6 @@
 <url><loc>/reference/estimate_mad_cutoff.html</loc></url>
 <url><loc>/reference/estimate_mi_knn.html</loc></url>
 <url><loc>/reference/example_feature_table.html</loc></url>
-<url><loc>/reference/example_phyloseq.html</loc></url>
-<url><loc>/reference/example_treesummarizedexperiment.html</loc></url>
 <url><loc>/reference/featuretablefilter.html</loc></url>
 <url><loc>/reference/filter_by_coverage.html</loc></url>
 <url><loc>/reference/filter_by_coverage_estimator.html</loc></url>
