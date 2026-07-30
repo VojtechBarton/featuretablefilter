@@ -54,5 +54,5 @@ jobs:
       - name: Run BiocCheck
         run: |
           tarball=$(ls *.tar.gz)
-          Rscript -e "BiocCheck::BiocCheck('$tarball', no-check-version=TRUE)"
+          Rscript -e "BiocCheck::BiocCheck('$tarball', no.check.version=TRUE)"
         shell: bash
