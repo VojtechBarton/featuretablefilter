@@ -1,7 +1,7 @@
 # FeatureTableFilter Docker Image
 # A comprehensive environment for microbiome feature table filtering
 
-FROM rocker/r-ver:4.4.2
+FROM rocker/r-ver:4.5.0
 
 LABEL maintainer="Vojtech Barton <vojtech.barton@hotmail.com>"
 LABEL description="Docker image with featuretablefilter R package and all dependencies"
@@ -41,9 +41,9 @@ RUN Rscript -e "install.packages('remotes', repos = 'https://cloud.r-project.org
 RUN Rscript -e "remotes::install_cran(c('devtools', 'roxygen2', 'testthat', 'knitr', 'rmarkdown', 'ggplot2', 'tidyr', 'dplyr', 'purrr', 'scales', 'patchwork', 'pheatmap', 'vegan', 'igraph', 'zoo', 'covr', 'shiny', 'DT'), upgrade = 'never', Ncpus = 4)"
 
 # Install Bioconductor packages using BiocManager
-# R 4.4.x corresponds to Bioconductor 3.19; specify version to avoid conflicts
+# R 4.5.x corresponds to Bioconductor 3.21; specify version to avoid conflicts
 RUN Rscript -e "install.packages('BiocManager', repos = 'https://cran.r-project.org'); \
-    BiocManager::install(version = '3.19', ask = FALSE, update = TRUE); \
+    BiocManager::install(version = '3.21', ask = FALSE, update = TRUE); \
     BiocManager::install(c('S4Vectors', 'SummarizedExperiment', 'SingleCellExperiment', 'TreeSummarizedExperiment', 'phyloseq'), ask = FALSE, update = FALSE, Ncpus = 4)"
 
 # Copy package source to container
