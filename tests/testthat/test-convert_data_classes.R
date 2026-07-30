@@ -197,7 +197,7 @@ test_that("to_TSE with rowData and colData", {
   rownames(rowData) <- paste0("ASV_", 1:6)
 
   colData <- data.frame(
-    Condition = rep(c("Control", "Treatment"), 3)
+    Condition = c("Control", "Treatment", "Control")
   )
   rownames(colData) <- c("S1", "S2", "S3")
 

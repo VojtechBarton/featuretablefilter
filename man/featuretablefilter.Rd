@@ -26,9 +26,14 @@ metrics and visualizations for filtering decisions.
 \section{Example Data}{
 
 \describe{
-  \item{\code{example_feature_table}}{Synthetic feature table (50 features x 20 samples)}
-  \item{\code{example_phyloseq}}{Synthetic phyloseq object (100 features x 30 samples)}
-  \item{\code{example_treesummarizedexperiment}}{Synthetic TSE object (100 features x 30 samples)}
+  \item{\code{example_feature_table}}{Synthetic feature table (50 features x 20 samples),
+    available via \code{data(example_feature_table)}.}
+  \item{\code{example_phyloseq_object.rds}}{Synthetic phyloseq object in
+    \code{inst/extdata/}, loaded via \code{readRDS(system.file("extdata",
+    "example_phyloseq_object.rds", package = "featuretablefilter"))}.}
+  \item{\code{example_treesummarizedexperiment_object.rds}}{Synthetic TSE object in
+    \code{inst/extdata/}, loaded via \code{readRDS(system.file("extdata",
+    "example_treesummarizedexperiment_object.rds", package = "featuretablefilter"))}.}
 }
 }
 

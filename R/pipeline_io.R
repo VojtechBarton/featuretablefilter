@@ -101,7 +101,11 @@
       filtered_table,
       rowData = SummarizedExperiment::rowData(original_object),
       colData = SummarizedExperiment::colData(original_object),
-      reducedDims = SummarizedExperiment::reducedDims(original_object),
+      reducedDims = if (requireNamespace("SingleCellExperiment", quietly = TRUE)) {
+        SingleCellExperiment::reducedDims(original_object)
+      } else {
+        NULL
+      },
       rowTree = TreeSummarizedExperiment::rowTree(original_object),
       rowLinks = TreeSummarizedExperiment::rowLinks(original_object)
     )

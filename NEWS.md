@@ -1,6 +1,6 @@
 # featuretablefilter NEWS
 
-## featuretablefilter 1.0.0 (Unreleased)
+## featuretablefilter 0.99.0 (Unreleased)
 
 ### Added
 

@@ -290,7 +290,7 @@ analyze_feature_network <- function(similarity_matrix, threshold = NULL,
 
   if (requireNamespace("igraph", quietly = TRUE)) {
     tryCatch({
-      g <- graph_from_adjacency_matrix(adjacency_matrix, mode = "undirected",
+      g <- igraph::graph_from_adjacency_matrix(adjacency_matrix, mode = "undirected",
                                         weighted = TRUE)
       betweenness <- betweenness(g, directed = FALSE)
     }, error = function(e) {

@@ -1,9 +1,9 @@
 # Ignore version control and IDE files
-.git
-.gitignore
-.claude
-.idea
-.dockerignore
+^\.git$
+^\.gitignore$
+^\.claude$
+^\.idea$
+^\.dockerignore$
 .*\.Rproj$
 ^.*\.Rproj$
 
@@ -18,7 +18,7 @@
 .*\.dll$
 
 # IDE and editor files
-.vscode/
+^\.vscode/
 .*\.swp$
 .*\.swo$
 .*~$
@@ -35,28 +35,30 @@ Thumbs\.db$
 ^vignettes/cache/
 
 # Local configuration
-\.local/
+^\.local/
 
 # Environment variables
-\.env$
+^\.env$
 
 # Log files
 .*\.log$
 
 # Docker
-\.dockerignore
+^Dockerfile$
+^docker-compose\.yml$
+^docker/$
+^\.dockerignore$
 
 # BiocCheck / R check output directories
 .*\.BiocCheck$
 ^\.\.Rcheck/
 ^\.Rcheck/
 
-# Pre-built vignettes (Bioconductor builds these)
-^inst/doc/
+# Pre-built vignette outputs (Bioconductor builds these during check)
 ^vignettes/.*\.html$
 
 # Claude Code session data
-.claude/
+^\.claude/
 
 # Report outputs from pipeline examples
 .*_filtering_report\..*$
@@ -64,3 +66,15 @@ Thumbs\.db$
 
 # Data generation scripts
 ^data-raw/$
+
+# Non-package documentation and project files
+^Tutorial\.md$
+^featuretablefilter\.md$
+^manuscript/$
+^CHANGELOG\.md$
+^CLAUDE\.md$
+^CODE_OF_CONDUCT\.md$
+^CONTRIBUTING\.md$
+^SECURITY\.md$
+^SHINY_DASHBOARD_PLAN\.md$
+^\.github

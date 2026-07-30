@@ -13,13 +13,13 @@ Description: Provides functions for filtering microbiome feature tables based on
     It is intended for microbiome researchers who need reproducible, class-preserving
     filtering workflows with built-in diagnostics and interactive exploration.
 License: Artistic-2.0
-License-file: LICENSE
 URL: https://github.com/VojtechBarton/featuretablefilter
 BugReports: https://github.com/VojtechBarton/featuretablefilter/issues
 Depends:
-    R (>= 4.3.0)
+    R (>= 4.5.0)
 Imports:
     ggplot2 (>= 3.4.0),
+    methods,
     S4Vectors,
     zoo
 Suggests:
@@ -41,9 +41,9 @@ Suggests:
     vegan,
     shiny
 Encoding: UTF-8
-LazyData: false
+LazyData: true
 RoxygenNote: 8.0.0
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 biocViews: Microbiome, DataImport, QualityControl, Visualization,
-    Sequencing, Network, Regression
+    Sequencing, Network

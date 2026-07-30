@@ -1,20 +1,20 @@
-# Workflow for R package checks
+# Workflow for Bioconductor checks
 on:
   push:
     branches: [main, master, develop]
   pull_request:
     branches: [main, master, develop]
 
-name: R-CMD-check
+name: bioc-check
 
 permissions: read-all
 
 jobs:
-  R-CMD-check:
+  bioc-check:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      R_KEEP_PKG_SOURCE: yes
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
 
     steps:
       - uses: actions/checkout@v4
@@ -34,6 +34,7 @@ jobs:
         with:
           extra-packages: |
             any::BiocManager
+            any::BiocCheck
             any::rcmdcheck
           needs: check
 
@@ -42,7 +43,16 @@ jobs:
           BiocManager::install(c("phyloseq", "TreeSummarizedExperiment", "ComplexHeatmap", "BiocStyle", "SingleCellExperiment", "SummarizedExperiment"), update = FALSE, ask = FALSE)
         shell: Rscript {0}
 
-      - uses: r-lib/actions/check-r-package@v2
-        with:
-          upload-snapshots: true
-          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
+      - name: Build package
+        run: R CMD build .
+        shell: bash
+
+      - name: Run R CMD check
+        run: R CMD check --no-manual *.tar.gz
+        shell: bash
+
+      - name: Run BiocCheck
+        run: |
+          tarball=$(ls *.tar.gz)
+          Rscript -e "BiocCheck::BiocCheck('$tarball', no-check-version=TRUE)"
+        shell: bash

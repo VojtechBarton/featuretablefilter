@@ -29,12 +29,18 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
   }
 
   # Validate input - check using inherits()
-  if (!inherits(phylo_obj, "phyloseq")) {
+  # Accept phyloseq objects and otu_table objects (phyloseq() may return
+  # otu_table directly when only an OTU table is provided)
+  if (!inherits(phylo_obj, "phyloseq") && !inherits(phylo_obj, "otu_table")) {
     stop("Input must be a phyloseq object")
   }
 
   # Extract OTU table
-  otu <- phyloseq::otu_table(phylo_obj)
+  if (inherits(phylo_obj, "otu_table")) {
+    otu <- phylo_obj
+  } else {
+    otu <- phyloseq::otu_table(phylo_obj)
+  }
   if (is.null(otu)) {
     stop("phyloseq object must contain an OTU table")
   }
@@ -71,7 +77,7 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
   )
 
   # Add taxonomy if requested and available
-  if (include_taxa) {
+  if (include_taxa && inherits(phylo_obj, "phyloseq")) {
     tax <- phyloseq::tax_table(phylo_obj)
     if (!is.null(tax)) {
       tax_mat <- as.matrix(tax)
@@ -103,9 +109,12 @@ from_phyloseq <- function(phylo_obj, transpose = TRUE, include_taxa = FALSE) {
     }
   }
 
-  # Preserve sample names as column names
+  # Preserve sample names as column names (only for the sample columns,
+  # not taxonomy columns which already have tax_ prefix)
   if (!is.null(samples)) {
-    colnames(result)[-1] <- samples
+    n_samples <- length(samples)
+    sample_col_idx <- seq_len(n_samples) + 1  # +1 for feature_id column
+    colnames(result)[sample_col_idx] <- samples
   }
 
   return(result)
@@ -240,7 +249,25 @@ to_phyloseq <- function(table, tax_table = NULL, phy_tree = NULL,
   }
 
   # Create phyloseq object
-  do.call(phyloseq::phyloseq, components)
+  result <- do.call(phyloseq::phyloseq, components)
+
+  # Ensure result is a phyloseq object (phyloseq() may return a single
+  # component directly instead of a phyloseq object)
+  if (!inherits(result, "phyloseq")) {
+    result <- methods::new("phyloseq", otu_table = components$otu_table)
+    # Re-add other components if they were provided
+    if (!is.null(components$tax_table)) {
+      phyloseq::tax_table(result) <- components$tax_table
+    }
+    if (!is.null(components$phy_tree)) {
+      phyloseq::phy_tree(result) <- components$phy_tree
+    }
+    if (!is.null(components$sam_data)) {
+      phyloseq::sample_data(result) <- components$sam_data
+    }
+  }
+
+  return(result)
 }
 
 
