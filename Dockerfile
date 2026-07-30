@@ -47,7 +47,7 @@ RUN Rscript -e "install.packages('BiocManager', repos = 'https://cran.r-project.
     BiocManager::install(c('S4Vectors', 'SummarizedExperiment', 'SingleCellExperiment', 'TreeSummarizedExperiment', 'phyloseq'), ask = FALSE, update = FALSE, Ncpus = 4)"
 
 # Copy package source to container
-COPY . /workspace/featuretablefilter/
+COPY ./featuretablefilter /workspace/featuretablefilter/
 
 # Generate documentation and NAMESPACE with roxygen2 before installation
 RUN Rscript -e "roxygen2::roxygenise('/workspace/featuretablefilter')"
